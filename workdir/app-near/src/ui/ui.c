@@ -20,7 +20,7 @@
 
 #include "ui.h"
 #include <stdbool.h>
-#include "../glyphs.h"
+#include "glyphs.h"
 #include "../main.h"
 #include "../globals.h"
 #include "../sign_transaction.h"
