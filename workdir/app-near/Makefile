@@ -1,6 +1,6 @@
 #*******************************************************************************
 #   Ledger App
-#   (c) 2017 Ledger
+#   (c) 2023 Ledger
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,153 +18,41 @@
 ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
+
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --curve ed25519 --path "44'/397'" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
-
-APPVERSION_M=1
-APPVERSION_N=2
-APPVERSION_P=4
+# Application name
 APPNAME = "NEAR"
+
+#Application version
+APPVERSION_M = 1
+APPVERSION_N = 2
+APPVERSION_P = 4
 APPVERSION = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 
-DEFINES += $(DEFINES_LIB)
+# Application source files
+APP_SOURCE_PATH += src
 
+# Application icons following guidelines:
+ICON_NANOS = icons/app_near_16px.gif
+ICON_NANOX = icons/app_near_14px.gif
+ICON_NANOSP = icons/app_near_14px.gif
+ICON_STAX = icons/app_near_32px.gif
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-    ICONNAME=icons/nanos_app_near.gif
-else ifeq ($(TARGET_NAME),TARGET_STAX)
-    ICONNAME=icons/stax_app_near_32px.gif
-else
-    ICONNAME=icons/nanox_app_near.gif
-endif
+CURVE_APP_LOAD_PARAMS = ed25519
+PATH_APP_LOAD_PARAMS = "44'/397'" 
 
-################
-# Default rule #
-################
-all: default
+VARIANT_PARAM = COIN
+VARIANT_VALUES = near
 
-############
-# Platform #
-############
+ENABLE_BLUETOOTH = 1
+ENABLE_NBGL_QRCODE = 1
 
-DEFINES   += OS_IO_SEPROXYHAL
-DEFINES   += HAVE_SPRINTF
-ifneq ($(TARGET_NAME),TARGET_STAX)
-DEFINES += HAVE_BAGL HAVE_UX_FLOW
-endif
-DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=6 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
-DEFINES   += LEDGER_MAJOR_VERSION=$(APPVERSION_M) LEDGER_MINOR_VERSION=$(APPVERSION_N) LEDGER_PATCH_VERSION=$(APPVERSION_P)
+APP_WEBUSB_URL = wallet.near.org
 
 # U2F
 DEFINES   += HAVE_U2F HAVE_IO_U2F
 DEFINES   += U2F_PROXY_MAGIC=\"NEAR\"
-DEFINES   += USB_SEGMENT_SIZE=64
-DEFINES   += BLE_SEGMENT_SIZE=32 #max MTU, min 20
+SDK_SOURCE_PATH += lib_u2f 
 
-WEBUSB_URL     = wallet.near.org
-DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | wc -c) WEBUSB_URL=$(shell echo -n $(WEBUSB_URL) | sed -e "s/./\\\'\0\\\',/g")
-
-DEFINES   += UNUSED\(x\)=\(void\)x
-DEFINES   += APPVERSION=\"$(APPVERSION)\"
-DEFINES   += APPNAME=\"$(APPNAME)\"
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
-    DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
-endif
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-    DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-else ifneq ($(TARGET_NAME),TARGET_STAX)
-# Nano X, Nano S plus
-    DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-    DEFINES       += HAVE_GLO096
-    DEFINES       += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
-    DEFINES       += HAVE_BAGL_ELLIPSIS # long label truncation feature
-    DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-    DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-    DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-else ifeq ($(TARGET_NAME),TARGET_STAX)
-# Stax
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-    DEFINES += NBGL_QRCODE
-    SDK_SOURCE_PATH += qrcode
-endif
-
-# Enabling debug PRINTF
-DEBUG = 0
-ifneq ($(DEBUG),0)
-
-        ifeq ($(TARGET_NAME),TARGET_NANOS)
-                DEFINES   += HAVE_PRINTF PRINTF=screen_printf
-        else
-                DEFINES   += HAVE_PRINTF PRINTF=mcu_usb_printf
-        endif
-else
-        DEFINES   += PRINTF\(...\)=
-endif
-
-##############
-#  Compiler  #
-##############
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
-CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
-
-CC       := $(CLANGPATH)clang
-AS       := $(GCCPATH)arm-none-eabi-gcc
-LD       := $(GCCPATH)arm-none-eabi-gcc
-LDLIBS   += -lm -lgcc -lc
-
-# import rules to compile glyphs(/pone)
-include $(BOLOS_SDK)/Makefile.glyphs
-
-### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
-APP_SOURCE_PATH  += src
-SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
-
-ifneq ($(TARGET_NAME),TARGET_STAX)
-SDK_SOURCE_PATH += lib_ux
-endif
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
-    SDK_SOURCE_PATH += lib_blewbxx lib_blewbxx_impl
-endif
-
-load: all
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
-
-load-only:
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
-
-load-offline: all
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline
-
-delete:
-	python -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
-
-release: all
-	export APP_LOAD_PARAMS_EVALUATED="$(shell printf '\\"%s\\" ' $(APP_LOAD_PARAMS))"; \
-	cat load-template.sh | envsubst > load.sh
-	chmod +x load.sh
-	tar -zcf near-ledger-app-$(APPVERSION).tar.gz load.sh bin/app.hex
-	rm load.sh
-
-# import generic rules from the sdk
-include $(BOLOS_SDK)/Makefile.rules
-
-#add dependency on custom makefile filename
-dep/%.d: %.c Makefile
-
-listvariants:
-	@echo VARIANTS COIN near
+include $(BOLOS_SDK)/Makefile.standard_app
