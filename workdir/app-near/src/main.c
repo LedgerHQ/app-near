@@ -130,9 +130,9 @@ void handle_apdu(volatile unsigned int *flags, volatile unsigned int *tx, volati
                 // NOTE: This allows using INS_GET_APP_CONFIGURATION as "reset state" command
                 init_context();
 
-                G_io_apdu_buffer[0] = LEDGER_MAJOR_VERSION;
-                G_io_apdu_buffer[1] = LEDGER_MINOR_VERSION;
-                G_io_apdu_buffer[2] = LEDGER_PATCH_VERSION;
+                G_io_apdu_buffer[0] = MAJOR_VERSION;
+                G_io_apdu_buffer[1] = MINOR_VERSION;
+                G_io_apdu_buffer[2] = PATCH_VERSION;
                 *tx = 3;
                 THROW(SW_OK);
                 break;
