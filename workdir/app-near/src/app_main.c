@@ -77,107 +77,18 @@ uint32_t set_result_sign() {
     return 64;
 }
 
-#define OFFSET_CLA 0
-#define OFFSET_INS 1
-#define OFFSET_P1 2
-#define OFFSET_P2 3
-#define OFFSET_LC 4
-#define OFFSET_CDATA 5
-
-// Called by both the U2F and the standard communications channel
-void handle_apdu(volatile unsigned int *flags, volatile unsigned int *tx, volatile unsigned int rx) {
-    unsigned short sw = 0;
-
-    BEGIN_TRY {
-        TRY {
-            if (G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-                THROW(SW_CLA_NOT_SUPPORTED);
-            }
-
-            PRINTF("command: %d\n", G_io_apdu_buffer[OFFSET_INS]);
-            switch (G_io_apdu_buffer[OFFSET_INS]) {
-            case INS_SIGN: {
-                if (G_io_apdu_buffer[OFFSET_LC] != rx - 5) {
-                    // the length of the APDU should match what's in the 5-byte header.
-                    // If not fail.  Don't want to buffer overrun or anything.
-                    THROW(SW_CONDITIONS_NOT_SATISFIED);
-                }
-
-                handle_sign_transaction(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
-            } break;
-
-            case INS_GET_PUBLIC_KEY: {
-                if (G_io_apdu_buffer[OFFSET_LC] != rx - 5 || G_io_apdu_buffer[OFFSET_LC] != 20) {
-                    // the length of the APDU should match what's in the 5-byte header.
-                    // If not fail.  Don't want to buffer overrun or anything.
-                    THROW(SW_CONDITIONS_NOT_SATISFIED);
-                }
-
-                handle_get_public_key(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
-            } break;
-
-            case INS_GET_WALLET_ID: {
-                if (G_io_apdu_buffer[OFFSET_LC] != rx - 5 || G_io_apdu_buffer[OFFSET_LC] != 20) {
-                    // the length of the APDU should match what's in the 5-byte header.
-                    // If not fail.  Don't want to buffer overrun or anything.
-                    THROW(SW_CONDITIONS_NOT_SATISFIED);
-                }
-
-                handle_get_wallet_id(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
-            } break;
-
-            case INS_GET_APP_CONFIGURATION:
-                // NOTE: This allows using INS_GET_APP_CONFIGURATION as "reset state" command
-                init_context();
-
-                G_io_apdu_buffer[0] = MAJOR_VERSION;
-                G_io_apdu_buffer[1] = MINOR_VERSION;
-                G_io_apdu_buffer[2] = PATCH_VERSION;
-                *tx = 3;
-                THROW(SW_OK);
-                break;
-
-            default:
-                THROW(0x6D00);
-                break;
-            }
-        }
-        CATCH(EXCEPTION_IO_RESET) {
-            THROW(EXCEPTION_IO_RESET);
-        }
-        CATCH_OTHER(e) {
-        switch (e & 0xF000) {
-            case 0x6000:
-                sw = e;
-                break;
-            case 0x9000:
-                // All is well
-                sw = e;
-                break;
-            default:
-                // Internal error
-                sw = 0x6800 | (e & 0x7FF);
-                break;
-            }
-            // Unexpected exception => report
-            G_io_apdu_buffer[*tx] = sw >> 8;
-            G_io_apdu_buffer[*tx + 1] = sw;
-            *tx += 2;
-        }
-        FINALLY {
-        }
-    END_TRY;
-    }
-}
-
 void init_context() {
     memset(&tmp_ctx, 0, sizeof(tmp_ctx));
 }
 
 void app_main(void) {
-    volatile unsigned int rx = 0;
-    volatile unsigned int tx = 0;
-    volatile unsigned int flags = 0;
+    // Length of APDU command received in G_io_apdu_buffer
+    int input_len = 0;
+    // Structured APDU command
+    command_t cmd;
+
+    io_init();
+    ui_idle();
 
     // DESIGN NOTE: the bootloader ignores the way APDU are fetched. The only
     // goal is to retrieve APDU.
@@ -186,55 +97,32 @@ void app_main(void) {
     // switch event, before the apdu is replied to the bootloader. This avoid
     // APDU injection faults.
     for (;;) {
-        volatile unsigned short sw = 0;
-        BEGIN_TRY {
-            TRY {
-                rx = tx;
-                tx = 0; // ensure no race in catch_other if io_exchange throws
-                        // an error
-                rx = io_exchange(CHANNEL_APDU | flags, rx);
-                flags = 0;
-
-                // no apdu received, well, reset the session, and reset the
-                // bootloader configuration
-                if (rx == 0) {
-                    THROW(SW_SECURITY_STATUS_NOT_SATISFIED);
-                }
-
-                PRINTF("New APDU received:\n%.*H\n", rx, G_io_apdu_buffer);
-                handle_apdu(&flags, &tx, rx);
-            }
-            CATCH(EXCEPTION_IO_RESET) {
-              THROW(EXCEPTION_IO_RESET);
-            }
-            CATCH_OTHER(e) {
-                switch (e & 0xF000) {
-                    case 0x6000:
-                        sw = e;
-                        break;
-                    case 0x9000:
-                        // All is well
-                        sw = e;
-                        break;
-                    default:
-                        // Internal error
-                        sw = 0x6800 | (e & 0x7FF);
-                        break;
-                }
-                if (e != 0x9000) {
-                    flags &= ~IO_ASYNCH_REPLY;
-                }
-                // Unexpected exception => report
-                G_io_apdu_buffer[tx] = sw >> 8;
-                G_io_apdu_buffer[tx + 1] = sw;
-                tx += 2;
-            }
-            FINALLY {
-            }
+        // Receive command bytes in G_io_apdu_buffer
+        if ((input_len = io_recv_command()) < 0) {
+            PRINTF("=> io_recv_command failure\n");
+            return;
         }
-        END_TRY;
-    }
 
-//return_to_dashboard:
-    return;
+        // Parse APDU command from G_io_apdu_buffer
+        if (!apdu_parser(&cmd, G_io_apdu_buffer, input_len)) {
+            PRINTF("=> /!\\ BAD LENGTH: %.*H\n", input_len, G_io_apdu_buffer);
+            io_send_sw(SW_WRONG_DATA_LENGTH);
+            continue;
+        }
+
+        PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=%.*H\n",
+                cmd.cla,
+                cmd.ins,
+                cmd.p1,
+                cmd.p2,
+                cmd.lc,
+                cmd.lc,
+                cmd.data);
+
+        // Dispatch structured APDU command to handler
+        if (apdu_dispatcher(&cmd) < 0) {
+            PRINTF("=> apdu_dispatcher failure\n");
+            return;
+        }
+    }
 }
