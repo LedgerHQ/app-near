@@ -5,6 +5,7 @@
 #include "os.h"
 #include "ux.h"
 #include "glyphs.h"
+#include "io.h"
 
 #define ADDRESS_PREFIX "ed25519:"
 #define ADDRESS_PREFIX_SIZE strlen(ADDRESS_PREFIX)
@@ -113,7 +114,7 @@ static void display_public_key(void)
 
 #endif
 
-void handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
+int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
 {
     UNUSED(p2);
     UNUSED(tx);
@@ -126,13 +127,13 @@ void handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, 
     uint32_t path[5];
     if (input_length < sizeof(path))
     {
-        THROW(INVALID_PARAMETER);
+        return io_send_sw(INVALID_PARAMETER);
     }
     read_path_from_bytes(input_buffer, path);
 
     if (!get_ed25519_public_key_for_path(path, &public_key))
     {
-        THROW(INVALID_PARAMETER);
+        return io_send_sw(INVALID_PARAMETER);
     }
 
     memcpy(tmp_ctx.address_context.public_key, public_key.W, 32);
@@ -142,7 +143,7 @@ void handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, 
     if (base58_encode(tmp_ctx.address_context.public_key, sizeof(tmp_ctx.address_context.public_key),
                       address + ADDRESS_PREFIX_SIZE, sizeof(address) - ADDRESS_PREFIX_SIZE - 1) < 0)
     {
-        THROW(INVALID_PARAMETER);
+        return io_send_sw(INVALID_PARAMETER);
     }
 
     if (p1 == RETURN_ONLY)
@@ -156,6 +157,7 @@ void handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, 
     }
     else
     {
-        THROW(SW_INCORRECT_P1_P2);
+        return io_send_sw(SW_INCORRECT_P1_P2);
     }
+    return 0;
 }

@@ -28,6 +28,9 @@
 #include "main.h"
 #include "near.h"
 #include "crypto/ledger_crypto.h"
+#include "dispatcher.h"
+#include "constants.h"
+#include "io.h"
 
 // Temporary area to sore stuff and reuse the same memory
 tmpContext_t tmp_ctx;

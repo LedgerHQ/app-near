@@ -4,6 +4,7 @@
 #include "ux.h"
 #include "utils.h"
 #include "main.h"
+#include "io.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -333,7 +334,7 @@ void sign_add_function_call_key_ux_flow_init()
 
 #endif
 
-static void add_chunk_data(const uint8_t *input_data, size_t input_length)
+static int add_chunk_data(const uint8_t *input_data, size_t input_length)
 {
     // if this is a first chunk
     PRINTF("Buffer used: %d\n", tmp_ctx.signing_context.buffer_used);
@@ -344,7 +345,7 @@ static void add_chunk_data(const uint8_t *input_data, size_t input_length)
         if (input_length < path_size)
         {
             // TODO: Have specific error for underflow?
-            THROW(SW_BUFFER_OVERFLOW);
+            return io_send_sw(SW_BUFFER_OVERFLOW);
         }
         read_path_from_bytes(input_data, tmp_ctx.signing_context.bip32);
 
@@ -360,22 +361,23 @@ static void add_chunk_data(const uint8_t *input_data, size_t input_length)
         // PRINTF("data_size: %d\n", input_length);
         if (tmp_ctx.signing_context.buffer_used + input_length > MAX_DATA_SIZE)
         {
-            THROW(SW_BUFFER_OVERFLOW);
+            return io_send_sw(SW_BUFFER_OVERFLOW);
         }
         memcpy(&tmp_ctx.signing_context.buffer[tmp_ctx.signing_context.buffer_used], input_data, input_length);
         PRINTF("buffer: %.*h\n", input_length, &tmp_ctx.signing_context.buffer[tmp_ctx.signing_context.buffer_used]);
     }
     tmp_ctx.signing_context.buffer_used += input_length;
+    return 0;
 }
 
-void handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
+int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
 {
     UNUSED(p2);
     UNUSED(tx);
 
     if (p1 != P1_MORE && p1 != P1_LAST)
     {
-        THROW(SW_INCORRECT_P1_P2);
+        return io_send_sw(SW_INCORRECT_P1_P2);
     }
 
     if (p1 == P1_LAST)
@@ -402,16 +404,16 @@ void handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer
             sign_add_function_call_key_ux_flow_init();
             break;
         case SIGN_PARSING_ERROR:
-            THROW(SW_BUFFER_OVERFLOW);
+            return io_send_sw(SW_BUFFER_OVERFLOW);
         default:
-            THROW(SW_CONDITIONS_NOT_SATISFIED);
+            return io_send_sw(SW_CONDITIONS_NOT_SATISFIED);
         }
     }
     else
     {
         add_chunk_data(input_buffer, input_length);
-        THROW(SW_OK);
+        return io_send_sw(SW_OK);
     }
-
     *flags |= IO_ASYNCH_REPLY;
+    return 0;
 }
