@@ -370,10 +370,9 @@ static int add_chunk_data(const uint8_t *input_data, size_t input_length)
     return 0;
 }
 
-int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
+int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length)
 {
     UNUSED(p2);
-    UNUSED(tx);
 
     if (p1 != P1_MORE && p1 != P1_LAST)
     {
@@ -414,6 +413,5 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
         add_chunk_data(input_buffer, input_length);
         return io_send_sw(SW_OK);
     }
-    *flags |= IO_ASYNCH_REPLY;
     return 0;
 }

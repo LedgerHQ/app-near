@@ -108,10 +108,9 @@ static void display_wallet_id(void)
 
 #endif
 
-int handle_get_wallet_id(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx) {
+int handle_get_wallet_id(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length) {
     UNUSED(p1);
     UNUSED(p2);
-    UNUSED(tx);
 
     init_context();
 
@@ -133,6 +132,5 @@ int handle_get_wallet_id(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, ui
 
     bin_to_hex(wallet_id, public_key.W, 32);
     display_wallet_id();
-    *flags |= IO_ASYNCH_REPLY;
     return 0;
 }

@@ -114,10 +114,9 @@ static void display_public_key(void)
 
 #endif
 
-int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
+int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length)
 {
     UNUSED(p2);
-    UNUSED(tx);
 
     init_context();
 
@@ -153,7 +152,6 @@ int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, u
     else if (p1 == DISPLAY_AND_CONFIRM)
     {
         display_public_key();
-        *flags |= IO_ASYNCH_REPLY;
     }
     else
     {
