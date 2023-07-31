@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "main.h"
 #include "io.h"
+#include "ledger_crypto.h"
 
 static char wallet_id[65];
 
@@ -123,7 +124,7 @@ int handle_get_wallet_id(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, ui
     }
     read_path_from_bytes(input_buffer, path);
 
-    if (!get_ed25519_public_key_for_path(path, &public_key))
+    if (!get_ed25519_public_key_for_path(path, public_key.W))
     {
         return io_send_sw(INVALID_PARAMETER);
     }

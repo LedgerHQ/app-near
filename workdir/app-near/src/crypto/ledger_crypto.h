@@ -4,9 +4,7 @@
 #include "os.h"
 #include <stdbool.h>
 
-void public_key_le_to_be(cx_ecfp_public_key_t* public_key);
-void get_private_key_for_path(const uint32_t* path, cx_ecfp_private_key_t* private_key);
-bool get_ed25519_public_key_for_path(const uint32_t* path, cx_ecfp_public_key_t* public_key);
-void sha_256(const unsigned char* msg, size_t msg_len, void* out);
+void public_key_le_to_be(uint8_t raw_pubkey[static 65]);
+bool get_ed25519_public_key_for_path(const uint32_t* path, uint8_t raw_pubkey[static 65]);
 
 #endif

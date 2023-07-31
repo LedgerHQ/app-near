@@ -28,6 +28,7 @@
 #include "main.h"
 #include "near.h"
 #include "crypto/ledger_crypto.h"
+#include "crypto_helpers.h"
 #include "dispatcher.h"
 #include "constants.h"
 #include "io.h"
@@ -58,22 +59,28 @@ void read_path_from_bytes(const uint8_t *buffer, uint32_t *path) {
 
 // like https://github.com/lenondupe/ledger-app-stellar/blob/master/src/main.c#L1784
 uint32_t set_result_sign() {
-    cx_ecfp_private_key_t private_key;
-    get_private_key_for_path((uint32_t *) tmp_ctx.signing_context.bip32, &private_key);
+    uint8_t signature[64];
+    size_t sig_len = 64;
+    uint8_t hash[32]; 
 
-    BEGIN_TRY {
-        TRY {
-            uint8_t signature[64];
-            near_message_sign(&private_key, (unsigned char *)tmp_ctx.signing_context.buffer, tmp_ctx.signing_context.buffer_used, signature);
+    cx_hash_sha256(tmp_ctx.signing_context.buffer, tmp_ctx.signing_context.buffer_used, hash, sizeof(hash));
 
-            memcpy(G_io_apdu_buffer, signature, sizeof(signature));
-        } FINALLY {
-            // reset all private stuff
-            explicit_bzero(&private_key, sizeof(cx_ecfp_private_key_t));
-        }
+    if (bip32_derive_with_seed_eddsa_sign_hash_256(
+            HDW_ED25519_SLIP10,
+            CX_CURVE_Ed25519,
+            tmp_ctx.signing_context.bip32,
+            5,
+            CX_SHA512,
+            hash,
+            32,
+            signature,
+            &sig_len, 
+            NULL, 
+            0)) {
+        return 0;
     }
-    END_TRY;
 
+    memcpy(G_io_apdu_buffer, signature, sizeof(signature));
     return 64;
 }
 

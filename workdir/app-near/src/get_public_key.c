@@ -6,6 +6,7 @@
 #include "ux.h"
 #include "glyphs.h"
 #include "io.h"
+#include "ledger_crypto.h"
 
 #define ADDRESS_PREFIX "ed25519:"
 #define ADDRESS_PREFIX_SIZE strlen(ADDRESS_PREFIX)
@@ -130,7 +131,7 @@ int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, u
     }
     read_path_from_bytes(input_buffer, path);
 
-    if (!get_ed25519_public_key_for_path(path, &public_key))
+    if (!get_ed25519_public_key_for_path(path, public_key.W))
     {
         return io_send_sw(INVALID_PARAMETER);
     }
