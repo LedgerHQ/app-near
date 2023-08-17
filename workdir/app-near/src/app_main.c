@@ -21,7 +21,11 @@
 #include "io.h"
 #include "utils.h"
 
-// Temporary area to store stuff and reuse the same memory
+#ifdef HAVE_SWAP
+#include "swap.h"
+#endif  // HAVE_SWAP
+
+// Temporary area to sore stuff and reuse the same memory
 tmpContext_t tmp_ctx;
 uiContext_t ui_context;
 
@@ -36,7 +40,13 @@ void app_main(void) {
     command_t cmd;
 
     io_init();
-    ui_idle();
+
+#ifdef HAVE_SWAP
+    if (!G_called_from_swap) {
+        ui_idle();
+    }
+#endif  // HAVE_SWAP
+
 
     for (;;) {
         // Receive command bytes in G_io_apdu_buffer
