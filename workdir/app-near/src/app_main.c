@@ -33,6 +33,10 @@
 #include "constants.h"
 #include "io.h"
 
+#ifdef HAVE_SWAP
+#include "swap.h"
+#endif  // HAVE_SWAP
+
 // Temporary area to sore stuff and reuse the same memory
 tmpContext_t tmp_ctx;
 uiContext_t ui_context;
@@ -95,7 +99,13 @@ void app_main(void) {
     command_t cmd;
 
     io_init();
-    ui_idle();
+
+#ifdef HAVE_SWAP
+    if (!G_called_from_swap) {
+        ui_idle();
+    }
+#endif  // HAVE_SWAP
+
 
     // DESIGN NOTE: the bootloader ignores the way APDU are fetched. The only
     // goal is to retrieve APDU.

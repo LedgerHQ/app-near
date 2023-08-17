@@ -8,6 +8,10 @@
 #include "io.h"
 #include "ledger_crypto.h"
 
+#ifdef HAVE_SWAP
+#include "swap.h"
+#endif  // HAVE_SWAP
+
 #define ADDRESS_PREFIX "ed25519:"
 #define ADDRESS_PREFIX_SIZE strlen(ADDRESS_PREFIX)
 
@@ -152,6 +156,12 @@ int handle_get_public_key(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, u
     }
     else if (p1 == DISPLAY_AND_CONFIRM)
     {
+#ifdef HAVE_SWAP
+        if (G_called_from_swap) {
+            PRINTF("Refused GET_PUBLIC_KEY mode when in SWAP mode\n");
+            return io_send_sw(SW_SWAP_CHECKING_FAIL);
+        }
+#endif  // HAVE_SWAP
         display_public_key();
     }
     else
