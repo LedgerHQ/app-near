@@ -14,7 +14,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  ********************************************************************************/
-#ifdef HAVE_SWAP
 
 #include "swap.h"
 
@@ -51,5 +50,3 @@ error:
     PRINTF("Error\n");
     memset(params->printable_amount, '\0', sizeof(params->printable_amount));
 }
-
-#endif  // HAVE_SWAP

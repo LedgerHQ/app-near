@@ -14,7 +14,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  ********************************************************************************/
-#ifdef HAVE_SWAP
 
 #include "handle_swap_sign_transaction.h"
 #include "swap.h"
@@ -145,5 +144,3 @@ void __attribute__((noreturn)) swap_finalize_exchange_sign_transaction(bool is_s
     *G_swap_sign_return_value_address = is_success;
     os_lib_end();
 }
-
-#endif  // HAVE_SWAP

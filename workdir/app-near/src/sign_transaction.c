@@ -6,10 +6,8 @@
 #include "app_main.h"
 #include "ledger_crypto.h"
 #include "io.h"
-#ifdef HAVE_SWAP
 #include "swap.h"
 #include "handle_swap_sign_transaction.h"
-#endif  // HAVE_SWAP
 
 //////////////////////////////////////////////////////////////////////
 
@@ -396,14 +394,12 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
 
         int parsed_transaction = parse_transaction();
 
-#ifdef HAVE_SWAP
         if (G_called_from_swap) {
             if (parsed_transaction != SIGN_FLOW_TRANSFER) {
                 PRINTF("Refused method type when in SWAP mode\n");
                 return io_send_sw(SW_SWAP_CHECKING_FAIL);
             }
         }
-#endif  // HAVE_SWAP
 
         switch (parsed_transaction)
         {
@@ -411,7 +407,6 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
             sign_ux_flow_init();
             break;
         case SIGN_FLOW_TRANSFER:
-#ifdef HAVE_SWAP
             // If we are in swap context, do not redisplay the message data
             // Instead, ensure they are identical with what was previously displayed
             if (G_called_from_swap) {
@@ -447,9 +442,6 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
             } else {
                 sign_transfer_ux_flow_init();
             }
-#else   // HAVE_SWAP
-            sign_transfer_ux_flow_init();
-#endif  // HAVE_SWAP
             break;
         case SIGN_FLOW_FUNCTION_CALL:
             sign_function_call_ux_flow_init();
