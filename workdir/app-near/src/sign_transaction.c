@@ -416,11 +416,11 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
                     // sending the signed transaction
                     PRINTF("Safety against double signing triggered\n");
                     swap_finalize_exchange_sign_transaction(false);
-                } else {
-                    // We will quit the app after this transaction, whether it succeeds or fails
-                    PRINTF("Swap response is ready, the app will quit after the next send\n");
-                    G_swap_response_ready = true;
+                    os_sched_exit(-1);
                 }
+                // We will quit the app after this transaction, whether it succeeds or fails
+                PRINTF("Swap response is ready, the app will quit after the next send\n");
+                G_swap_response_ready = true;
                 if (swap_check_validity(ui_context.amount, // Amount
                                         ui_context.line2   // Destination
                                         )) {
@@ -440,6 +440,7 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
                 }
                 
             } else {
+                // Regular Flow
                 sign_transfer_ux_flow_init();
             }
             break;
