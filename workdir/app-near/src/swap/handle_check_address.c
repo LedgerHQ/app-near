@@ -14,7 +14,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  ********************************************************************************/
-#ifdef HAVE_SWAP
 
 #include <string.h>
 
@@ -113,5 +112,3 @@ void swap_handle_check_address(check_address_parameters_t *params) {
     params->result = 1;
     return;
 }
-
-#endif  // HAVE_SWAP
