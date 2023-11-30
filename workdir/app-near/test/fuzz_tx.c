@@ -26,7 +26,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     }
     memcpy(tmp_ctx.signing_context.buffer, Data, Size);
     tmp_ctx.signing_context.buffer_used = Size;
-    parse_transaction();
+    parse_signature_request();
     print_ui();
     return 0;
 }

@@ -9,7 +9,7 @@ include_directories(../src)
 
 add_executable(test_parser
         main.c
-        ../src/parse_transaction.c)
+        ../src/parse_signature_request.c)
 
 target_compile_options(test_parser PRIVATE -Wall -Wextra -pedantic)
 target_compile_definitions(test_parser PRIVATE UNITTEST)
@@ -24,7 +24,7 @@ if (FUZZ)
 
     add_executable(fuzz_tx
         fuzz_tx.c
-        ../src/parse_transaction.c)
+        ../src/parse_signature_request.c)
     target_compile_options(fuzz_tx PRIVATE -fsanitize=address,fuzzer -g -ggdb2)
     target_compile_definitions(fuzz_tx PRIVATE UNITTEST)
     # target_link_options has been introduced in CMake 3.13, but Ubuntu 18.04 has CMake 3.10.2.

@@ -23,7 +23,7 @@
 #include "ui.h"
 #include "get_public_key.h"
 #include "get_wallet_id.h"
-#include "sign_transaction.h"
+#include "sign_signature_request.h"
 #include "menu.h"
 #include "main.h"
 #include "near.h"
@@ -103,7 +103,7 @@ void handle_apdu(volatile unsigned int *flags, volatile unsigned int *tx, volati
                     THROW(SW_CONDITIONS_NOT_SATISFIED);
                 }
 
-                handle_sign_transaction(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
+                handle_signature_request(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
             } break;
 
             case INS_GET_PUBLIC_KEY: {

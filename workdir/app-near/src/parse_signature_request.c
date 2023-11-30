@@ -3,10 +3,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "parse_transaction.h"
+#include "parse_signature_request.h"
 
 #include "context.h"
 #include "os_shim.h"
+
+// 2**31 + 413
+#define NEP_413_INSTRUCTION 2147484061
 
 /*
  Adapted from https://en.wikipedia.org/wiki/Double_dabble#C_implementation
@@ -140,6 +143,14 @@ static int borsh_read_uint8(unsigned int *processed, uint8_t *n) {
     return 0;
 }
 
+static int borsh_peek_uint32(unsigned int processed, uint32_t *n) {
+    if (check_overflow(processed, 4)) {
+        return SIGN_PARSING_ERROR;
+    }
+    *n = *((uint32_t *) &tmp_ctx.signing_context.buffer[processed]);
+    return 0;
+}
+
 static int borsh_read_uint32(unsigned int *processed, uint32_t *n) {
     if (check_overflow(*processed, 4)) {
         return SIGN_PARSING_ERROR;
@@ -224,10 +235,41 @@ typedef enum {
     at_last_value = at_delete_account
 } action_type_t;
 
+int parse_message_nep_413() {
+    unsigned int processed = 0;
+    // NEP 413 instruction
+    BORSH_SKIP(4);
+
+    // message
+    BORSH_DISPLAY_STRING(message, ui_context.line1);
+
+    // nonce
+    BORSH_SKIP(32);
+
+    // recipient
+    BORSH_DISPLAY_STRING(recipient, ui_context.line2);
+
+    // optional callback url
+    uint8_t option;
+    if (borsh_read_uint8(&processed, &option)) {
+        return SIGN_PARSING_ERROR;
+    }
+    if (option == 0) {
+        // All good, no callback url
+        const char *no_callback = "Not Provided";
+        strcpy_ellipsis(sizeof(ui_context.line3), ui_context.line3, strlen(no_callback), (char *) no_callback);
+        PRINTF("%s: %s\n", "no_callback", ui_context.line3);
+    } else if (option == 1) {
+        BORSH_DISPLAY_STRING(callback_url, ui_context.line3);
+    } else {
+        return SIGN_PARSING_ERROR;
+    }
+
+    return SIGN_FLOW_NEP_413;
+}
+
 // Parse the transaction details for the user to approve
 int parse_transaction() {
-    memset(&ui_context, 0, sizeof(uiContext_t));
-
     // TODO: Validate data when parsing tx
 
     unsigned int processed = 0;
@@ -399,4 +441,18 @@ int parse_transaction() {
     PRINT_REMAINING_BUFFER();
 
     return SIGN_FLOW_GENERIC;
+}
+
+int parse_signature_request() {
+    memset(&ui_context, 0, sizeof(uiContext_t));
+
+    uint32_t instruction;
+    if (borsh_peek_uint32(0, &instruction)) {
+        return SIGN_PARSING_ERROR;
+    }
+    if (instruction == NEP_413_INSTRUCTION) {
+        return parse_message_nep_413();
+    } else {
+        return parse_transaction();
+    }
 }

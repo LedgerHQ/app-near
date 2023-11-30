@@ -1,5 +1,5 @@
-#include "sign_transaction.h"
-#include "parse_transaction.h"
+#include "sign_signature_request.h"
+#include "parse_signature_request.h"
 #include "os.h"
 #include "ux.h"
 #include "utils.h"
@@ -27,6 +27,7 @@ INFO_STEP(sign_flow_args_step, "Args", ui_context.long_line);
 INFO_STEP(sign_flow_to_account_step, "To Account", ui_context.line3);
 INFO_STEP(sign_flow_contract_step, "Contract", ui_context.line2);
 INFO_STEP(sign_flow_allowance_step, "Allowance", ui_context.line5);
+INFO_STEP(sign_flow_callback_url_step, "Callback URL", ui_context.line3);
 INFO_STEP(sign_flow_danger_step, "DANGER", "This gives full access to a device other than Ledger");
 
 UX_STEP_VALID(
@@ -91,6 +92,14 @@ UX_FLOW(
     &sign_flow_approve_step,
     &sign_flow_reject_step);
 
+UX_FLOW(
+    ux_display_sign_nep_413,
+    &sign_flow_intro_step,
+    &sign_flow_receiver_step,
+    &sign_flow_callback_url_step,
+    &sign_flow_approve_step,
+    &sign_flow_reject_step);
+
 void print_ui_context()
 {
     for (int i = 0; i < 6; i++)
@@ -125,6 +134,13 @@ void sign_add_function_call_key_ux_flow_init()
     PRINTF("sign_add_function_call_key_ux_flow_init\n");
     print_ui_context();
     ux_flow_init(0, ux_display_sign_add_function_call_key_flow, NULL);
+}
+
+void sign_message_nep_413_ux_flow_init()
+{
+    PRINTF("sign_message_nep_413_ux_flow_init\n");
+    print_ui_context();
+    ux_flow_init(0, ux_display_sign_nep_413, NULL);
 }
 
 #endif
@@ -195,6 +211,8 @@ static void choice_callback(bool confirm)
 #define ALLOWANCE_VALUE ui_context.line5
 #define SIGN_ITEM "Sign transaction to\n"
 #define SIGN_VALUE INTRO_VALUE
+#define MESSAGE_ITEM "Review message\n"
+#define MESSAGE_VALUE INTRO_VALUE
 #define MAX_DISPLAYED_STRING_LENGTH 100
 
 static char review_displayed_string[MAX_DISPLAYED_STRING_LENGTH] = {0};
@@ -248,6 +266,23 @@ static void generic_intro_flow(nbgl_callback_t continue_callback)
         review_displayed_string,
         NULL,
         "Reject transaction",
+        continue_callback,
+        reject_confirmation);
+}
+
+static void nep_413_intro_flow(nbgl_callback_t continue_callback)
+{
+    memcpy(review_displayed_string, MESSAGE_ITEM, sizeof(MESSAGE_ITEM));
+    strlcat(review_displayed_string, MESSAGE_VALUE, MAX_DISPLAYED_STRING_LENGTH);
+
+    generic_init_list();
+    generic_init_hold_to_approve();
+
+    nbgl_useCaseReviewStart(
+        &C_stax_app_near_64px,
+        review_displayed_string,
+        NULL,
+        "Reject",
         continue_callback,
         reject_confirmation);
 }
@@ -331,6 +366,24 @@ void sign_add_function_call_key_ux_flow_init()
     generic_intro_flow(display_call_key_flow);
 }
 
+// ------------------ NEP 413 -------------------
+static void display_nep_413_flow(void)
+{
+    // Fill fields
+    START_ADD_FIELD()
+    ADD_FIELD(MESSAGE)
+    ADD_FIELD(RECEIVER)
+    END_ADD_FIELD()
+
+    // Start review
+    START_REVIEW()
+}
+
+void sign_message_nep_413_ux_flow_init()
+{
+    nep_413_intro_flow(display_nep_413_flow);
+}
+
 #endif
 
 static void add_chunk_data(const uint8_t *input_data, size_t input_length)
@@ -368,7 +421,7 @@ static void add_chunk_data(const uint8_t *input_data, size_t input_length)
     tmp_ctx.signing_context.buffer_used += input_length;
 }
 
-void handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
+void handle_signature_request(uint8_t p1, uint8_t p2, const uint8_t *input_buffer, uint16_t input_length, volatile unsigned int *flags, volatile unsigned int *tx)
 {
     UNUSED(p2);
     UNUSED(tx);
@@ -384,7 +437,7 @@ void handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer
         tmp_ctx.signing_context.network_byte = p2;
         add_chunk_data(input_buffer, input_length);
 
-        switch (parse_transaction())
+        switch (parse_signature_request())
         {
         case SIGN_FLOW_GENERIC:
             sign_ux_flow_init();
@@ -400,6 +453,9 @@ void handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer
             break;
         case SIGN_FLOW_ADD_FULL_ACCESS_KEY:
             sign_add_function_call_key_ux_flow_init();
+            break;
+        case SIGN_FLOW_NEP_413:
+            sign_message_nep_413_ux_flow_init();
             break;
         case SIGN_PARSING_ERROR:
             THROW(SW_BUFFER_OVERFLOW);

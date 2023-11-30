@@ -23,8 +23,8 @@
 #include "glyphs.h"
 #include "../main.h"
 #include "../globals.h"
-#include "../sign_transaction.h"
-#include "../parse_transaction.h"
+#include "../sign_signature_request.h"
+#include "../parse_signature_request.h"
 
 // UI currently displayed
 enum UI_STATE ui_state;

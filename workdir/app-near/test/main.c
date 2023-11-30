@@ -30,7 +30,7 @@ static void test_parse_transfer_1(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/transfer_1_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "transfer");                  // action
   assert_string_equal(ui_context.line2, "vg");                        // receiver
@@ -47,7 +47,7 @@ static void test_parse_transfer_2(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/transfer_2_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "transfer");                 // action
   assert_string_equal(ui_context.line2, "vg");                       // receiver
@@ -64,7 +64,7 @@ static char test_parse_transfer_3(void **state) {
     tmp_ctx.signing_context.buffer_used =
         load_testcase("../testcases/transfer_3_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-    int active_flow = parse_transaction();
+    int active_flow = parse_signature_request();
 
     assert_string_equal(ui_context.line1, "transfer");                         // action
     // accounts with max Account ID length (64 characters)
@@ -84,7 +84,7 @@ static void test_parse_function_call(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/function_call_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "method_name");    // action
   assert_string_equal(ui_context.line2, "receiver.here");  // receiver
@@ -102,7 +102,7 @@ static void test_parse_create_account(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/create_account_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "create account");    // action
   assert_string_equal(ui_context.line2, "random_acc2.near");  // new account id
@@ -119,7 +119,7 @@ static void test_parse_deploy_contract(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/deploy_contract_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "deploy contract");   // action
   assert_string_equal(ui_context.line2, "random_acc2.near");  // receiver
@@ -136,7 +136,7 @@ static void test_parse_stake(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/stake_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "stake");             // action
   assert_string_equal(ui_context.line2, "random_acc2.near");  // receiver
@@ -153,7 +153,7 @@ static void test_parse_add_limited_key(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/add_limited_key_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "add key");                  // action
   assert_string_equal(ui_context.line2, "random_reciever_id.near");  // receiver
@@ -170,7 +170,7 @@ static void test_parse_add_unlimited_key(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/add_unlimited_key_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "add key");                  // action
   assert_string_equal(ui_context.line2, "random_reciever_id.near");  // receiver
@@ -187,7 +187,7 @@ static void test_parse_delete_key(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/delete_key_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "delete key");        // action
   assert_string_equal(ui_context.line2, "random_acc2.near");  // receiver
@@ -204,7 +204,7 @@ static void test_parse_delete_account(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/delete_account_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "delete account");    // action
   assert_string_equal(ui_context.line2, "random_acc2.near");  // receiver
@@ -221,7 +221,7 @@ static void test_parse_multiple_actions(void **state) {
   tmp_ctx.signing_context.buffer_used =
       load_testcase("../testcases/multiple_actions_transaction.raw",
                     tmp_ctx.signing_context.buffer);
-  int active_flow = parse_transaction();
+  int active_flow = parse_signature_request();
 
   assert_string_equal(ui_context.line1, "multiple actions");
   assert_string_equal(ui_context.line2, "receiver.here");  // receiver
