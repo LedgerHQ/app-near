@@ -27,12 +27,18 @@ P1_CONFIRM = 0x00
 P1_NO_CONFIRM = 0x01
 # Parameter 1 = last APDU (INS_SIGN Sign instruction)
 P1_LAST = 0x80
+# Parameter 1 = Blind Signature (52 bytes, INS_SIGN Sign instruction)
+P1_BLIND = 0x01           
 # Parameter not used for this APDU
 P1_P2_NOT_USED = 0x57
 
 # Return codes
 SW_OK                       = 0x9000
 SW_CONDITIONS_NOT_SATISFIED = 0x6985
+# `Blind Sign` disabled in settings
+SW_SETTING_BLIND_DISABLED = 0x6192         
+# buffer not equal to 52 bytes (20 bip32, 32 sha256) 
+SW_BUFFER_WRONG_BLIND = 0x6191
 
 # m/44'/397'/0'/0'/1
 DERIV_PATH_DATA = bytes.fromhex('8000002c8000018d800000008000000080000001')
@@ -46,27 +52,36 @@ class Nearbackend():
         return self.backend.exchange(CLA, INS_GET_APP_CONFIGURATION, P1_P2_NOT_USED, P1_P2_NOT_USED, bytes())
 
     @contextmanager
-    def sign_message(self, path: bytes, near_transaction: bytes) -> Generator[None, None, None]:
-        cnt = 0
-        data = path + near_transaction
-        while cnt < len(data):
-            to_send = min(len(data) - cnt, 255)
+    def sign_message(self, path: bytes, near_payload: bytes, blind=False) -> Generator[None, None, None]:
+        if blind:
+            data = path + near_payload    # payload is tx hash
+            with self.backend.exchange_async(CLA,
+                                             INS_SIGN,
+                                             P1_BLIND,
+                                             P1_P2_NOT_USED,
+                                             data) as response:
+                yield response
+        else:
+            cnt = 0
+            data = path + near_payload    # payload is tx itself
+            while cnt < len(data):
+                to_send = min(len(data) - cnt, 255)
 
-            if (cnt + to_send) >= len(data):
-                # Last APDU
-                with self.backend.exchange_async(CLA,
-                                                 INS_SIGN,
-                                                 P1_LAST,
-                                                 P1_P2_NOT_USED,
-                                                 bytes(data[cnt:(cnt + to_send)])) as response:
-                    yield response
-            else:
-                # Not last APDU
-                rapdu = self.backend.exchange(CLA, INS_SIGN, P1_MORE, P1_P2_NOT_USED, bytes(data[cnt:(cnt + to_send)]))
-                if rapdu.status != SW_OK:
-                    return rapdu
+                if (cnt + to_send) >= len(data):
+                    # Last APDU
+                    with self.backend.exchange_async(CLA,
+                                                     INS_SIGN,
+                                                     P1_LAST,
+                                                     P1_P2_NOT_USED,
+                                                     bytes(data[cnt:(cnt + to_send)])) as response:
+                        yield response
+                else:
+                    # Not last APDU
+                    rapdu = self.backend.exchange(CLA, INS_SIGN, P1_MORE, P1_P2_NOT_USED, bytes(data[cnt:(cnt + to_send)]))
+                    if rapdu.status != SW_OK:
+                        return rapdu
 
-            cnt += to_send
+                cnt += to_send
 
 
     @contextmanager
@@ -123,12 +138,14 @@ def test_app_info_menu(firmware, navigator, test_name):
         instructions = [
             NavInsID.RIGHT_CLICK,
             NavInsID.RIGHT_CLICK,
+            NavInsID.RIGHT_CLICK,
             NavInsID.RIGHT_CLICK
         ]
     else:
         instructions = [
             NavInsID.USE_CASE_HOME_INFO,
-            NavInsID.USE_CASE_SETTINGS_SINGLE_PAGE_EXIT
+            NavInsID.USE_CASE_SETTINGS_NEXT,
+            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
         ]
     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name, instructions,
                                    screen_change_before_first_instruction=False)    
@@ -331,7 +348,28 @@ def test_get_wallet_id_refused_2(firmware, backend, navigator, test_name):
 
 
 ####################### TRANSACTION TESTS ##########################
-def generic_test_sign(backend, firmware, navigator, test_name, near_payload: bytes, expected_signature: bytes):
+def navigate_sign_flow(firmware, navigator, test_name):
+    """
+    Validate the on-screen request by performing the navigation appropriate for this device
+    """
+    if firmware.device.startswith("nano"):
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
+                                                  "Approve",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name,
+                                                  screen_change_after_last_instruction = False)
+    else:
+        navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                  [NavInsID.USE_CASE_REVIEW_CONFIRM,
+                                                  NavInsID.USE_CASE_STATUS_DISMISS,
+                                                  NavInsID.WAIT_FOR_HOME_SCREEN],
+                                                  "Hold to sign",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name,
+                                                  screen_change_after_last_instruction = False)
+
+def generic_test_sign(backend, firmware, navigator, test_name, near_payload: bytes, expected_signature: bytes, blind=False):
     """
     Generic function to tests NEAR signature mechanism 
     """
@@ -340,24 +378,8 @@ def generic_test_sign(backend, firmware, navigator, test_name, near_payload: byt
     # Reset cx context
     client.get_version()
 
-    with client.sign_message(DERIV_PATH_DATA, near_payload):
-        # Validate the on-screen request by performing the navigation appropriate for this device
-        if firmware.device.startswith("nano"):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Approve",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name,
-                                                      screen_change_after_last_instruction = False)
-        else:
-            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
-                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM,
-                                                      NavInsID.USE_CASE_STATUS_DISMISS,
-                                                      NavInsID.WAIT_FOR_HOME_SCREEN],
-                                                      "Hold to sign",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name,
-                                                      screen_change_after_last_instruction = False)
+    with client.sign_message(DERIV_PATH_DATA, near_payload, blind):
+        navigate_sign_flow(firmware, navigator, test_name)
     response = client.get_async_response()
     assert response.status == SW_OK
     assert response.data == expected_signature
@@ -659,7 +681,7 @@ def test_sign_multiple_actions_2_apdu_exchanges(firmware, backend, navigator, te
 
 # In this test we send to the device a message to sign and cancel it on screen
 # We will ensure that the displayed information is correct by using screenshots comparison
-def generic_sign_message_cancel(backend, firmware, navigator, test_name, near_payload: bytes):
+def generic_sign_message_cancel(backend, firmware, navigator, test_name, near_payload: bytes, blind=False):
     # Use the app interface instead of raw interface
     client = Nearbackend(backend)
 
@@ -671,7 +693,7 @@ def generic_sign_message_cancel(backend, firmware, navigator, test_name, near_pa
         # Send the sign device instruction.
         # As it requires on-screen validation, the function is asynchronous.
         # It will yield the result when the navigation is done
-        with client.sign_message(DERIV_PATH_DATA, near_payload):
+        with client.sign_message(DERIV_PATH_DATA, near_payload, blind):
             # Validate the on-screen request by performing the navigation appropriate for this device
             navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
                                                     [NavInsID.BOTH_CLICK],
@@ -724,7 +746,7 @@ def generic_sign_message_cancel(backend, firmware, navigator, test_name, near_pa
             # Send the sign device instruction.
             # As it requires on-screen validation, the function is asynchronous.
             # It will yield the result when the navigation is done
-            with client.sign_message(DERIV_PATH_DATA, near_payload):
+            with client.sign_message(DERIV_PATH_DATA, near_payload, blind):
                 # Validate the on-screen request by performing the navigation appropriate for this device
                 navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
                                                test_name + f"/part{i}",
@@ -854,3 +876,130 @@ def test_sign_add_key_cancel(firmware, backend, navigator, test_name):
         "060000006172746875720053f9afa67ef91539ff38e2b36bbbed2d1dce6e18d06337cf6647389b5477359b0f7ac5e5c85700004000000039383739336364393161336638373066623132366636363238353830386337653039346166636663346564613861393730663636343863646630646264366465a3f5d1167a5c605fed71fc78d4381bef47a5acb3aba6fc9c07d7b8b912fc1e2a0100000005002ffe256fd9a6e815abc3f220163413ac62871ecc5875d87625a35ce7ea65ee2f393000000000000001")
     generic_sign_message_cancel(backend, firmware, navigator, test_name, near_payload)
 
+def record_settings_screens_bs(firmware, navigator, test_name, reject_confirm_blindsign_popup=False):
+    """
+    test section to reflect blind sign is disabled in settings (with snapshots)
+    """
+    if firmware.device.startswith("nano"):
+        instructions = [
+            NavInsID.RIGHT_CLICK,
+            NavInsID.BOTH_CLICK,
+            NavInsID.RIGHT_CLICK,
+            NavInsID.BOTH_CLICK,
+        ]
+    else:
+        if not reject_confirm_blindsign_popup:
+            instructions = [
+                NavInsID.USE_CASE_HOME_INFO,
+                NavInsID.USE_CASE_SETTINGS_NEXT,
+                NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+            ]
+            test_name += '_no_popup'
+        else:
+            instructions = [
+                NavInsID.USE_CASE_HOME_INFO,
+                NavInsID.USE_CASE_SETTINGS_NEXT,
+                NavIns(NavInsID.TOUCH, (300, 116)), # toggle switch of setting
+                NavInsID.USE_CASE_CHOICE_REJECT,
+                NavInsID.USE_CASE_SETTINGS_NEXT,
+                NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+            ]
+            test_name += '_reject_popup'
+            
+    navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name, instructions,
+                                   screen_change_before_first_instruction=False)    
+    
+def test_sign_blind_not_enabled_error(firmware, backend, navigator, test_name):
+    """
+    records settings' screens and tests for expected SW_SETTING_BLIND_DISABLED APDU
+    returned status on signature attempt
+    """
+    # Disable raising when trying to unpack an error APDU
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+
+    near_tx_hash = bytes.fromhex("f7e4d5d16fb1329282414b0820a6137d11fd6ec6e6718c1d369f1b0becccb49b")
+
+    for click_confirm_popup in [False, True]:
+        record_settings_screens_bs(firmware, navigator, test_name, click_confirm_popup)
+        with client.sign_message(DERIV_PATH_DATA, near_tx_hash, blind=True):
+            pass
+
+        response = client.get_async_response()
+        assert response.status == SW_SETTING_BLIND_DISABLED
+        assert len(response.data) == 0
+
+def enable_blind_sign_in_settings(firmware, navigator, test_name, record=False):
+    """
+    test section to reflect blind sign is disabled in settings (with snapshots)
+    """
+    if firmware.device.startswith("nano"):
+        instructions = [
+            NavInsID.RIGHT_CLICK,
+            NavInsID.BOTH_CLICK,
+            NavInsID.BOTH_CLICK,
+            NavInsID.BOTH_CLICK,
+            NavInsID.RIGHT_CLICK,
+            NavInsID.BOTH_CLICK,
+        ]
+    else:
+        instructions = [
+            NavInsID.USE_CASE_HOME_INFO,
+            NavInsID.USE_CASE_SETTINGS_NEXT,
+            NavIns(NavInsID.TOUCH, (300, 116)), # toggle switch of setting
+            NavInsID.USE_CASE_CHOICE_CONFIRM,
+            NavInsID.USE_CASE_SETTINGS_NEXT,
+            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+        ]
+    if record:
+        navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name, instructions,
+                                       screen_change_before_first_instruction=False)    
+    else:
+        navigator.navigate(instructions, screen_change_before_first_instruction=False)    
+
+def test_sign_blind_too_short_payload(firmware, backend, navigator, test_name):
+    """
+    enables blind sign in settings and tests for expected SW_BUFFER_WRONG_BLIND APDU
+    returned status on signature attempt
+    """
+    # Disable raising when trying to unpack an error APDU
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+
+    near_tx_hash = bytes.fromhex("f7e4")
+    enable_blind_sign_in_settings(firmware, navigator, test_name)
+
+    with client.sign_message(DERIV_PATH_DATA, near_tx_hash, blind=True):
+        pass
+
+    response = client.get_async_response()
+    assert response.status == SW_BUFFER_WRONG_BLIND
+    assert len(response.data) == 0
+
+def test_sign_blind_ok(firmware, backend, navigator, test_name):
+    """
+    enables blind sign in settings and tests for expected SW_OK APDU
+    returned status on signature success
+    """
+    client = Nearbackend(backend)
+
+    enable_blind_sign_in_settings(firmware, navigator, test_name + '_switch_setting', True)
+
+    near_tx_hash = bytes.fromhex("f7e4d5d16fb1329282414b0820a6137d11fd6ec6e6718c1d369f1b0becccb49b")
+    expected_signature = bytes.fromhex(
+        "e0043ac06ad798f9631c1862e73fdd1b26ea2e7a3eda070ac940a8baaae7e247f2eb3b2d8ae0f87ab3979858614be7f869da207854a753b05a67adf58a9d7c08")
+
+    generic_test_sign(backend, firmware, navigator, test_name + "_sign_flow", near_tx_hash, expected_signature, blind=True)
+
+def test_sign_blind_cancel(firmware, backend, navigator, test_name):
+    """
+    enables blind sign in settings and tests for expected SW_CONDITIONS_NOT_SATISFIED APDU
+    returned status on aborting signing process in-between
+    """
+    client = Nearbackend(backend)
+
+    enable_blind_sign_in_settings(firmware, navigator, test_name, False)
+
+    near_tx_hash = bytes.fromhex("f7e4d5d16fb1329282414b0820a6137d11fd6ec6e6718c1d369f1b0becccb49b")
+
+    generic_sign_message_cancel(backend, firmware, navigator, test_name, near_tx_hash, blind=True)

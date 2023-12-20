@@ -130,6 +130,7 @@ void bin_to_hex(char *out, const uint8_t *in, size_t len) {
 void send_response(uint8_t tx, bool approve) {
     G_io_apdu_buffer[tx++] = approve? 0x90 : 0x69;
     G_io_apdu_buffer[tx++] = approve? 0x00 : 0x85;
+    PRINTF("apdu out: %.*h\n", tx, G_io_apdu_buffer);
     // Send back the response, do not restart the event loop
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, tx);
 

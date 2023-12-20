@@ -25,6 +25,7 @@
 #define INS_GET_APP_CONFIGURATION 0x06 // Get App Version
 #define P1_LAST 0x80            // Parameter 1 = End of Bytes to Sign (finalize)
 #define P1_MORE 0x00            // Parameter 1 = More bytes coming
+#define P1_BLIND 0x01           // Parameter 1 = Blind Signature (20 bytes bip32, 32 - sha256 hash)
 
 #define COLOR_BG_1 0xF9F9F9
 #define COLOR_APP 0x0055FF
@@ -32,6 +33,9 @@
 
 #define SW_OK 0x9000
 #define SW_USER_CANCELLED 0x9100
+#define SW_BUFFER_UNDERFLOW 0x6190               // buffer is shorter than 20 bytes bip32
+#define SW_BUFFER_WRONG_BLIND 0x6191             // buffer not equal to 52 bytes (20 bip32, 32 sha256) 
+#define SW_SETTING_BLIND_DISABLED 0x6192         // `Blind Sign` disabled in settings
 #define SW_DEVICE_IS_LOCKED 0x6986
 #define SW_CONDITIONS_NOT_SATISFIED 0x6985
 #define SW_BUFFER_OVERFLOW 0x6990

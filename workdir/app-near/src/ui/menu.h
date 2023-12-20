@@ -1,12 +1,13 @@
 #pragma once
 
-#include "globals.h"
-#include "glyphs.h"
+#include "os.h"
 
 #ifdef HAVE_BAGL
-extern volatile uint8_t dummy_setting_1;
-extern volatile uint8_t dummy_setting_2;
+#include "menu_bagl.h"
 #endif
 
-void ui_idle(void);
+#ifdef HAVE_NBGL
+#include "menu_nbgl.h"
+#endif
 
+extern volatile uint8_t blind_sign_enabled;

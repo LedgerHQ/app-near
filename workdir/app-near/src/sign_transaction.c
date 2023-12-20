@@ -6,6 +6,20 @@
 #include "app_main.h"
 #include "ledger_crypto.h"
 #include "io.h"
+#include "blind_sign.h"
+#include "menu.h"
+
+void print_ui_context()
+{
+    ui_context.long_line[249] = 0;
+
+    PRINTF("line %d: %s\n", 1, ui_context.line1);
+    PRINTF("line %d: %s\n", 2, ui_context.line2);
+    PRINTF("line %d: %s\n", 3, ui_context.line3);
+    PRINTF("line %d: %s\n", 5, ui_context.line5);
+    PRINTF("amount: %s\n", ui_context.amount);
+    PRINTF("long_line: %s\n", ui_context.long_line);
+}
 
 //////////////////////////////////////////////////////////////////////
 
@@ -29,12 +43,22 @@ INFO_STEP(sign_flow_args_step, "Args", ui_context.long_line);
 INFO_STEP(sign_flow_to_account_step, "To Account", ui_context.line3);
 INFO_STEP(sign_flow_contract_step, "Contract", ui_context.line2);
 INFO_STEP(sign_flow_allowance_step, "Allowance", ui_context.line5);
+INFO_STEP(sign_flow_blind_hash_step, "Base58 Hash", ui_context.line2);
 INFO_STEP(sign_flow_danger_step, "DANGER", "This gives full access to a device other than Ledger");
 
 UX_STEP_VALID(
     sign_flow_approve_step,
     pb,
-    send_response(set_result_sign(), true),
+    send_response(set_result_sign(true), true),
+    {
+        &C_icon_validate_14,
+        "Approve",
+    });
+
+UX_STEP_VALID(
+    sign_flow_blind_approve_step,
+    pb,
+    send_response(set_result_sign(false), true),
     {
         &C_icon_validate_14,
         "Approve",
@@ -93,13 +117,13 @@ UX_FLOW(
     &sign_flow_approve_step,
     &sign_flow_reject_step);
 
-void print_ui_context()
-{
-    for (int i = 0; i < 6; i++)
-    {
-        PRINTF("line %d: %s\n", i, &ui_context.line1[sizeof(ui_context.line1) * i]);
-    }
-}
+UX_FLOW(
+    ux_display_sign_blind_flow,
+    &sign_flow_intro_step,
+    &sign_flow_blind_hash_step,
+    &sign_flow_blind_approve_step,
+    &sign_flow_reject_step);
+
 
 void sign_ux_flow_init()
 {
@@ -129,6 +153,21 @@ void sign_add_function_call_key_ux_flow_init()
     ux_flow_init(0, ux_display_sign_add_function_call_key_flow, NULL);
 }
 
+int sign_blind_ux_flow_init()
+{
+    PRINTF("sign_blind_ux_flow_init\n");
+    int error;
+
+    error = blind_sign_init_ui_context();
+    if (error) {
+        return io_send_sw(error);
+    }
+
+    print_ui_context();
+    ux_flow_init(0, ux_display_sign_blind_flow, NULL);
+    return 0;
+}
+
 #endif
 
 #ifdef HAVE_NBGL
@@ -147,7 +186,13 @@ static nbgl_pageInfoLongPress_t long_press_infos;
 
 static void approve_callback(void)
 {
-    send_response(set_result_sign(), true);
+    send_response(set_result_sign(true), true);
+    ui_idle();
+}
+
+static void approve_blind_callback(void)
+{
+    send_response(set_result_sign(false), true);
     ui_idle();
 }
 
@@ -174,6 +219,18 @@ static void choice_callback(bool confirm)
     }
 }
 
+static void choice_blind_callback(bool confirm)
+{
+    if (confirm)
+    {
+        nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, approve_blind_callback);
+    }
+    else
+    {
+        reject_confirmation();
+    }
+}
+
 
 // Available field to be displayed
 
@@ -193,6 +250,8 @@ static void choice_callback(bool confirm)
 #define TO_ACCOUNT_VALUE ui_context.line3
 #define CONTRACT_ITEM "Contract"
 #define CONTRACT_VALUE ui_context.line2
+#define BLIND_HASH_ITEM "Base58 Hash"
+#define BLIND_HASH_VALUE ui_context.line2
 #define ALLOWANCE_ITEM "Allowance"
 #define ALLOWANCE_VALUE ui_context.line5
 #define SIGN_ITEM "Sign transaction to\n"
@@ -218,6 +277,9 @@ static uint8_t field_cnt = 0;
 
 #define START_REVIEW() \
     nbgl_useCaseStaticReview(&list, &long_press_infos, "Reject transaction", choice_callback);
+
+#define START_BLIND_REVIEW() \
+    nbgl_useCaseStaticReview(&list, &long_press_infos, "Reject transaction", choice_blind_callback);
 
 // Generics
 
@@ -270,6 +332,35 @@ static void display_sign_flow(void)
 void sign_ux_flow_init(void)
 {
     generic_intro_flow(display_sign_flow);
+}
+
+// ------------------ Blind sign -------------------
+
+static void display_blind_sign_flow(void)
+{
+    // Fill fields
+    START_ADD_FIELD()
+    ADD_FIELD(BLIND_HASH)
+    END_ADD_FIELD()
+
+    // Start review
+    START_BLIND_REVIEW()
+}
+
+int sign_blind_ux_flow_init(void)
+{
+    PRINTF("sign_blind_ux_flow_init\n");
+    int error;
+
+    error = blind_sign_init_ui_context();
+    if (error) {
+        return io_send_sw(error);
+    }
+
+    print_ui_context();
+    generic_intro_flow(display_blind_sign_flow);
+
+    return 0;
 }
 
 // ------------------ Transfer -------------------
@@ -345,8 +436,7 @@ static int add_chunk_data(const uint8_t *input_data, size_t input_length)
         size_t path_size = sizeof(tmp_ctx.signing_context.bip32);
         if (input_length < path_size)
         {
-            // TODO: Have specific error for underflow?
-            return SW_BUFFER_OVERFLOW;
+            return SW_BUFFER_UNDERFLOW;
         }
         read_path_from_bytes(input_data, tmp_ctx.signing_context.bip32);
 
@@ -376,7 +466,7 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
     UNUSED(p2);
     int error;
 
-    if (p1 != P1_MORE && p1 != P1_LAST)
+    if (p1 != P1_MORE && p1 != P1_LAST && p1 != P1_BLIND)
     {
         return io_send_sw(SW_INCORRECT_P1_P2);
     }
@@ -413,7 +503,31 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
             return io_send_sw(SW_CONDITIONS_NOT_SATISFIED);
         }
     }
-    else
+    else if (p1 == P1_BLIND)
+    {
+        // NOTE: this is processed in one apdu transfer of 52 bytes 
+        init_context();
+        if (blind_sign_enabled != BLSGN_ON_STATE) {
+            PRINTF("blind signature not enabled\n");
+            return io_send_sw(SW_SETTING_BLIND_DISABLED);
+        }
+        size_t path_size = sizeof(tmp_ctx.signing_context.bip32);
+        if (input_length != (path_size + SHA256_SIZE)) {
+            PRINTF("blind signature flow, input_length: %d  != %d (expected)\n", input_length, path_size + SHA256_SIZE);
+            return io_send_sw(SW_BUFFER_WRONG_BLIND);
+        }
+        PRINTF("blind signature flow, adding chunk\n");
+        error = add_chunk_data(input_buffer, input_length);
+        if (error) {
+            return io_send_sw(error);
+        }
+
+        error = sign_blind_ux_flow_init();
+        if (error) {
+            return io_send_sw(error);
+        }
+    }
+    else // P1_MORE
     {
         error = add_chunk_data(input_buffer, input_length);
         if (error) {

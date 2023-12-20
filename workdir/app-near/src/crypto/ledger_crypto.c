@@ -5,6 +5,7 @@
 
 #include "os.h"
 #include "cx.h"
+#include "context.h"
 
 // converts little endian 65 byte (0x4 32X 32Y) public key to 32 byte Y big endian form (for other applications)
 static void public_key_le_to_be(uint8_t in_raw_public_key[static 65], uint8_t out_public_key[static 32]) {
@@ -28,12 +29,16 @@ bool get_ed25519_public_key_for_path(const uint32_t* path, uint8_t public_key[st
     return true;
 }
 
-uint32_t set_result_sign(void) {
+uint32_t set_result_sign(bool prehash) {
     uint8_t signature[64];
     size_t sig_len = 64;
-    uint8_t hash[32]; 
+    uint8_t hash[SHA256_SIZE]; 
 
-    cx_hash_sha256(tmp_ctx.signing_context.buffer, tmp_ctx.signing_context.buffer_used, hash, sizeof(hash));
+    if (prehash) {
+        cx_hash_sha256(tmp_ctx.signing_context.buffer, tmp_ctx.signing_context.buffer_used, hash, sizeof(hash));
+    } else {
+        memcpy(hash, tmp_ctx.signing_context.buffer, SHA256_SIZE);
+    }
 
     if (bip32_derive_with_seed_eddsa_sign_hash_256(
             HDW_ED25519_SLIP10,
@@ -42,7 +47,7 @@ uint32_t set_result_sign(void) {
             5,
             CX_SHA512,
             hash,
-            32,
+            SHA256_SIZE,
             signature,
             &sig_len, 
             NULL, 
