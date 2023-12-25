@@ -1,0 +1,34 @@
+[package]
+name = "app-near-rust"
+version = "1.0.0"
+authors = ["yhql", "agrojean-ledger", "dj8yf0μl"]
+edition = "2021"
+
+[dependencies]
+ledger_device_sdk = "1.3.0"
+ledger_secure_sdk_sys = "1.0.2"
+include_gif = "1.0.1"
+serde = {version="1.0.192", default_features = false, features = ["derive"]}
+serde-json-core = { git = "https://github.com/rust-embedded-community/serde-json-core"}
+hex = { version = "0.4.3", default-features = false, features = ["serde"] }
+numtoa = "0.2.4"
+
+[profile.release]
+opt-level = 'z'
+lto = true
+
+
+[package.metadata.ledger]
+curve = ["secp256k1"]
+flags = "0"
+path = ["44'/1'"]
+name = "Rust Near"
+
+[package.metadata.ledger.nanos]
+icon = "crab.gif"
+
+[package.metadata.ledger.nanox]
+icon = "crab_14x14.gif"
+
+[package.metadata.ledger.nanosplus]
+icon = "crab_14x14.gif"
