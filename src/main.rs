@@ -41,7 +41,8 @@ use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
 // CLA (APDU class byte) for all APDUs.
-const CLA: u8 = 0xe0;
+const CLA: u8 = 0x80;
+const INS_GET_VERSION: u8 = 6; // Instruction code to get app version from the Ledger
 
 // Application status words.
 #[repr(u16)]
@@ -70,9 +71,9 @@ impl From<AppSW> for Reply {
 /// Possible input commands received through APDUs.
 pub enum Instruction {
     GetVersion,
-    GetAppName,
-    GetPubkey { display: bool },
-    SignTx { chunk: u8, more: bool },
+    // GetAppName,
+    // GetPubkey { display: bool },
+    // SignTx { chunk: u8, more: bool },
 }
 
 /// APDU parsing logic.
@@ -87,7 +88,7 @@ impl TryFrom<ApduHeader> for Instruction {
 
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
         match (value.cla, value.ins, value.p1, value.p2) {
-            (CLA, 3, 0, 0) => Ok(Instruction::GetVersion),
+            (CLA, INS_GET_VERSION, 0, 0) => Ok(Instruction::GetVersion),
             // (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
             // (CLA, 5, 0 | 1, 0) => Ok(Instruction::GetPubkey {
             //     display: value.p1 != 0,
@@ -110,6 +111,7 @@ impl TryFrom<ApduHeader> for Instruction {
 extern "C" fn sample_main() {
     let mut comm = Comm::new();
 
+    // display_pending_review(&mut comm);
     let mut tx_ctx = TxContext::new();
 
     loop {
@@ -126,12 +128,8 @@ extern "C" fn sample_main() {
 
 fn handle_apdu(comm: &mut Comm, ins: Instruction, ctx: &mut TxContext) -> Result<(), AppSW> {
     match ins {
-        Instruction::GetAppName => {
-            comm.append(env!("CARGO_PKG_NAME").as_bytes());
-            Ok(())
-        }
         Instruction::GetVersion => handler_get_version(comm),
-        Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
-        Instruction::SignTx { chunk, more } => handler_sign_tx(comm, chunk, more, ctx),
+        // Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
+        // Instruction::SignTx { chunk, more } => handler_sign_tx(comm, chunk, more, ctx),
     }
 }
