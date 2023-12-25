@@ -37,20 +37,11 @@ use handlers::{
     sign_tx::{handler_sign_tx, TxContext},
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
-use ledger_device_sdk::ui::gadgets::display_pending_review;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
 // CLA (APDU class byte) for all APDUs.
 const CLA: u8 = 0xe0;
-// P2 for last APDU to receive.
-const P2_SIGN_TX_LAST: u8 = 0x00;
-// P2 for more APDU to receive.
-const P2_SIGN_TX_MORE: u8 = 0x80;
-// P1 for first APDU number.
-const P1_SIGN_TX_START: u8 = 0x00;
-// P1 for maximum APDU number.
-const P1_SIGN_TX_MAX: u8 = 0x03;
 
 // Application status words.
 #[repr(u16)]
@@ -97,18 +88,18 @@ impl TryFrom<ApduHeader> for Instruction {
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
         match (value.cla, value.ins, value.p1, value.p2) {
             (CLA, 3, 0, 0) => Ok(Instruction::GetVersion),
-            (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
-            (CLA, 5, 0 | 1, 0) => Ok(Instruction::GetPubkey {
-                display: value.p1 != 0,
-            }),
-            (CLA, 6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
-            | (CLA, 6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
-                Ok(Instruction::SignTx {
-                    chunk: value.p1,
-                    more: value.p2 == P2_SIGN_TX_MORE,
-                })
-            }
-            (CLA, 3..=6, _, _) => Err(AppSW::WrongP1P2),
+            // (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
+            // (CLA, 5, 0 | 1, 0) => Ok(Instruction::GetPubkey {
+            //     display: value.p1 != 0,
+            // }),
+            // (CLA, 6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
+            // | (CLA, 6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
+            //     Ok(Instruction::SignTx {
+            //         chunk: value.p1,
+            //         more: value.p2 == P2_SIGN_TX_MORE,
+            //     })
+            // }
+            // (CLA, 3..=6, _, _) => Err(AppSW::WrongP1P2),
             (CLA, _, _, _) => Err(AppSW::InsNotSupported),
             (_, _, _, _) => Err(AppSW::ClaNotSupported),
         }
@@ -118,10 +109,6 @@ impl TryFrom<ApduHeader> for Instruction {
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = Comm::new();
-
-    // Developer mode / pending review popup
-    // must be cleared with user interaction
-    display_pending_review(&mut comm);
 
     let mut tx_ctx = TxContext::new();
 
