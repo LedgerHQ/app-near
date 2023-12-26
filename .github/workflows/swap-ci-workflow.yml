@@ -15,3 +15,4 @@ jobs:
     with:
       branch_for_near: ${{ github.ref }}
       test_filter: '"NEAR or near or Near"'
+      branch_for_exchange: 'swap-near'
