@@ -24,6 +24,9 @@ use ledger_secure_sdk_sys::{
     cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
 };
 
+#[cfg(feature = "speculos")]
+use ledger_device_sdk::testing;
+
 pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let mut path = [0u32; MAX_ALLOWED_PATH_LEN];
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
@@ -58,7 +61,11 @@ pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppS
             }
         }
 
+        #[cfg(feature = "speculos")]
+        testing::debug_print("showing public key\n");
         if !ui_display_pk(&address)? {
+            #[cfg(feature = "speculos")]
+            testing::debug_print("denied\n");
             return Err(AppSW::Deny);
         }
     }

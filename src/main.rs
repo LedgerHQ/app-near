@@ -37,6 +37,8 @@ use handlers::{
     sign_tx::{handler_sign_tx, TxContext},
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
+#[cfg(feature = "speculos")]
+use ledger_device_sdk::testing;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
@@ -109,6 +111,8 @@ impl TryFrom<ApduHeader> for Instruction {
 
 #[no_mangle]
 extern "C" fn sample_main() {
+    #[cfg(feature = "speculos")]
+    testing::debug_print("enter `sample_main` fn\n\n");
     let mut comm = Comm::new();
 
     // display_pending_review(&mut comm);
