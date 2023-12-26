@@ -45,6 +45,7 @@ ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 // CLA (APDU class byte) for all APDUs.
 const CLA: u8 = 0x80;
 const INS_GET_VERSION: u8 = 6; // Instruction code to get app version from the Ledger
+const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
 
 // Application status words.
 #[repr(u16)]
@@ -74,7 +75,7 @@ impl From<AppSW> for Reply {
 pub enum Instruction {
     GetVersion,
     // GetAppName,
-    // GetPubkey { display: bool },
+    GetPubkey,
     // SignTx { chunk: u8, more: bool },
 }
 
@@ -91,10 +92,8 @@ impl TryFrom<ApduHeader> for Instruction {
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
         match (value.cla, value.ins, value.p1, value.p2) {
             (CLA, INS_GET_VERSION, 0, 0) => Ok(Instruction::GetVersion),
+            (CLA, INS_GET_PUBLIC_KEY, 0, _) => Ok(Instruction::GetPubkey),
             // (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
-            // (CLA, 5, 0 | 1, 0) => Ok(Instruction::GetPubkey {
-            //     display: value.p1 != 0,
-            // }),
             // (CLA, 6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
             // | (CLA, 6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
             //     Ok(Instruction::SignTx {
@@ -133,7 +132,7 @@ extern "C" fn sample_main() {
 fn handle_apdu(comm: &mut Comm, ins: Instruction, ctx: &mut TxContext) -> Result<(), AppSW> {
     match ins {
         Instruction::GetVersion => handler_get_version(comm),
-        // Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
+        Instruction::GetPubkey  => handler_get_public_key(comm, true),
         // Instruction::SignTx { chunk, more } => handler_sign_tx(comm, chunk, more, ctx),
     }
 }

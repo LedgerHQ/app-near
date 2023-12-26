@@ -14,8 +14,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
-use crate::app_ui::sign::ui_display_tx;
-use crate::utils::{read_bip32_path, MAX_ALLOWED_PATH_LEN};
+// use crate::app_ui::sign::ui_display_tx;
+use crate::utils::{PathBip32, ALLOWED_PATH_LEN};
 use crate::AppSW;
 use ledger_device_sdk::ecc::{Secp256k1, SeedDerive};
 use ledger_device_sdk::io::Comm;
@@ -23,26 +23,24 @@ use ledger_secure_sdk_sys::{
     cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
 };
 
-use serde::Deserialize;
-use serde_json_core::from_slice;
 
 const MAX_TRANSACTION_LEN: usize = 510;
 
-#[derive(Deserialize)]
-pub struct Tx<'a> {
-    #[allow(dead_code)]
-    nonce: u64,
-    pub coin: &'a str,
-    pub value: u64,
-    #[serde(with = "hex::serde")] // Allows JSON deserialization from hex string
-    pub to: [u8; 20],
-    pub memo: &'a str,
-}
+// #[derive(Deserialize)]
+// pub struct Tx<'a> {
+//     #[allow(dead_code)]
+//     nonce: u64,
+//     pub coin: &'a str,
+//     pub value: u64,
+//     #[serde(with = "hex::serde")] // Allows JSON deserialization from hex string
+//     pub to: [u8; 20],
+//     pub memo: &'a str,
+// }
 
 pub struct TxContext {
     raw_tx: [u8; MAX_TRANSACTION_LEN], // raw transaction serialized
     raw_tx_len: usize,                 // length of raw transaction
-    path: [u32; MAX_ALLOWED_PATH_LEN], // BIP32 path for key derivation
+    path: [u32; ALLOWED_PATH_LEN], // BIP32 path for key derivation
     path_len: usize,                   // length of BIP32 path
 }
 
@@ -52,7 +50,7 @@ impl TxContext {
         TxContext {
             raw_tx: [0u8; MAX_TRANSACTION_LEN],
             raw_tx_len: 0,
-            path: [0u32; MAX_ALLOWED_PATH_LEN],
+            path: [0u32; ALLOWED_PATH_LEN],
             path_len: 0,
         }
     }
@@ -60,7 +58,7 @@ impl TxContext {
     fn reset(&mut self) {
         self.raw_tx = [0u8; MAX_TRANSACTION_LEN];
         self.raw_tx_len = 0;
-        self.path = [0u32; MAX_ALLOWED_PATH_LEN];
+        self.path = [0u32; ALLOWED_PATH_LEN];
         self.path_len = 0;
     }
 }
@@ -77,8 +75,9 @@ pub fn handler_sign_tx(
     if chunk == 0 {
         // Reset transaction context
         ctx.reset();
-        // This will propagate the error if the path is invalid
-        ctx.path_len = read_bip32_path(data, &mut ctx.path)?;
+
+        let path = PathBip32::parse(data)?;
+        ctx.path = path.0; 
         Ok(())
     // Next chunks, append data to raw_tx and return or parse
     // the transaction if it is the last chunk.
@@ -96,17 +95,18 @@ pub fn handler_sign_tx(
             Ok(())
         // Otherwise, try to parse the transaction
         } else {
-            // Try to deserialize the transaction
-            let (tx, _): (Tx, usize) =
-                from_slice(&ctx.raw_tx[..ctx.raw_tx_len]).map_err(|_| AppSW::TxParsingFail)?;
-            // Display transaction. If user approves
-            // the transaction, sign it. Otherwise,
-            // return a "deny" status word.
-            if ui_display_tx(&tx)? {
-                compute_signature_and_append(comm, ctx)
-            } else {
-                Err(AppSW::Deny)
-            }
+            // // Try to deserialize the transaction
+            // let (tx, _): (Tx, usize) =
+            //     from_slice(&ctx.raw_tx[..ctx.raw_tx_len]).map_err(|_| AppSW::TxParsingFail)?;
+            // // Display transaction. If user approves
+            // // the transaction, sign it. Otherwise,
+            // // return a "deny" status word.
+            // if ui_display_tx(&tx)? {
+            //     compute_signature_and_append(comm, ctx)
+            // } else {
+            //     Err(AppSW::Deny)
+            // }
+            Ok(())
         }
     }
 }

@@ -8,9 +8,8 @@ edition = "2021"
 ledger_device_sdk = "1.4.0"
 ledger_secure_sdk_sys = "1.0.2"
 include_gif = "1.0.1"
-serde = {version="1.0.192", default_features = false, features = ["derive"]}
-serde-json-core = { git = "https://github.com/rust-embedded-community/serde-json-core"}
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
+bs58 = { version = "0.5.0", default-features = false }
 numtoa = "0.2.4"
 
 [profile.release]
@@ -19,9 +18,9 @@ lto = true
 
 
 [package.metadata.ledger]
-curve = ["secp256k1"]
+curve = ["ed25519"]
 flags = "0"
-path = ["44'/1'"]
+path = ["44'/397'"]
 name = "Rust Near"
 
 [package.metadata.ledger.nanos]

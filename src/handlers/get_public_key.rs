@@ -16,9 +16,9 @@
  *****************************************************************************/
 
 use crate::app_ui::address::ui_display_pk;
-use crate::utils::{read_bip32_path, MAX_ALLOWED_PATH_LEN};
+use crate::utils::{bip32_derive, PathBip32, PublicKeyBe};
 use crate::AppSW;
-use ledger_device_sdk::ecc::{Secp256k1, SeedDerive};
+use ledger_device_sdk::ecc::{Ed25519, SeedDerive};
 use ledger_device_sdk::io::Comm;
 use ledger_secure_sdk_sys::{
     cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
@@ -27,56 +27,31 @@ use ledger_secure_sdk_sys::{
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
-    let mut path = [0u32; MAX_ALLOWED_PATH_LEN];
-    let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
-    let path_len = read_bip32_path(data, &mut path)?;
+use numtoa::NumToA;
 
-    let pk = Secp256k1::derive_from_path(&path[..path_len])
+pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
+    let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
+    let path = PathBip32::parse(data)?;
+
+    #[cfg(feature = "speculos")]
+    path.debug_print();
+
+    let pk = bip32_derive(&path.0)
         .public_key()
         .map_err(|_| AppSW::KeyDeriveFail)?;
 
-    // Display address on device if requested
+    let pk = PublicKeyBe::from_little_endian(pk);
+
+    #[cfg(feature = "speculos")]
+    pk.debug_print()?;
+
     if display {
-        let mut keccak256: cx_sha3_t = Default::default();
-        let mut address: [u8; 32] = [0u8; 32];
-
-        unsafe {
-            if cx_keccak_init_no_throw(&mut keccak256, 256) != CX_OK {
-                return Err(AppSW::AddrDisplayFail);
-            }
-
-            let mut pk_mut = pk.pubkey;
-            let pk_ptr = pk_mut.as_mut_ptr().offset(1);
-            if cx_hash_no_throw(
-                &mut keccak256.header as *mut cx_hash_t,
-                CX_LAST,
-                pk_ptr,
-                64_usize,
-                address.as_mut_ptr(),
-                address.len(),
-            ) != CX_OK
-            {
-                return Err(AppSW::AddrDisplayFail);
-            }
-        }
-
-        #[cfg(feature = "speculos")]
-        testing::debug_print("showing public key\n");
-        if !ui_display_pk(&address)? {
-            #[cfg(feature = "speculos")]
-            testing::debug_print("denied\n");
+        if !ui_display_pk(&pk)? {
             return Err(AppSW::Deny);
         }
     }
 
-    comm.append(&[pk.pubkey.len() as u8]);
-    comm.append(&pk.pubkey);
-    // Rust SDK key derivation API does not return chaincode yet
-    // so we just append a dummy chaincode.
-    const CHAINCODE_LEN: usize = 32;
-    comm.append(&[CHAINCODE_LEN as u8]); // Dummy chaincode length
-    comm.append(&[0u8; CHAINCODE_LEN]); // Dummy chaincode
+    comm.append(&pk.0);
 
     Ok(())
 }
