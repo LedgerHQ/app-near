@@ -7,7 +7,8 @@ use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
 
-use super::concatenate;
+use super::fmt_buffer::TruncatingFmtBuffer;
+
 
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
@@ -52,27 +53,28 @@ impl PublicKeyBe {
         PublicKeyBe(out)
     }
 
-    pub fn display_str<'a, 'b>(&'a self, buffer: &'b mut [u8; 60]) -> Result<&'b str, AppSW> {
+    pub fn display_str(&self, buffer: &mut TruncatingFmtBuffer<60>) -> Result<(), AppSW> {
         let mut out = [0u8; 50];
         let len = bs58::encode(&self.0)
             .onto(&mut out[..])
             .map_err(|_| AppSW::AddrDisplayFail)?;
         let bs58_str = core::str::from_utf8(&out[..len]).map_err(|_| AppSW::AddrDisplayFail)?;
 
-        let full_key =
-            concatenate(&["ed25519:", bs58_str], buffer).map_err(|_| AppSW::AddrDisplayFail)?;
-        Ok(full_key)
+        buffer.write_str("ed25519:");
+        buffer.write_str(bs58_str);
+
+        Ok(())
     }
 
     #[cfg(feature = "speculos")]
     pub fn debug_print(&self) -> Result<(), AppSW> {
         testing::debug_print("debug printing pub key:\n");
 
-        let mut out_buf = [0u8; 60];
+        let mut out_buf = TruncatingFmtBuffer::<60>::new();
 
-        let full_key = self.display_str(&mut out_buf)?;
+        self.display_str(&mut out_buf)?;
 
-        testing::debug_print(full_key);
+        testing::debug_print(out_buf.as_str());
         testing::debug_print("\n");
         testing::debug_print("debug printing pub key finish:\n\n");
         Ok(())

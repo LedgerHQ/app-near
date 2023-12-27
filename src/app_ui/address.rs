@@ -17,6 +17,7 @@
 
 use crate::AppSW;
 use crate::utils::PublicKeyBe;
+use crate::utils::fmt_buffer::TruncatingFmtBuffer;
 use core::str::from_utf8_mut;
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
@@ -25,12 +26,12 @@ use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 const DISPLAY_ADDR_BYTES_LEN: usize = 20;
 
 pub fn ui_display_pk(public_key: &PublicKeyBe) -> Result<bool, AppSW> {
-    let mut out_buf = [0u8; 60];
-    let full_key = public_key.display_str(&mut out_buf)?;
+    let mut out_buf = TruncatingFmtBuffer::<60>::new();
+    public_key.display_str(&mut out_buf)?;
 
     let my_field = [Field {
         name: "Address",
-        value: full_key,
+        value: out_buf.as_str(),
     }];
 
     let my_review = MultiFieldReview::new(
