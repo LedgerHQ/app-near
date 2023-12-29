@@ -51,11 +51,6 @@ pub struct Error {
     repr: Repr,
 }
 
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&self.repr, f)
-    }
-}
 
 enum Repr {
     Simple(ErrorKind),
@@ -72,6 +67,7 @@ enum Repr {
 /// [`io::Error`]: Error
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // #[allow(deprecated)]
+#[allow(unused)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// An entity was not found, often a file.
@@ -191,7 +187,6 @@ impl From<ErrorKind> for Error {
     /// let error = Error::from(not_found);
     /// assert_eq!("entity not found", format!("{}", error));
     /// ```
-    #[inline]
     fn from(kind: ErrorKind) -> Error {
         Error {
             repr: Repr::Simple(kind),
@@ -221,22 +216,6 @@ impl Error {
     pub fn kind(&self) -> ErrorKind {
         match self.repr {
             Repr::Simple(kind) => kind,
-        }
-    }
-}
-
-impl fmt::Debug for Repr {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Repr::Simple(kind) => fmt.debug_tuple("Kind").field(&kind).finish(),
-        }
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.repr {
-            Repr::Simple(kind) => write!(fmt, "{}", kind.as_str()),
         }
     }
 }
@@ -511,22 +490,18 @@ pub trait Write {
 }
 
 impl<W: Write + ?Sized> Write for &mut W {
-    #[inline]
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         (**self).write(buf)
     }
 
-    #[inline]
     fn flush(&mut self) -> Result<()> {
         (**self).flush()
     }
 
-    #[inline]
     fn write_all(&mut self, buf: &[u8]) -> Result<()> {
         (**self).write_all(buf)
     }
 
-    #[inline]
     fn write_fmt(&mut self, fmt: fmt::Arguments<'_>) -> Result<()> {
         (**self).write_fmt(fmt)
     }
@@ -538,7 +513,6 @@ impl<W: Write + ?Sized> Write for &mut W {
 /// Note that writing updates the slice to point to the yet unwritten part.
 /// The slice will be empty when it has been completely overwritten.
 impl Write for &mut [u8] {
-    #[inline]
     fn write(&mut self, data: &[u8]) -> Result<usize> {
         let amt = core::cmp::min(data.len(), self.len());
         let (a, b) = core::mem::replace(self, &mut []).split_at_mut(amt);
@@ -547,7 +521,6 @@ impl Write for &mut [u8] {
         Ok(amt)
     }
 
-    #[inline]
     fn write_all(&mut self, data: &[u8]) -> Result<()> {
         if self.write(data)? == data.len() {
             Ok(())
@@ -558,7 +531,6 @@ impl Write for &mut [u8] {
         }
     }
 
-    #[inline]
     fn flush(&mut self) -> Result<()> {
         Ok(())
     }
@@ -834,19 +806,16 @@ fn default_read_exact<R: Read + ?Sized>(this: &mut R, mut buf: &mut [u8]) -> Res
 }
 
 impl<R: Read + ?Sized> Read for &mut R {
-    #[inline]
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         (**self).read(buf)
     }
 
-    #[inline]
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         (**self).read_exact(buf)
     }
 }
 
 impl Read for &[u8] {
-    #[inline]
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let amt = core::cmp::min(buf.len(), self.len());
         let (a, b) = self.split_at(amt);
@@ -864,7 +833,6 @@ impl Read for &[u8] {
         Ok(amt)
     }
 
-    #[inline]
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         if buf.len() > self.len() {
             return Err(Error::from(

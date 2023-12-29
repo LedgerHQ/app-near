@@ -1,3 +1,6 @@
+use crate::app_ui::sign::display_receiving;
+use crate::io::Read;
+use crate::tx_stream_reader::SingleTxStream;
 /*****************************************************************************
  *   Ledger App Near Rust.
  *   (c) 2023 Ledger SAS.
@@ -23,8 +26,11 @@ use ledger_secure_sdk_sys::{
     cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
 };
 
+#[cfg(feature = "speculos")]
+use ledger_device_sdk::testing;
+use numtoa::NumToA;
 
-const MAX_TRANSACTION_LEN: usize = 510;
+const MAX_TRANSACTION_LEN: usize = 534;
 
 // #[derive(Deserialize)]
 // pub struct Tx<'a> {
@@ -40,8 +46,7 @@ const MAX_TRANSACTION_LEN: usize = 510;
 pub struct TxContext {
     raw_tx: [u8; MAX_TRANSACTION_LEN], // raw transaction serialized
     raw_tx_len: usize,                 // length of raw transaction
-    path: [u32; ALLOWED_PATH_LEN], // BIP32 path for key derivation
-    path_len: usize,                   // length of BIP32 path
+    path: [u32; ALLOWED_PATH_LEN],     // BIP32 path for key derivation
 }
 
 // Implement constructor for TxInfo with default values
@@ -51,7 +56,6 @@ impl TxContext {
             raw_tx: [0u8; MAX_TRANSACTION_LEN],
             raw_tx_len: 0,
             path: [0u32; ALLOWED_PATH_LEN],
-            path_len: 0,
         }
     }
     // Implement reset for TxInfo
@@ -59,56 +63,38 @@ impl TxContext {
         self.raw_tx = [0u8; MAX_TRANSACTION_LEN];
         self.raw_tx_len = 0;
         self.path = [0u32; ALLOWED_PATH_LEN];
-        self.path_len = 0;
     }
 }
 
-pub fn handler_sign_tx(
-    comm: &mut Comm,
-    chunk: u8,
-    more: bool,
-    ctx: &mut TxContext,
-) -> Result<(), AppSW> {
-    // Try to get data from comm
-    let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
-    // First chunk, try to parse the path
-    if chunk == 0 {
-        // Reset transaction context
-        ctx.reset();
 
-        let path = PathBip32::parse(data)?;
-        ctx.path = path.0; 
-        Ok(())
-    // Next chunks, append data to raw_tx and return or parse
-    // the transaction if it is the last chunk.
-    } else {
-        if ctx.raw_tx_len + data.len() > MAX_TRANSACTION_LEN {
-            return Err(AppSW::TxWrongLength);
-        }
+pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<(), AppSW> {
+    display_receiving();
+    let mut buff = [0u8; 50];
+    loop {
 
-        // Append data to raw_tx
-        ctx.raw_tx[ctx.raw_tx_len..ctx.raw_tx_len + data.len()].copy_from_slice(data);
-        ctx.raw_tx_len += data.len();
+        let n = stream.read(&mut buff).map_err(|_err| AppSW::TxParsingFail)?;
 
-        // If we expect more chunks, return
-        if more {
-            Ok(())
-        // Otherwise, try to parse the transaction
-        } else {
-            // // Try to deserialize the transaction
-            // let (tx, _): (Tx, usize) =
-            //     from_slice(&ctx.raw_tx[..ctx.raw_tx_len]).map_err(|_| AppSW::TxParsingFail)?;
-            // // Display transaction. If user approves
-            // // the transaction, sign it. Otherwise,
-            // // return a "deny" status word.
-            // if ui_display_tx(&tx)? {
-            //     compute_signature_and_append(comm, ctx)
-            // } else {
-            //     Err(AppSW::Deny)
-            // }
-            Ok(())
-        }
+        #[cfg(feature = "speculos")]
+        debug_print_slice(&buff, n);
+        
+        if n == 0 {
+            break;
+        } 
     }
+
+    Ok(())
+}
+
+#[cfg(feature = "speculos")]
+pub fn debug_print_slice(slice: &[u8; 50], n: usize) {
+    testing::debug_print("debug printing received slice hex:\n");
+
+    let mut to_str = [0u8; 100];
+    hex::encode_to_slice(&slice[0..n], &mut to_str[..2*n]).unwrap();
+
+    testing::debug_print(core::str::from_utf8(&to_str[0..2*n]).unwrap());
+    testing::debug_print("\n");
+    testing::debug_print("debug printing received slice hex finish:\n\n");
 }
 
 fn compute_signature_and_append(comm: &mut Comm, ctx: &mut TxContext) -> Result<(), AppSW> {
@@ -132,7 +118,7 @@ fn compute_signature_and_append(comm: &mut Comm, ctx: &mut TxContext) -> Result<
         }
     }
 
-    let (sig, siglen, parity) = Secp256k1::derive_from_path(&ctx.path[..ctx.path_len])
+    let (sig, siglen, parity) = Secp256k1::derive_from_path(&ctx.path[..])
         .deterministic_sign(&message_hash)
         .map_err(|_| AppSW::TxSignFail)?;
     comm.append(&[siglen as u8]);

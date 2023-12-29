@@ -16,8 +16,12 @@
  *****************************************************************************/
 // use crate::handlers::sign_tx::Tx;
 use crate::AppSW;
-use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
+use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
+
+use ledger_device_sdk::ui::gadgets::clear_screen;
+use ledger_device_sdk::ui::layout::{StringPlace, Location, Layout};
+use ledger_device_sdk::ui::screen_util::screen_update;
 
 const MAX_COIN_LENGTH: usize = 10;
 
@@ -67,3 +71,18 @@ const MAX_COIN_LENGTH: usize = 10;
 
 //     Ok(my_review.show())
 // }
+pub fn display_receiving() {
+    clear_screen();
+
+    // Add icon and text to match the C SDK equivalent.
+    if cfg!(target_os = "nanos") {
+        "Receiving".place(Location::Custom(2), Layout::Centered, true);
+        "Transaction...".place(Location::Custom(14), Layout::Centered, true);
+    } else {
+        WARNING.draw(57, 10);
+        "Receiving".place(Location::Custom(28), Layout::Centered, true);
+        "Transaction...".place(Location::Custom(42), Layout::Centered, true);
+    }
+
+    screen_update();
+}

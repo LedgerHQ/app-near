@@ -30,8 +30,9 @@ mod handlers {
     pub mod sign_tx;
 }
 
-mod io;
 mod borsh;
+mod io;
+mod tx_stream_reader;
 
 use app_ui::menu::ui_menu_main;
 use handlers::{
@@ -42,6 +43,7 @@ use handlers::{
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
+use tx_stream_reader::SingleTxStream;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
@@ -49,6 +51,10 @@ ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 const CLA: u8 = 0x80;
 const INS_GET_VERSION: u8 = 6; // Instruction code to get app version from the Ledger
 const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
+const INS_SIGN_TRANSACTION: u8 = 2; // Instruction code to sign a transaction on the Ledger
+
+const P1_SIGN_NORMAL: u8 = 0;
+const P1_SIGN_NORMAL_LAST_CHUNK: u8 = 0x80;
 
 // Application status words.
 #[repr(u16)]
@@ -79,7 +85,7 @@ pub enum Instruction {
     GetVersion,
     // GetAppName,
     GetPubkey,
-    // SignTx { chunk: u8, more: bool },
+    SignTx { is_last_chunk: bool },
 }
 
 /// APDU parsing logic.
@@ -96,6 +102,11 @@ impl TryFrom<ApduHeader> for Instruction {
         match (value.cla, value.ins, value.p1, value.p2) {
             (CLA, INS_GET_VERSION, 0, 0) => Ok(Instruction::GetVersion),
             (CLA, INS_GET_PUBLIC_KEY, 0, _) => Ok(Instruction::GetPubkey),
+            (CLA, INS_SIGN_TRANSACTION, P1_SIGN_NORMAL | P1_SIGN_NORMAL_LAST_CHUNK, _) => {
+                Ok(Instruction::SignTx {
+                    is_last_chunk: value.p1 == P1_SIGN_NORMAL_LAST_CHUNK,
+                })
+            }
             // (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
             // (CLA, 6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
             // | (CLA, 6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
@@ -117,14 +128,11 @@ extern "C" fn sample_main() {
     testing::debug_print("enter `sample_main` fn\n\n");
     let mut comm = Comm::new();
 
-    // display_pending_review(&mut comm);
-    let mut tx_ctx = TxContext::new();
-
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
         if let Event::Command(ins) = ui_menu_main(&mut comm) {
-            match handle_apdu(&mut comm, ins, &mut tx_ctx) {
+            match handle_apdu(&mut comm, ins) {
                 Ok(()) => comm.reply_ok(),
                 Err(sw) => comm.reply(sw),
             }
@@ -132,10 +140,13 @@ extern "C" fn sample_main() {
     }
 }
 
-fn handle_apdu(comm: &mut Comm, ins: Instruction, ctx: &mut TxContext) -> Result<(), AppSW> {
+fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
     match ins {
         Instruction::GetVersion => handler_get_version(comm),
-        Instruction::GetPubkey  => handler_get_public_key(comm, true),
-        // Instruction::SignTx { chunk, more } => handler_sign_tx(comm, chunk, more, ctx),
+        Instruction::GetPubkey => handler_get_public_key(comm, true),
+        Instruction::SignTx { is_last_chunk } => {
+            let stream = SingleTxStream::new(comm, is_last_chunk);
+            handler_sign_tx(stream)
+        }
     }
 }
