@@ -30,6 +30,9 @@ mod handlers {
     pub mod sign_tx;
 }
 
+mod io;
+mod borsh;
+
 use app_ui::menu::ui_menu_main;
 use handlers::{
     get_public_key::handler_get_public_key,

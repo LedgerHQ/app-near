@@ -27,8 +27,6 @@ use ledger_secure_sdk_sys::{
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-use numtoa::NumToA;
-
 pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = PathBip32::parse(data)?;
