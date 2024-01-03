@@ -18,11 +18,8 @@
 use crate::app_ui::address::ui_display_pk;
 use crate::utils::{bip32_derive, PathBip32, PublicKeyBe};
 use crate::AppSW;
-use ledger_device_sdk::ecc::{Ed25519, SeedDerive};
 use ledger_device_sdk::io::Comm;
 
-#[cfg(feature = "speculos")]
-use ledger_device_sdk::testing;
 
 pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;

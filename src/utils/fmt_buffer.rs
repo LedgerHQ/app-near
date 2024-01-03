@@ -1,6 +1,3 @@
-use core::fmt;
-
-
 pub struct TruncatingFmtBuffer<const N: usize> {
     buffer: [u8; N],
     used: usize,
@@ -23,6 +20,7 @@ impl<const N: usize> TruncatingFmtBuffer<N> {
         unsafe { from_utf8_unchecked(&self.buffer[..self.used]) }
     }
 
+    #[allow(unused)]
     pub fn truncated(&self) -> bool {
         self.truncated
         

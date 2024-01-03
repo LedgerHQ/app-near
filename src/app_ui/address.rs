@@ -18,12 +18,8 @@
 use crate::AppSW;
 use crate::utils::PublicKeyBe;
 use crate::utils::fmt_buffer::TruncatingFmtBuffer;
-use core::str::from_utf8_mut;
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
-
-// Display only the last 20 bytes of the address
-const DISPLAY_ADDR_BYTES_LEN: usize = 20;
 
 pub fn ui_display_pk(public_key: &PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = TruncatingFmtBuffer::<60>::new();

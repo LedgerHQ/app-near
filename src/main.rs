@@ -33,12 +33,13 @@ mod handlers {
 mod borsh;
 mod io;
 mod tx_stream_reader;
+mod transaction_prefix;
 
 use app_ui::menu::ui_menu_main;
 use handlers::{
     get_public_key::handler_get_public_key,
     get_version::handler_get_version,
-    sign_tx::{handler_sign_tx, TxContext},
+    sign_tx::handler_sign_tx,
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]

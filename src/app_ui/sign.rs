@@ -15,15 +15,13 @@
  *  limitations under the License.
  *****************************************************************************/
 // use crate::handlers::sign_tx::Tx;
-use crate::AppSW;
-use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING};
-use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
+// use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING};
+use ledger_device_sdk::ui::bitmaps::WARNING;
+// use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 
 use ledger_device_sdk::ui::gadgets::clear_screen;
 use ledger_device_sdk::ui::layout::{StringPlace, Location, Layout};
 use ledger_device_sdk::ui::screen_util::screen_update;
-
-const MAX_COIN_LENGTH: usize = 10;
 
 // pub fn ui_display_tx(tx: &Tx) -> Result<bool, AppSW> {
 //     // Generate string for amount

@@ -1,6 +1,6 @@
 use ledger_device_sdk::{
     buttons::ButtonEvent,
-    io::{Comm, Event, StatusWords},
+    io::{Comm, Event},
 };
 
 use crate::{io, AppSW, Instruction};

@@ -2,8 +2,7 @@ use core::mem;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-use crate::{AppSW, io::{ErrorKind, Error, Result, Read}, borsh::BorshDeserialize};
-use numtoa::NumToA;
+use crate::{io::{ErrorKind, Error, Result, Read}, borsh::BorshDeserialize};
 
 pub const ALLOWED_PATH_LEN: usize = 5;
 pub struct PathBip32(pub [u32; ALLOWED_PATH_LEN]);
@@ -27,6 +26,7 @@ impl PathBip32 {
 
     #[cfg(feature = "speculos")]
     pub fn debug_print(&self) {
+        use numtoa::NumToA;
         testing::debug_print("debug printing path:\n");
 
         let mut numtoa_buf = [0u8; 40];

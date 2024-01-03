@@ -1,5 +1,3 @@
-use core::str::from_utf8;
-
 use ledger_device_sdk::ecc::{CurvesId, ECPrivateKey, ECPublicKey, Ed25519, Secret};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;

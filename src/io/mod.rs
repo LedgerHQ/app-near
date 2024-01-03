@@ -146,6 +146,7 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
+    #[allow(unused)]
     pub(crate) fn as_str(&self) -> &'static str {
         match *self {
             ErrorKind::NotFound => "entity not found",
