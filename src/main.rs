@@ -72,6 +72,7 @@ pub enum AppSW {
     KeyDeriveFail = 0xB009,
     VersionParsingFail = 0xB00A,
     Bip32PathParsingFail = 0xB00B,
+    TxHashFinalizeFail = 0xB00C,
     WrongApduLength = StatusWords::BadLen as u16,
 }
 
@@ -147,7 +148,9 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
         Instruction::GetPubkey => handler_get_public_key(comm, true),
         Instruction::SignTx { is_last_chunk } => {
             let stream = SingleTxStream::new(comm, is_last_chunk);
-            handler_sign_tx(stream)
+            let digest = handler_sign_tx(stream)?;
+            comm.append(&digest.0);
+            Ok(())
         }
     }
 }

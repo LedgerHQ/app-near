@@ -1,7 +1,7 @@
 use crate::app_ui::sign::display_receiving;
 use crate::borsh::BorshDeserialize;
-use crate::io::Read;
-use crate::tx_stream_reader::{SingleTxStream, HashingStream};
+use crate::io::{Read, ErrorKind};
+use crate::tx_stream_reader::{SingleTxStream, HashingStream, Sha256Digest};
 /*****************************************************************************
  *   Ledger App Near Rust.
  *   (c) 2023 Ledger SAS.
@@ -67,7 +67,7 @@ impl TxContext {
     }
 }
 
-pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<(), AppSW> {
+pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Sha256Digest, AppSW> {
     display_receiving();
     let path = <PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
@@ -75,13 +75,18 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<(), AppSW> {
     #[cfg(feature = "speculos")]
     path.debug_print();
 
-    let mut stream = HashingStream::new(stream);
+    let mut stream = HashingStream::new(stream)?;
 
     let mut buff = [0u8; 50];
     loop {
         let n = stream
             .read(&mut buff)
-            .map_err(|_err| AppSW::TxParsingFail)?;
+            .map_err(|err| {
+                if err.kind() == ErrorKind::OutOfMemory {
+                    return AppSW::TxHashFail;
+                }
+                AppSW::TxParsingFail
+            })?;
 
         #[cfg(feature = "speculos")]
         debug_print_slice(&buff, n);
@@ -90,20 +95,26 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<(), AppSW> {
             break;
         }
     }
+    let digest = stream.finalize()?;
+    #[cfg(feature = "speculos")]
+    testing::debug_print("computed hash:\n");
+    (&mut buff[0..32]).copy_from_slice(&digest.0);
+    #[cfg(feature = "speculos")]
+    debug_print_slice(&buff, 32);
 
-    Ok(())
+    Ok(digest)
 }
 
 #[cfg(feature = "speculos")]
 pub fn debug_print_slice(slice: &[u8; 50], n: usize) {
-    testing::debug_print("debug printing received slice hex:\n");
+    testing::debug_print("debug printing slice hex:\n");
 
     let mut to_str = [0u8; 100];
     hex::encode_to_slice(&slice[0..n], &mut to_str[..2 * n]).unwrap();
 
     testing::debug_print(core::str::from_utf8(&to_str[0..2 * n]).unwrap());
     testing::debug_print("\n");
-    testing::debug_print("debug printing received slice hex finish:\n\n");
+    testing::debug_print("debug printing slice hex finish:\n\n");
 }
 
 fn compute_signature_and_append(comm: &mut Comm, ctx: &mut TxContext) -> Result<(), AppSW> {
