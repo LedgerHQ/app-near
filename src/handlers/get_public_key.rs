@@ -29,7 +29,7 @@ use ledger_device_sdk::testing;
 
 pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
-    let path = PathBip32::parse(data)?;
+    let path = PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 
     #[cfg(feature = "speculos")]
     path.debug_print();

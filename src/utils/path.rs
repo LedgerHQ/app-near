@@ -2,7 +2,7 @@ use core::mem;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-use crate::AppSW;
+use crate::{AppSW, io::{ErrorKind, Error, Result, Read}, borsh::BorshDeserialize};
 use numtoa::NumToA;
 
 pub const ALLOWED_PATH_LEN: usize = 5;
@@ -12,10 +12,10 @@ impl PathBip32 {
     fn new() -> Self {
         Self([0u32; ALLOWED_PATH_LEN])
     }
-    pub fn parse(data: &[u8]) -> Result<Self, AppSW> {
+    pub fn parse(data: &[u8]) -> Result<Self> {
         let mut result = Self::new();
         if data.len() != ALLOWED_PATH_LEN * mem::size_of::<u32>() {
-            return Err(AppSW::WrongApduLength);
+            return Err(Error::from(ErrorKind::InvalidData));
         }
 
         for (i, chunk) in data.chunks(mem::size_of::<u32>()).enumerate() {
@@ -45,3 +45,21 @@ impl PathBip32 {
     }
 }
 
+
+fn unexpected_eof_to_unexpected_length_of_input(e: Error) -> Error {
+    if e.kind() == ErrorKind::UnexpectedEof {
+        Error::from(ErrorKind::InvalidData)
+    } else {
+        e
+    }
+}
+
+impl BorshDeserialize for PathBip32{
+    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+        let mut buf = [0u8; ALLOWED_PATH_LEN * mem::size_of::<u32>()];
+        reader
+            .read_exact(&mut buf)
+            .map_err(unexpected_eof_to_unexpected_length_of_input)?;
+        Self::parse(&buf)
+    }
+}

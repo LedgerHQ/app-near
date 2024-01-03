@@ -43,7 +43,9 @@ impl<R: io::Read> io::Read for HashingStream<R> {
         if buf.len() > 0 {
             let n = self.reader.read(buf)?;
 
-            self.hash_state += buf[n - 1] as u32;
+            if n > 0 {
+                self.hash_state += buf[n - 1] as u32;
+            }
             return Ok(n);
         }
         Ok(0)

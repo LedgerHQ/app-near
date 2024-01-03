@@ -1,6 +1,7 @@
 use crate::app_ui::sign::display_receiving;
+use crate::borsh::BorshDeserialize;
 use crate::io::Read;
-use crate::tx_stream_reader::SingleTxStream;
+use crate::tx_stream_reader::{SingleTxStream, HashingStream};
 /*****************************************************************************
  *   Ledger App Near Rust.
  *   (c) 2023 Ledger SAS.
@@ -66,20 +67,28 @@ impl TxContext {
     }
 }
 
-
 pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<(), AppSW> {
     display_receiving();
+    let path = <PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
+        .map_err(|_| AppSW::Bip32PathParsingFail)?;
+
+    #[cfg(feature = "speculos")]
+    path.debug_print();
+
+    let mut stream = HashingStream::new(stream);
+
     let mut buff = [0u8; 50];
     loop {
-
-        let n = stream.read(&mut buff).map_err(|_err| AppSW::TxParsingFail)?;
+        let n = stream
+            .read(&mut buff)
+            .map_err(|_err| AppSW::TxParsingFail)?;
 
         #[cfg(feature = "speculos")]
         debug_print_slice(&buff, n);
-        
+
         if n == 0 {
             break;
-        } 
+        }
     }
 
     Ok(())
@@ -90,9 +99,9 @@ pub fn debug_print_slice(slice: &[u8; 50], n: usize) {
     testing::debug_print("debug printing received slice hex:\n");
 
     let mut to_str = [0u8; 100];
-    hex::encode_to_slice(&slice[0..n], &mut to_str[..2*n]).unwrap();
+    hex::encode_to_slice(&slice[0..n], &mut to_str[..2 * n]).unwrap();
 
-    testing::debug_print(core::str::from_utf8(&to_str[0..2*n]).unwrap());
+    testing::debug_print(core::str::from_utf8(&to_str[0..2 * n]).unwrap());
     testing::debug_print("\n");
     testing::debug_print("debug printing received slice hex finish:\n\n");
 }

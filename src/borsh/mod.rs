@@ -47,7 +47,6 @@ fn unexpected_eof_to_unexpected_length_of_input(e: Error) -> Error {
 }
 
 impl BorshDeserialize for u128 {
-    #[inline]
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let mut buf = [0u8; size_of::<u128>()];
         reader
