@@ -20,9 +20,6 @@ use crate::utils::{bip32_derive, PathBip32, PublicKeyBe};
 use crate::AppSW;
 use ledger_device_sdk::ecc::{Ed25519, SeedDerive};
 use ledger_device_sdk::io::Comm;
-use ledger_secure_sdk_sys::{
-    cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
-};
 
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;

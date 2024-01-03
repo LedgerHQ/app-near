@@ -148,8 +148,8 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
         Instruction::GetPubkey => handler_get_public_key(comm, true),
         Instruction::SignTx { is_last_chunk } => {
             let stream = SingleTxStream::new(comm, is_last_chunk);
-            let digest = handler_sign_tx(stream)?;
-            comm.append(&digest.0);
+            let signature = handler_sign_tx(stream)?;
+            comm.append(&signature.0);
             Ok(())
         }
     }

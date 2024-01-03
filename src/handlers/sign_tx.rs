@@ -1,7 +1,7 @@
 use crate::app_ui::sign::display_receiving;
 use crate::borsh::BorshDeserialize;
-use crate::io::{Read, ErrorKind};
-use crate::tx_stream_reader::{SingleTxStream, HashingStream, Sha256Digest};
+use crate::io::{ErrorKind, Read};
+use crate::tx_stream_reader::{HashingStream, SingleTxStream};
 /*****************************************************************************
  *   Ledger App Near Rust.
  *   (c) 2023 Ledger SAS.
@@ -19,13 +19,10 @@ use crate::tx_stream_reader::{SingleTxStream, HashingStream, Sha256Digest};
  *  limitations under the License.
  *****************************************************************************/
 // use crate::app_ui::sign::ui_display_tx;
-use crate::utils::{PathBip32, ALLOWED_PATH_LEN};
+use crate::utils::{bip32_derive, PathBip32, ALLOWED_PATH_LEN};
 use crate::AppSW;
 use ledger_device_sdk::ecc::{Secp256k1, SeedDerive};
 use ledger_device_sdk::io::Comm;
-use ledger_secure_sdk_sys::{
-    cx_hash_no_throw, cx_hash_t, cx_keccak_init_no_throw, cx_sha3_t, CX_LAST, CX_OK,
-};
 
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
@@ -67,7 +64,9 @@ impl TxContext {
     }
 }
 
-pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Sha256Digest, AppSW> {
+pub struct Signature(pub [u8; 64]);
+
+pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     display_receiving();
     let path = <PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
@@ -79,14 +78,12 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Sha256Digest, A
 
     let mut buff = [0u8; 50];
     loop {
-        let n = stream
-            .read(&mut buff)
-            .map_err(|err| {
-                if err.kind() == ErrorKind::OutOfMemory {
-                    return AppSW::TxHashFail;
-                }
-                AppSW::TxParsingFail
-            })?;
+        let n = stream.read(&mut buff).map_err(|err| {
+            if err.kind() == ErrorKind::OutOfMemory {
+                return AppSW::TxHashFail;
+            }
+            AppSW::TxParsingFail
+        })?;
 
         #[cfg(feature = "speculos")]
         debug_print_slice(&buff, n);
@@ -96,13 +93,12 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Sha256Digest, A
         }
     }
     let digest = stream.finalize()?;
-    #[cfg(feature = "speculos")]
-    testing::debug_print("computed hash:\n");
-    (&mut buff[0..32]).copy_from_slice(&digest.0);
-    #[cfg(feature = "speculos")]
-    debug_print_slice(&buff, 32);
 
-    Ok(digest)
+    let private_key = bip32_derive(&path.0);
+    let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
+
+
+    Ok(Signature(sig))
 }
 
 #[cfg(feature = "speculos")]
@@ -115,34 +111,4 @@ pub fn debug_print_slice(slice: &[u8; 50], n: usize) {
     testing::debug_print(core::str::from_utf8(&to_str[0..2 * n]).unwrap());
     testing::debug_print("\n");
     testing::debug_print("debug printing slice hex finish:\n\n");
-}
-
-fn compute_signature_and_append(comm: &mut Comm, ctx: &mut TxContext) -> Result<(), AppSW> {
-    let mut keccak256: cx_sha3_t = Default::default();
-    let mut message_hash: [u8; 32] = [0u8; 32];
-
-    unsafe {
-        if cx_keccak_init_no_throw(&mut keccak256, 256) != CX_OK {
-            return Err(AppSW::TxHashFail);
-        }
-        if cx_hash_no_throw(
-            &mut keccak256.header as *mut cx_hash_t,
-            CX_LAST,
-            ctx.raw_tx.as_ptr(),
-            ctx.raw_tx_len,
-            message_hash.as_mut_ptr(),
-            message_hash.len(),
-        ) != CX_OK
-        {
-            return Err(AppSW::TxHashFail);
-        }
-    }
-
-    let (sig, siglen, parity) = Secp256k1::derive_from_path(&ctx.path[..])
-        .deterministic_sign(&message_hash)
-        .map_err(|_| AppSW::TxSignFail)?;
-    comm.append(&[siglen as u8]);
-    comm.append(&sig[..siglen as usize]);
-    comm.append(&[parity as u8]);
-    Ok(())
 }
