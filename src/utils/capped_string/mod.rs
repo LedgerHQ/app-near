@@ -47,32 +47,35 @@ fn read_leftover<R: Read>(leftover: usize, reader: &mut R) -> Result<()> {
     Ok(())
 }
 
-impl<const N: usize> BorshDeserialize for CappedString<N> {
-    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+impl<const N: usize> CappedString<N> {
+    // BorshDeserialize counterpart to reduce size of stack frames
+    // NOTE: using this instead of `BorshDeserialize`
+    // allows to increase available buffers approximately from 400 to 800 bytes
+    pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         let bytes_count: u32 = u32::deserialize_reader(reader)?;
         let truncated = bytes_count > (N as u32);
-
-        let mut result = Self::new(truncated);
+        self.used = 0;
+        self.truncated = truncated;
 
         if !truncated {
             
-            reader.read_exact(&mut result.buffer[0..(bytes_count as usize)])?;
-            result.used = bytes_count as usize;
+            reader.read_exact(&mut self.buffer[0..(bytes_count as usize)])?;
+            self.used = bytes_count as usize;
 
             // the whole string is expected to be correct
-            core::str::from_utf8(&result.buffer[0..(bytes_count as usize)]).map_err(|_err| {
+            core::str::from_utf8(&self.buffer[0..(bytes_count as usize)]).map_err(|_err| {
                 Error::from(ErrorKind::InvalidData)
                 
             })?;
 
             
         } else {
-            let leftover = (bytes_count as usize) - result.buffer.len();
-            reader.read_exact(&mut result.buffer)?;
+            let leftover = (bytes_count as usize) - self.buffer.len();
+            reader.read_exact(&mut self.buffer)?;
 
-            match core::str::from_utf8(&result.buffer) {
+            match core::str::from_utf8(&self.buffer) {
                 Ok(_result) => {
-                    result.used = result.buffer.len();
+                    self.used = self.buffer.len();
                     
                 }, 
                 Err(err) => {
@@ -80,7 +83,7 @@ impl<const N: usize> BorshDeserialize for CappedString<N> {
                         return Err(Error::from(ErrorKind::InvalidData));
                     }
                     let valid_utf8_up_to = err.valid_up_to();
-                    result.used = valid_utf8_up_to;
+                    self.used = valid_utf8_up_to;
                     
                 }
                 
@@ -94,7 +97,7 @@ impl<const N: usize> BorshDeserialize for CappedString<N> {
             
         }
 
-        Ok(result)
+        Ok(())
 
         
     }

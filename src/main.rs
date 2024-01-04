@@ -23,6 +23,7 @@ mod app_ui {
     pub mod address;
     pub mod menu;
     pub mod sign;
+    pub mod transaction_prefix;
 }
 mod handlers {
     pub mod get_public_key;

@@ -7,16 +7,19 @@ use crate::{
     utils::capped_string::CappedString,
 };
 
-// NOTE: works in speculos
-// signer_id: CappedString<270>,
-// receiver_id: CappedString<270>,
-// NOTE: works on nanos, but crashes in speculos
-// signer_id: CappedString<300>,
-// receiver_id: CappedString<300>,
+// NOTE: works on nanos, and speculos
+// 
+// signer_id: CappedString<400>,
+// receiver_id: CappedString<400>, 
+// works, but overflows total MultiFieldReview windows for display
+// 
+// signer_id: CappedString<300>, (Signer Id 1/18 -> Signer Id 18/18)
+// receiver_id: CappedString<300> (Receiver Id 1/18 -> Receiver Id 18/18)
+// works 
 pub struct TransactionPrefix {
-    signer_id: CappedString<64>,
-    receiver_id: CappedString<64>,
-    number_of_actions: u32,
+    pub signer_id: CappedString<64>,
+    pub receiver_id: CappedString<64>,
+    pub number_of_actions: u32,
 }
 
 pub enum KeyType {
@@ -65,25 +68,24 @@ impl BorshDeserialize for CryptoHash {
     }
 }
 
-impl BorshDeserialize for TransactionPrefix {
-    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
-        let signer_id: CappedString<64> = BorshDeserialize::deserialize_reader(reader)?;
+impl TransactionPrefix {
+    // NOTE: using this instead of `BorshDeserialize`
+    // allows to increase available buffers approximately from 400 to 800 bytes
+    pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
+        self.signer_id.deserialize_reader_in_place(reader)?;
         let pk: TxPublicKey = BorshDeserialize::deserialize_reader(reader)?;
         drop(pk);
         let nonce: u64 = BorshDeserialize::deserialize_reader(reader)?;
         drop(nonce);
-        let receiver_id: CappedString<64> = BorshDeserialize::deserialize_reader(reader)?;
+        self.receiver_id.deserialize_reader_in_place(reader)?;
 
         let crypto_hash: CryptoHash = BorshDeserialize::deserialize_reader(reader)?;
         drop(crypto_hash);
 
         let number_of_actions: u32 = BorshDeserialize::deserialize_reader(reader)?;
+        self.number_of_actions = number_of_actions;
 
-        Ok(Self {
-            receiver_id,
-            signer_id,
-            number_of_actions,
-        })
+        Ok(())
     }
 }
 

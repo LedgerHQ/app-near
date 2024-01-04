@@ -6,3 +6,5 @@ pub mod public_key;
 pub mod fmt_buffer;
 pub mod capped_string;
 
+pub mod ui;
+

@@ -16,10 +16,12 @@
  *****************************************************************************/
 // use crate::app_ui::sign::ui_display_tx;
 use crate::app_ui::sign::display_receiving;
+use crate::app_ui::transaction_prefix::ui_display_tx_prefix;
 use crate::borsh::BorshDeserialize;
 use crate::io::{ErrorKind, Read};
 use crate::transaction_prefix::TransactionPrefix;
 use crate::tx_stream_reader::{HashingStream, SingleTxStream};
+use crate::utils::capped_string::CappedString;
 use crate::utils::{bip32_derive, PathBip32};
 use crate::AppSW;
 
@@ -31,6 +33,22 @@ const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
+fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {
+    
+    let mut tx_prefix: TransactionPrefix = TransactionPrefix { 
+        signer_id:  CappedString::new(false),  
+        receiver_id: CappedString::new(false),  
+        number_of_actions: 0,
+    };
+
+    tx_prefix.deserialize_reader_in_place(stream).map_err(|_err| AppSW::TxParsingFail)?;
+
+    if !ui_display_tx_prefix(&tx_prefix) {
+        return Err(AppSW::Deny);
+    }
+    Ok(())
+}
+
 pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     display_receiving();
     let path = <PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
@@ -41,11 +59,7 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppS
 
     let mut stream = HashingStream::new(stream)?;
 
-    let tx_prefix: TransactionPrefix =
-        BorshDeserialize::deserialize_reader(&mut stream).map_err(|_err| AppSW::TxParsingFail)?;
-
-    #[cfg(feature = "speculos")]
-    tx_prefix.debug_print();
+    popup_transaction_prefix(&mut stream)?;
 
     let mut buff = [0u8; 50];
     loop {
