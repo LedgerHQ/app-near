@@ -5,7 +5,7 @@ use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
 
-use super::fmt_buffer::TruncatingFmtBuffer;
+use crate::utils::types::fmt_buffer::FmtBuffer;
 
 
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
@@ -51,7 +51,7 @@ impl PublicKeyBe {
         PublicKeyBe(out)
     }
 
-    pub fn display_str(&self, buffer: &mut TruncatingFmtBuffer<60>) -> Result<(), AppSW> {
+    pub fn display_str(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
         let mut out = [0u8; 50];
         let len = bs58::encode(&self.0)
             .onto(&mut out[..])
@@ -68,7 +68,7 @@ impl PublicKeyBe {
     pub fn debug_print(&self) -> Result<(), AppSW> {
         testing::debug_print("debug printing pub key:\n");
 
-        let mut out_buf = TruncatingFmtBuffer::<60>::new();
+        let mut out_buf = FmtBuffer::<60>::new();
 
         self.display_str(&mut out_buf)?;
 

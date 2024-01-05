@@ -2,9 +2,9 @@
 use ledger_device_sdk::testing;
 
 use crate::{
-    borsh::BorshDeserialize,
+    parsing::borsh::BorshDeserialize,
     io::{ErrorKind, Read, Result},
-    utils::capped_string::CappedString,
+    utils::types::capped_string::CappedString,
 };
 
 // NOTE: works on nanos, and speculos

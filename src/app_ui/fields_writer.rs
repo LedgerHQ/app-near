@@ -1,41 +1,8 @@
 use ledger_device_sdk::ui::gadgets::Field;
 
-use super::capped_string::CappedString;
+use crate::utils::types::capped_string::ElipsisFields;
 
-pub enum ElipsisFields<'a> {
-    One([Field<'a>; 1]),
-    Two([Field<'a>; 2]),
-}
 
-impl<'a> ElipsisFields<'a> {
-    pub fn one(field: Field<'a>) -> Self {
-        ElipsisFields::One([field])
-    }
-    
-}
-
-pub fn capped_string_fields<'a, const N: usize>(
-    string: &'a CappedString<N>,
-    title: &'a str,
-) -> ElipsisFields<'a> {
-    if string.truncated() {
-        ElipsisFields::Two([
-            Field {
-                name: title,
-                value: string.as_str(),
-            },
-            Field {
-                name: title,
-                value: "...",
-            },
-        ])
-    } else {
-        return ElipsisFields::One([Field {
-            name: title,
-            value: string.as_str(),
-        }]);
-    }
-}
 
 pub struct FieldsWriter<'a, const N: usize> {
     buffer: [Field<'a>; N],

@@ -14,36 +14,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
+use ledger_device_sdk::ui::bitmaps::WARNING;
 
-use crate::app_ui::address::ui_display_pk;
-use crate::utils::crypto;
-use crate::AppSW;
-use ledger_device_sdk::io::Comm;
+use ledger_device_sdk::ui::gadgets::clear_screen;
+use ledger_device_sdk::ui::layout::{StringPlace, Location, Layout};
+use ledger_device_sdk::ui::screen_util::screen_update;
 
+pub fn display_receiving() {
+    clear_screen();
 
-pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
-    let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
-    let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
-
-    #[cfg(feature = "speculos")]
-    path.debug_print();
-
-    let pk = crypto::bip32_derive(&path.0)
-        .public_key()
-        .map_err(|_| AppSW::KeyDeriveFail)?;
-
-    let pk = crypto::PublicKeyBe::from_little_endian(pk);
-
-    #[cfg(feature = "speculos")]
-    pk.debug_print()?;
-
-    if display {
-        if !ui_display_pk(&pk)? {
-            return Err(AppSW::Deny);
-        }
+    // Add icon and text to match the C SDK equivalent.
+    if cfg!(target_os = "nanos") {
+        "Receiving".place(Location::Custom(2), Layout::Centered, true);
+        "Transaction...".place(Location::Custom(14), Layout::Centered, true);
+    } else {
+        WARNING.draw(57, 10);
+        "Receiving".place(Location::Custom(28), Layout::Centered, true);
+        "Transaction...".place(Location::Custom(42), Layout::Centered, true);
     }
 
-    comm.append(&pk.0);
-
-    Ok(())
+    screen_update();
 }

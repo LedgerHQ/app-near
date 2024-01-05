@@ -15,14 +15,13 @@
  *  limitations under the License.
  *****************************************************************************/
 // use crate::app_ui::sign::ui_display_tx;
-use crate::app_ui::sign::display_receiving;
-use crate::app_ui::transaction_prefix::ui_display_tx_prefix;
-use crate::borsh::BorshDeserialize;
 use crate::io::{ErrorKind, Read};
-use crate::transaction_prefix::TransactionPrefix;
-use crate::tx_stream_reader::{HashingStream, SingleTxStream};
-use crate::utils::capped_string::CappedString;
-use crate::utils::{bip32_derive, PathBip32};
+use crate::parsing;
+use crate::parsing::borsh::BorshDeserialize;
+use crate::parsing::{HashingStream, SingleTxStream};
+use crate::sign_ui;
+use crate::utils::crypto;
+use crate::utils::types::capped_string::CappedString;
 use crate::AppSW;
 
 #[cfg(feature = "speculos")]
@@ -34,24 +33,25 @@ const MAX_TRANSACTION_LEN: usize = 534;
 pub struct Signature(pub [u8; 64]);
 
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {
-    
-    let mut tx_prefix: TransactionPrefix = TransactionPrefix { 
-        signer_id:  CappedString::new(false),  
-        receiver_id: CappedString::new(false),  
+    let mut tx_prefix = parsing::types::TransactionPrefix {
+        signer_id: CappedString::new(false),
+        receiver_id: CappedString::new(false),
         number_of_actions: 0,
     };
 
-    tx_prefix.deserialize_reader_in_place(stream).map_err(|_err| AppSW::TxParsingFail)?;
+    tx_prefix
+        .deserialize_reader_in_place(stream)
+        .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !ui_display_tx_prefix(&tx_prefix) {
+    if !sign_ui::transaction_prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(())
 }
 
 pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
-    display_receiving();
-    let path = <PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
+    sign_ui::widgets::display_receiving();
+    let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
 
     #[cfg(feature = "speculos")]
@@ -60,6 +60,8 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppS
     let mut stream = HashingStream::new(stream)?;
 
     popup_transaction_prefix(&mut stream)?;
+
+    sign_ui::widgets::display_receiving();
 
     let mut buff = [0u8; 50];
     loop {
@@ -79,7 +81,7 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppS
     }
     let digest = stream.finalize()?;
 
-    let private_key = bip32_derive(&path.0);
+    let private_key = crypto::bip32_derive(&path.0);
     let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
 
     Ok(Signature(sig))

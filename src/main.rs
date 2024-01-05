@@ -18,34 +18,58 @@
 #![no_std]
 #![no_main]
 
-mod utils;
+mod utils {
+    pub mod crypto {
+        pub mod path;
+        pub mod public_key;
+
+        pub use path::PathBip32;
+        pub use public_key::{bip32_derive, PublicKeyBe};
+    }
+    pub mod types {
+        pub mod capped_string;
+        pub mod fmt_buffer;
+    }
+}
 mod app_ui {
     pub mod address;
+    pub mod fields_writer;
     pub mod menu;
-    pub mod sign;
-    pub mod transaction_prefix;
+    pub mod sign {
+        pub mod transaction_prefix;
+        pub mod widgets;
+    }
 }
+pub use app_ui::sign as sign_ui;
+
 mod handlers {
     pub mod get_public_key;
     pub mod get_version;
     pub mod sign_tx;
 }
 
-mod borsh;
 mod io;
-mod tx_stream_reader;
-mod transaction_prefix;
+pub mod parsing {
+    pub mod borsh;
+    pub mod transaction_stream_reader;
+    pub mod types {
+        pub mod transaction_prefix;
+
+        pub use transaction_prefix::TransactionPrefix;
+    }
+
+    pub use transaction_stream_reader::{HashingStream, SingleTxStream};
+}
 
 use app_ui::menu::ui_menu_main;
 use handlers::{
-    get_public_key::handler_get_public_key,
-    get_version::handler_get_version,
+    get_public_key::handler_get_public_key, get_version::handler_get_version,
     sign_tx::handler_sign_tx,
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
-use tx_stream_reader::SingleTxStream;
+use parsing::SingleTxStream;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 

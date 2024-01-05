@@ -2,7 +2,10 @@ use core::mem;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-use crate::{io::{ErrorKind, Error, Result, Read}, borsh::BorshDeserialize};
+use crate::{
+    io::{Error, ErrorKind, Read, Result},
+    parsing::borsh::BorshDeserialize,
+};
 
 pub const ALLOWED_PATH_LEN: usize = 5;
 pub struct PathBip32(pub [u32; ALLOWED_PATH_LEN]);
@@ -45,7 +48,6 @@ impl PathBip32 {
     }
 }
 
-
 fn unexpected_eof_to_unexpected_length_of_input(e: Error) -> Error {
     if e.kind() == ErrorKind::UnexpectedEof {
         Error::from(ErrorKind::InvalidData)
@@ -54,7 +56,7 @@ fn unexpected_eof_to_unexpected_length_of_input(e: Error) -> Error {
     }
 }
 
-impl BorshDeserialize for PathBip32{
+impl BorshDeserialize for PathBip32 {
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let mut buf = [0u8; ALLOWED_PATH_LEN * mem::size_of::<u32>()];
         reader
