@@ -38,6 +38,7 @@ mod app_ui {
     pub mod sign {
         pub mod transaction_prefix;
         pub mod widgets;
+        pub mod action;
     }
 }
 pub use app_ui::sign as sign_ui;
@@ -54,8 +55,10 @@ pub mod parsing {
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod transaction_prefix;
+        pub mod action;
 
         pub use transaction_prefix::TransactionPrefix;
+        pub use action::{TransferAction, Action};
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};

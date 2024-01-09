@@ -70,7 +70,7 @@ impl BorshDeserialize for CryptoHash {
 
 impl TransactionPrefix {
     // NOTE: using this instead of `BorshDeserialize`
-    // allows to increase available buffers approximately from 400 to 800 bytes
+    // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         self.signer_id.deserialize_reader_in_place(reader)?;
         let pk: TxPublicKey = BorshDeserialize::deserialize_reader(reader)?;

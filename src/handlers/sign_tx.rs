@@ -18,6 +18,7 @@
 use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
+use crate::parsing::types::action::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;
@@ -32,7 +33,7 @@ const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
-fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {
+fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
         signer_id: CappedString::new(false),
         receiver_id: CappedString::new(false),
@@ -46,7 +47,18 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
     if !sign_ui::transaction_prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
+    Ok(tx_prefix.number_of_actions)
+}
+
+fn popup_action(stream: &mut HashingStream<SingleTxStream<'_>>, ordinal_action: u32, total_actions: u32) -> Result<(), AppSW> {
+
+    let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
+
+    if !sign_ui::action::ui_display(&action, ordinal_action + 1, total_actions) {
+        return Err(AppSW::Deny);
+    }
     Ok(())
+    
 }
 
 pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -59,26 +71,23 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppS
 
     let mut stream = HashingStream::new(stream)?;
 
-    popup_transaction_prefix(&mut stream)?;
+    let number_of_actions = popup_transaction_prefix(&mut stream)?;
 
-    sign_ui::widgets::display_receiving();
 
-    let mut buff = [0u8; 50];
-    loop {
-        let n = stream.read(&mut buff).map_err(|err| {
-            if err.kind() == ErrorKind::OutOfMemory {
-                return AppSW::TxHashFail;
-            }
-            AppSW::TxParsingFail
-        })?;
-
-        #[cfg(feature = "speculos")]
-        debug_print_slice(&buff, n);
-
-        if n == 0 {
-            break;
-        }
+    for i in 0..number_of_actions {
+        sign_ui::widgets::display_receiving();
+        popup_action(&mut stream, i, number_of_actions)?;
     }
+
+
+    // test no redundant bytes left in stream
+    let mut buf = [0u8; 1];
+    match stream.read_exact(&mut buf) {
+        Err(f) if f.kind() == ErrorKind::UnexpectedEof => { // ok
+        }
+        _ => return Err(AppSW::TxParsingFail),
+    }
+
     let digest = stream.finalize()?;
 
     let private_key = crypto::bip32_derive(&path.0);
@@ -88,6 +97,7 @@ pub fn handler_sign_tx(mut stream: SingleTxStream<'_>) -> Result<Signature, AppS
 }
 
 #[cfg(feature = "speculos")]
+#[allow(unused)]
 pub fn debug_print_slice(slice: &[u8; 50], n: usize) {
     testing::debug_print("debug printing slice hex:\n");
 

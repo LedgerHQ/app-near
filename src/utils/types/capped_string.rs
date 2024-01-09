@@ -84,7 +84,7 @@ fn read_leftover<R: Read>(leftover: usize, reader: &mut R) -> Result<()> {
 impl<const N: usize> CappedString<N> {
     // BorshDeserialize counterpart to reduce size of stack frames
     // NOTE: using this instead of `BorshDeserialize`
-    // allows to increase available buffers approximately from 400 to 800 bytes
+    // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         let bytes_count: u32 = u32::deserialize_reader(reader)?;
         let truncated = bytes_count > (N as u32);
