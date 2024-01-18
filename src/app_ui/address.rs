@@ -21,13 +21,34 @@ use crate::utils::types::fmt_buffer::FmtBuffer;
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 
-pub fn ui_display_pk(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
+pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = FmtBuffer::<60>::new();
-    public_key.display_str(&mut out_buf)?;
+    public_key.display_str_base58(&mut out_buf)?;
 
     let my_field = [Field {
-        name: "Address",
+        name: "Public Key",
         value: out_buf.as_str(),
+    }];
+
+    let my_review = MultiFieldReview::new(
+        &my_field,
+        &["Confirm Address"],
+        Some(&EYE),
+        "Approve",
+        Some(&VALIDATE_14),
+        "Reject",
+        Some(&CROSSMARK),
+    );
+
+    Ok(my_review.show())
+}
+
+pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
+    let mut out_buf = [0u8; 64];
+
+    let my_field = [Field {
+        name: "Wallet ID",
+        value: public_key.display_str_hex(&mut out_buf),
     }];
 
     let my_review = MultiFieldReview::new(
