@@ -36,9 +36,9 @@ mod app_ui {
     pub mod fields_writer;
     pub mod menu;
     pub mod sign {
+        pub mod action;
         pub mod transaction_prefix;
         pub mod widgets;
-        pub mod action;
     }
 }
 pub use app_ui::sign as sign_ui;
@@ -54,11 +54,11 @@ pub mod parsing {
     pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
-        pub mod transaction_prefix;
         pub mod action;
+        pub mod transaction_prefix;
 
+        pub use action::{Action, TransferAction};
         pub use transaction_prefix::TransactionPrefix;
-        pub use action::{TransferAction, Action};
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};
@@ -83,7 +83,10 @@ const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
 const INS_SIGN_TRANSACTION: u8 = 2; // Instruction code to sign a transaction on the Ledger
 
 const P1_SIGN_NORMAL: u8 = 0;
-const P1_SIGN_NORMAL_LAST_CHUNK: u8 = 0x80;
+const P1_SIGN_LAST_CHUNK: u8 = 0x80;
+
+const P1_GET_PUB_DISPLAY: u8 = 0;
+const P1_GET_PUB_SILENT: u8 = 1;
 
 // Application status words.
 #[repr(u16)]
@@ -114,8 +117,7 @@ impl From<AppSW> for Reply {
 /// Possible input commands received through APDUs.
 pub enum Instruction {
     GetVersion,
-    // GetAppName,
-    GetPubkey,
+    GetPubkey { display: bool },
     SignTx { is_last_chunk: bool },
 }
 
@@ -131,22 +133,19 @@ impl TryFrom<ApduHeader> for Instruction {
 
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
         match (value.cla, value.ins, value.p1, value.p2) {
-            (CLA, INS_GET_VERSION, 0, 0) => Ok(Instruction::GetVersion),
-            (CLA, INS_GET_PUBLIC_KEY, 0, _) => Ok(Instruction::GetPubkey),
-            (CLA, INS_SIGN_TRANSACTION, P1_SIGN_NORMAL | P1_SIGN_NORMAL_LAST_CHUNK, _) => {
-                Ok(Instruction::SignTx {
-                    is_last_chunk: value.p1 == P1_SIGN_NORMAL_LAST_CHUNK,
+            (CLA, INS_GET_VERSION, _, _) => Ok(Instruction::GetVersion),
+            (CLA, INS_GET_PUBLIC_KEY, P1_GET_PUB_DISPLAY | P1_GET_PUB_SILENT, _) => {
+
+                Ok(Instruction::GetPubkey {
+                    display: value.p1 == P1_GET_PUB_DISPLAY,
                 })
             }
-            // (CLA, 4, 0, 0) => Ok(Instruction::GetAppName),
-            // (CLA, 6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
-            // | (CLA, 6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
-            //     Ok(Instruction::SignTx {
-            //         chunk: value.p1,
-            //         more: value.p2 == P2_SIGN_TX_MORE,
-            //     })
-            // }
-            // (CLA, 3..=6, _, _) => Err(AppSW::WrongP1P2),
+            (CLA, INS_SIGN_TRANSACTION, P1_SIGN_NORMAL | P1_SIGN_LAST_CHUNK, _) => {
+                Ok(Instruction::SignTx {
+                    is_last_chunk: value.p1 == P1_SIGN_LAST_CHUNK,
+                })
+            }
+            (CLA, INS_GET_PUBLIC_KEY | INS_SIGN_TRANSACTION, _, _) => Err(AppSW::WrongP1P2),
             (CLA, _, _, _) => Err(AppSW::InsNotSupported),
             (_, _, _, _) => Err(AppSW::ClaNotSupported),
         }
@@ -174,7 +173,7 @@ extern "C" fn sample_main() {
 fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
     match ins {
         Instruction::GetVersion => handler_get_version(comm),
-        Instruction::GetPubkey => handler_get_public_key(comm, true),
+        Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
         Instruction::SignTx { is_last_chunk } => {
             let stream = SingleTxStream::new(comm, is_last_chunk);
             let signature = handler_sign_tx(stream)?;

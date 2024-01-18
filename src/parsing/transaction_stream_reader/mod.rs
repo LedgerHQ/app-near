@@ -124,7 +124,7 @@ impl<'a> io::Read for SingleTxStream<'a> {
                     }
                 },
                 Event::Command(Instruction::GetVersion)
-                | Event::Command(Instruction::GetPubkey) => {
+                | Event::Command(Instruction::GetPubkey { .. }) => {
                     return Err(io::Error::from(io::ErrorKind::InvalidData))
                 }
                 Event::Command(Instruction::SignTx { is_last_chunk }) => break is_last_chunk,
