@@ -21,7 +21,7 @@ use ledger_device_sdk::io;
 use ledger_device_sdk::testing;
 
 
-pub fn handler_get_version(comm: &mut io::Comm) -> Result<(), AppSW> {
+pub fn handler(comm: &mut io::Comm) -> Result<(), AppSW> {
     #[cfg(feature = "speculos")]
     testing::debug_print("enter `handler_get_version` fn\n");
     if let Some((major, minor, patch)) = parse_version_string(env!("CARGO_PKG_VERSION")) {

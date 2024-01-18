@@ -21,7 +21,7 @@ use crate::AppSW;
 use ledger_device_sdk::io::Comm;
 
 
-pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
+pub fn handler(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 

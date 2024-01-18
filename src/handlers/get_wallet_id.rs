@@ -4,7 +4,7 @@ use crate::AppSW;
 use ledger_device_sdk::io::Comm;
 
 
-pub fn handler_get_wallet_id(comm: &mut Comm) -> Result<(), AppSW> {
+pub fn handler(comm: &mut Comm) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 
