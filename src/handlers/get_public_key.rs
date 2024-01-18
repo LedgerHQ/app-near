@@ -15,7 +15,7 @@
  *  limitations under the License.
  *****************************************************************************/
 
-use crate::app_ui::address::ui_display_pk;
+use crate::app_ui::address;
 use crate::utils::crypto;
 use crate::AppSW;
 use ledger_device_sdk::io::Comm;
@@ -38,7 +38,7 @@ pub fn handler_get_public_key(comm: &mut Comm, display: bool) -> Result<(), AppS
     pk.debug_print()?;
 
     if display {
-        if !ui_display_pk(&pk)? {
+        if !address::ui_display_pk_base58(&pk)? {
             return Err(AppSW::Deny);
         }
     }

@@ -45,6 +45,7 @@ pub use app_ui::sign as sign_ui;
 
 mod handlers {
     pub mod get_public_key;
+    pub mod get_wallet_id;
     pub mod get_version;
     pub mod sign_tx;
 }
@@ -67,7 +68,7 @@ pub mod parsing {
 use app_ui::menu::ui_menu_main;
 use handlers::{
     get_public_key::handler_get_public_key, get_version::handler_get_version,
-    sign_tx::handler_sign_tx,
+    sign_tx::handler_sign_tx, get_wallet_id::handler_get_wallet_id,
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
@@ -80,6 +81,7 @@ ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 const CLA: u8 = 0x80;
 const INS_GET_VERSION: u8 = 6; // Instruction code to get app version from the Ledger
 const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
+const INS_GET_WALLET_ID: u8 =  0x05;  // Get Wallet ID
 const INS_SIGN_TRANSACTION: u8 = 2; // Instruction code to sign a transaction on the Ledger
 
 const P1_SIGN_NORMAL: u8 = 0;
@@ -117,6 +119,7 @@ impl From<AppSW> for Reply {
 /// Possible input commands received through APDUs.
 pub enum Instruction {
     GetVersion,
+    GetWalletID,
     GetPubkey { display: bool },
     SignTx { is_last_chunk: bool },
 }
@@ -134,6 +137,7 @@ impl TryFrom<ApduHeader> for Instruction {
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
         match (value.cla, value.ins, value.p1, value.p2) {
             (CLA, INS_GET_VERSION, _, _) => Ok(Instruction::GetVersion),
+            (CLA, INS_GET_WALLET_ID, _, _) => Ok(Instruction::GetWalletID),
             (CLA, INS_GET_PUBLIC_KEY, P1_GET_PUB_DISPLAY | P1_GET_PUB_SILENT, _) => {
 
                 Ok(Instruction::GetPubkey {
@@ -173,6 +177,7 @@ extern "C" fn sample_main() {
 fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
     match ins {
         Instruction::GetVersion => handler_get_version(comm),
+        Instruction::GetWalletID => handler_get_wallet_id(comm),
         Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
         Instruction::SignTx { is_last_chunk } => {
             let stream = SingleTxStream::new(comm, is_last_chunk);

@@ -51,7 +51,7 @@ impl PublicKeyBe {
         PublicKeyBe(out)
     }
 
-    pub fn display_str(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
+    pub fn display_str_base58(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
         let mut out = [0u8; 50];
         let len = bs58::encode(&self.0)
             .onto(&mut out[..])
@@ -62,6 +62,12 @@ impl PublicKeyBe {
         buffer.write_str(bs58_str);
 
         Ok(())
+    }
+
+    pub fn display_str_hex<'a, 'b>(&'a self, buffer: &'b mut [u8; 64]) -> &'b str {
+        hex::encode_to_slice(&self.0, buffer).unwrap();
+
+        core::str::from_utf8(buffer).unwrap()
     }
 
     #[cfg(feature = "speculos")]
