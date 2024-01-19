@@ -6,9 +6,9 @@ use crate::{
     utils::types::capped_string::ElipsisFields,
 };
 
-pub fn format<'b, 'a: 'b>(
+pub fn format(
     _create_account: &parsing::types::CreateAccount,
-    writer: &'_ mut FieldsWriter<'b, 5>,
+    writer: &'_ mut FieldsWriter<'_, 1>,
 ) {
     match writer.push_fields(ElipsisFields::one(Field {
         name: "Action type:",

@@ -1,8 +1,4 @@
-use crate::{
-    app_ui::fields_writer::FieldsWriter,
-    parsing,
-    utils::types::fmt_buffer::FmtBuffer,
-};
+use crate::{app_ui::fields_writer::FieldsWriter, parsing, utils::types::fmt_buffer::FmtBuffer};
 
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
@@ -10,8 +6,9 @@ use ledger_device_sdk::ui::{
 };
 use numtoa::NumToA;
 
-mod transfer;
 mod create_account;
+mod delete_account;
+mod transfer;
 
 pub fn ui_display_transfer(
     transfer: &parsing::types::Transfer,
@@ -19,7 +16,7 @@ pub fn ui_display_transfer(
     total_actions: u32,
 ) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
-    let mut writer: FieldsWriter<'_, 5> = FieldsWriter::new();
+    let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     transfer::format(transfer, &mut field_context, &mut writer);
 
@@ -31,15 +28,27 @@ pub fn ui_display_create_account(
     ordinal: u32,
     total_actions: u32,
 ) -> bool {
-    let mut writer: FieldsWriter<'_, 5> = FieldsWriter::new();
+    let mut writer: FieldsWriter<'_, 1> = FieldsWriter::new();
 
     create_account::format(create_account, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }
 
-pub fn ui_display_common(
-    writer: &mut FieldsWriter<'_, 5>,
+pub fn ui_display_delete_account(
+    delete_account: &parsing::types::DeleteAccount,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
+
+    delete_account::format(delete_account, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_common<const N: usize>(
+    writer: &mut FieldsWriter<'_, N>,
     ordinal: u32,
     total_actions: u32,
 ) -> bool {

@@ -55,10 +55,13 @@ pub mod parsing {
     pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
-        pub mod action; 
+        pub mod action;
         pub mod transaction_prefix;
 
-        pub use action::{Action, transfer::Transfer, create_account::CreateAccount};
+        pub use action::{
+            create_account::CreateAccount, delete_account::DeleteAccount, transfer::Transfer,
+            Action,
+        };
         pub use transaction_prefix::TransactionPrefix;
     }
 
