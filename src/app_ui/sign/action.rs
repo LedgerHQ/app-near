@@ -35,7 +35,7 @@ pub fn ui_display(action: &parsing::types::Action, ordinal: u32, total_actions: 
             let deposit = (transfer.deposit as f64) / (ONE_NEAR as f64);
             let printed = float_buffer.format(deposit);
             match field_writer.push_fields(ElipsisFields::one(Field {
-                name: "Amount",
+                name: "Amount (NEAR)",
                 value: printed,
             })) {
                 Ok(..) => {}
