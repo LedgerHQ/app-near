@@ -22,7 +22,7 @@ impl FieldsContext {
 pub fn format<'b, 'a: 'b>(
     transfer: &parsing::types::Transfer,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 5>,
+    writer: &'_ mut FieldsWriter<'b, 2>,
 ) {
     match writer.push_fields(ElipsisFields::one(Field {
         name: "Action type:",
