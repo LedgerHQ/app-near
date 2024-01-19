@@ -34,7 +34,6 @@ mod utils {
 mod app_ui {
     pub mod address;
     pub mod fields_writer;
-    pub mod fields_context;
     pub mod menu;
     pub mod sign {
         pub mod action;
@@ -59,7 +58,7 @@ pub mod parsing {
         pub mod action; 
         pub mod transaction_prefix;
 
-        pub use action::{Action, transfer::Transfer};
+        pub use action::{Action, transfer::Transfer, create_account::CreateAccount};
         pub use transaction_prefix::TransactionPrefix;
     }
 

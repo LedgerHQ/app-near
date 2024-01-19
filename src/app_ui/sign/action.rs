@@ -1,5 +1,5 @@
 use crate::{
-    app_ui::{fields_context::FieldsContext, fields_writer::FieldsWriter},
+    app_ui::fields_writer::FieldsWriter,
     parsing,
     utils::types::fmt_buffer::FmtBuffer,
 };
@@ -11,16 +11,29 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 mod transfer;
+mod create_account;
 
 pub fn ui_display_transfer(
     transfer: &parsing::types::Transfer,
     ordinal: u32,
     total_actions: u32,
 ) -> bool {
-    let mut field_context: FieldsContext = FieldsContext::new();
+    let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 5> = FieldsWriter::new();
 
     transfer::format(transfer, &mut field_context, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_create_account(
+    create_account: &parsing::types::CreateAccount,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut writer: FieldsWriter<'_, 5> = FieldsWriter::new();
+
+    create_account::format(create_account, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }
