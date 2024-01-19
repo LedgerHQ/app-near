@@ -56,10 +56,10 @@ pub mod parsing {
     pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
-        pub mod action;
+        pub mod action; 
         pub mod transaction_prefix;
 
-        pub use action::{Action, TransferAction};
+        pub use action::{Action, transfer::Transfer};
         pub use transaction_prefix::TransactionPrefix;
     }
 

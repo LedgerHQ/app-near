@@ -1,55 +1,28 @@
 use crate::{
     app_ui::{fields_context::FieldsContext, fields_writer::FieldsWriter},
-    parsing::{self, types::action::ONE_NEAR},
-    utils::types::{capped_string::ElipsisFields, fmt_buffer::FmtBuffer},
+    parsing,
+    utils::types::fmt_buffer::FmtBuffer,
 };
 
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
-    gadgets::{Field, MultiFieldReview},
+    gadgets::MultiFieldReview,
 };
 use numtoa::NumToA;
 
-pub fn ui_display(action: &parsing::types::Action, ordinal: u32, total_actions: u32) -> bool {
-    #[cfg(feature = "speculos")]
-    action.debug_print();
+mod transfer;
+
+pub fn ui_display_transfer(
+    transfer: &parsing::types::Transfer,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
     let mut field_context: FieldsContext = FieldsContext::new();
     let mut writer: FieldsWriter<'_, 5> = FieldsWriter::new();
 
-    format_action(action, &mut field_context, &mut writer);
+    transfer::format(transfer, &mut field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
-}
-
-fn format_action<'b, 'a: 'b>(
-    action: &parsing::types::Action,
-    field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 5>,
-) {
-    match writer.push_fields(ElipsisFields::one(Field {
-        name: "Action type:",
-        value: action._type(),
-    })) {
-        Ok(..) => {}
-        Err(_err) => panic!("wrong total fields in tx prefix FieldsWriter"),
-    }
-
-    match action {
-        parsing::types::Action::Transfer(transfer) => {
-            let deposit = (transfer.deposit as f64) / (ONE_NEAR as f64);
-            let printed = field_context.float_buffer.format(deposit);
-            match writer.push_fields(ElipsisFields::one(Field {
-                name: "Amount (NEAR)",
-                value: printed,
-            })) {
-                Ok(..) => {}
-                Err(_err) => panic!("wrong total fields in tx prefix FieldsWriter"),
-            }
-        }
-        _ => {
-            unimplemented!("stub for other variants");
-        }
-    }
 }
 
 pub fn ui_display_common(
