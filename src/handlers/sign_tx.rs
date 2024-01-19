@@ -33,6 +33,8 @@ const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
+pub mod transfer;
+
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
         signer_id: CappedString::new(false),
@@ -50,15 +52,17 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
     Ok(tx_prefix.number_of_actions)
 }
 
-fn popup_action(stream: &mut HashingStream<SingleTxStream<'_>>, ordinal_action: u32, total_actions: u32) -> Result<(), AppSW> {
-
+fn popup_action(
+    stream: &mut HashingStream<SingleTxStream<'_>>,
+    ordinal_action: u32,
+    total_actions: u32,
+) -> Result<(), AppSW> {
     let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display(&action, ordinal_action + 1, total_actions) {
-        return Err(AppSW::Deny);
+    match action {
+        Action::Transfer => transfer::handle(stream, ordinal_action, total_actions),
+        _ => unimplemented!(),
     }
-    Ok(())
-    
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -73,12 +77,10 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let number_of_actions = popup_transaction_prefix(&mut stream)?;
 
-
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();
         popup_action(&mut stream, i, number_of_actions)?;
     }
-
 
     // test no redundant bytes left in stream
     let mut buf = [0u8; 1];

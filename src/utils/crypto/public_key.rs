@@ -76,7 +76,7 @@ impl PublicKeyBe {
 
         let mut out_buf = FmtBuffer::<60>::new();
 
-        self.display_str(&mut out_buf)?;
+        self.display_str_base58(&mut out_buf)?;
 
         testing::debug_print(out_buf.as_str());
         testing::debug_print("\n");
