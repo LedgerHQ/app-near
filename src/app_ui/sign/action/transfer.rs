@@ -1,7 +1,23 @@
 use crate::parsing::{self, types::action::ONE_NEAR};
 use ledger_device_sdk::ui::gadgets::Field;
 
-use crate::{app_ui::{fields_writer::FieldsWriter, fields_context::FieldsContext}, utils::types::capped_string::ElipsisFields};
+use crate::{
+    app_ui::fields_writer::FieldsWriter,
+    utils::types::capped_string::ElipsisFields,
+};
+
+pub struct FieldsContext {
+    pub float_buffer: dtoa::Buffer,
+}
+
+impl FieldsContext {
+    pub fn new() -> Self {
+        Self {
+            float_buffer: dtoa::Buffer::new(),
+        }
+        
+    }
+}
 
 pub fn format<'b, 'a: 'b>(
     transfer: &parsing::types::Transfer,
