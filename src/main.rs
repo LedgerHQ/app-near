@@ -34,6 +34,7 @@ mod utils {
 mod app_ui {
     pub mod address;
     pub mod fields_writer;
+    pub mod fields_context;
     pub mod menu;
     pub mod sign {
         pub mod action;
