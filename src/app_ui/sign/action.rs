@@ -7,8 +7,9 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 mod create_account;
-mod delete_account;
 mod transfer;
+mod delete_key;
+mod delete_account;
 
 pub fn ui_display_transfer(
     transfer: &parsing::types::Transfer,
@@ -43,6 +44,19 @@ pub fn ui_display_delete_account(
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
 
     delete_account::format(delete_account, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_delete_key(
+    delete_key: &parsing::types::DeleteKey,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut field_context: delete_key::FieldsContext = delete_key::FieldsContext::new();
+    let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
+
+    delete_key::format(delete_key, &mut field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }

@@ -9,6 +9,9 @@ use crate::{
 };
 
 pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> bool {
+    #[cfg(feature = "speculos")]
+    transaction_prefix.debug_print();
+
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let signer_id = transaction_prefix.signer_id.ui_fields("Signer Id");
     match field_writer.push_fields(signer_id) {
