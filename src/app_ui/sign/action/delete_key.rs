@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub struct FieldsContext {
-    buffer: FmtBuffer<100>,
+    pub buffer: FmtBuffer<100>,
 }
 
 impl FieldsContext {
@@ -17,7 +17,7 @@ impl FieldsContext {
         }
     }
 
-    fn format_public_key(&mut self, public_key: &TxPublicKey) {
+    pub fn format_public_key(&mut self, public_key: &TxPublicKey) {
         match public_key {
             TxPublicKey::ED25519(arr) => {
                 let mut tmp_buf = [0u8; 50];
