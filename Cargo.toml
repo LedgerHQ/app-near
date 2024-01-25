@@ -5,7 +5,7 @@ authors = ["yhql", "agrojean-ledger", "dj8yf0μl"]
 edition = "2021"
 
 [dependencies]
-ledger_device_sdk = "1.4.0"
+ledger_device_sdk = "1.4.3"
 ledger_secure_sdk_sys = "1.0.2"
 include_gif = "1.0.1"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
