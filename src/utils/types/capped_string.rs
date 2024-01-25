@@ -1,8 +1,8 @@
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::{
-    parsing::borsh::BorshDeserialize,
     io::{Error, ErrorKind, Read, Result},
+    parsing::borsh::BorshDeserialize,
 };
 pub enum ElipsisFields<'a> {
     One([Field<'a>; 1]),
@@ -13,7 +13,6 @@ impl<'a> ElipsisFields<'a> {
     pub fn one(field: Field<'a>) -> Self {
         ElipsisFields::One([field])
     }
-    
 }
 
 pub struct CappedString<const N: usize> {

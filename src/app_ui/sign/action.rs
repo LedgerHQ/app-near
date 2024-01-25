@@ -7,9 +7,9 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 mod create_account;
-mod transfer;
-mod delete_key;
 mod delete_account;
+mod delete_key;
+mod transfer;
 
 pub fn ui_display_transfer(
     transfer: &parsing::types::Transfer,

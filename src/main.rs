@@ -61,9 +61,8 @@ pub mod parsing {
         pub mod tx_public_key;
 
         pub use action::{
-            create_account::CreateAccount, delete_account::DeleteAccount, transfer::Transfer,
-            delete_key::DeleteKey,
-            Action,
+            create_account::CreateAccount, delete_account::DeleteAccount, delete_key::DeleteKey,
+            transfer::Transfer, Action,
         };
         pub use transaction_prefix::TransactionPrefix;
     }

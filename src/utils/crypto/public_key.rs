@@ -7,7 +7,6 @@ use crate::AppSW;
 
 use crate::utils::types::fmt_buffer::FmtBuffer;
 
-
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
 

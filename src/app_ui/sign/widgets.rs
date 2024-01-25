@@ -17,7 +17,7 @@
 use ledger_device_sdk::ui::bitmaps::WARNING;
 
 use ledger_device_sdk::ui::gadgets::clear_screen;
-use ledger_device_sdk::ui::layout::{StringPlace, Location, Layout};
+use ledger_device_sdk::ui::layout::{Layout, Location, StringPlace};
 use ledger_device_sdk::ui::screen_util::screen_update;
 
 pub fn display_receiving() {

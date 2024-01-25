@@ -1,4 +1,7 @@
-use crate::{io::{Read, Result, ErrorKind}, parsing::borsh::BorshDeserialize};
+use crate::{
+    io::{ErrorKind, Read, Result},
+    parsing::borsh::BorshDeserialize,
+};
 
 pub enum KeyType {
     ED25519 = 0,

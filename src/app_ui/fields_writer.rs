@@ -2,13 +2,12 @@ use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::utils::types::capped_string::ElipsisFields;
 
-
-
 pub struct FieldsWriter<'a, const N: usize> {
     buffer: [Field<'a>; N],
     used: usize,
 }
 
+#[derive(Debug)]
 pub struct FieldsOverflow;
 
 impl<'a, const N: usize> FieldsWriter<'a, N> {

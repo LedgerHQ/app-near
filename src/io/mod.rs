@@ -51,11 +51,9 @@ pub struct Error {
     repr: Repr,
 }
 
-
 enum Repr {
     Simple(ErrorKind),
 }
-
 
 /// A list specifying general categories of I/O error.
 ///
@@ -378,9 +376,7 @@ pub trait Write {
         while !buf.is_empty() {
             match self.write(buf) {
                 Ok(0) => {
-                    return Err(Error::from(
-                        ErrorKind::WriteZero,
-                    ));
+                    return Err(Error::from(ErrorKind::WriteZero));
                 }
                 Ok(n) => buf = &buf[n..],
                 Err(ref e) if e.kind() == ErrorKind::Interrupted => {}
@@ -526,9 +522,7 @@ impl Write for &mut [u8] {
         if self.write(data)? == data.len() {
             Ok(())
         } else {
-            Err(Error::from(
-                ErrorKind::WriteZero,
-            ))
+            Err(Error::from(ErrorKind::WriteZero))
         }
     }
 
@@ -536,7 +530,6 @@ impl Write for &mut [u8] {
         Ok(())
     }
 }
-
 
 /// The `Read` trait allows for reading bytes from a source.
 ///
@@ -798,9 +791,7 @@ fn default_read_exact<R: Read + ?Sized>(this: &mut R, mut buf: &mut [u8]) -> Res
         }
     }
     if !buf.is_empty() {
-        Err(Error::from(
-            ErrorKind::UnexpectedEof,
-        ))
+        Err(Error::from(ErrorKind::UnexpectedEof))
     } else {
         Ok(())
     }
@@ -836,9 +827,7 @@ impl Read for &[u8] {
 
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         if buf.len() > self.len() {
-            return Err(Error::from(
-                ErrorKind::UnexpectedEof,
-            ));
+            return Err(Error::from(ErrorKind::UnexpectedEof));
         }
         let (a, b) = self.split_at(buf.len());
 

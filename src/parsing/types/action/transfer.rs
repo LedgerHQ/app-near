@@ -32,7 +32,6 @@ impl Transfer {
         testing::debug_print("\n");
         testing::debug_print("debug printing amount:\n");
 
-
         testing::debug_print(self.deposit.numtoa_str(10, &mut numtoa_buf));
         testing::debug_print("\n");
         let deposit = (self.deposit as f64) / (ONE_NEAR as f64);
