@@ -15,9 +15,9 @@
  *  limitations under the License.
  *****************************************************************************/
 
-use crate::AppSW;
 use crate::utils::crypto;
 use crate::utils::types::fmt_buffer::FmtBuffer;
+use crate::AppSW;
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 

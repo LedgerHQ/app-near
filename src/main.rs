@@ -56,11 +56,13 @@ pub mod parsing {
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod action;
+        pub mod crypto_hash;
         pub mod transaction_prefix;
+        pub mod tx_public_key;
 
         pub use action::{
-            create_account::CreateAccount, delete_account::DeleteAccount, transfer::Transfer,
-            Action,
+            create_account::CreateAccount, delete_account::DeleteAccount, delete_key::DeleteKey,
+            transfer::Transfer, Action,
         };
         pub use transaction_prefix::TransactionPrefix;
     }

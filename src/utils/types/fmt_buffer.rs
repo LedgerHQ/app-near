@@ -5,7 +5,6 @@ pub struct FmtBuffer<const N: usize> {
 }
 
 impl<const N: usize> FmtBuffer<N> {
-
     pub fn new() -> Self {
         FmtBuffer {
             buffer: [0u8; N],
@@ -23,11 +22,10 @@ impl<const N: usize> FmtBuffer<N> {
     #[allow(unused)]
     pub fn truncated(&self) -> bool {
         self.truncated
-        
     }
 }
 
-// NOTE: doing formatting with 
+// NOTE: doing formatting with
 // impl<const N: usize> core::fmt::Write for FmtBuffer<N> {
 // doesn't work due to app crashes in speculos and hangs of app on device )
 // potentially similar issue: https://github.com/rust-lang/rust/issues/44538
@@ -55,4 +53,3 @@ impl<const N: usize> FmtBuffer<N> {
         self.used += bytes_written;
     }
 }
-

@@ -33,9 +33,10 @@ const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
-pub mod transfer;
 pub mod create_account;
 pub mod delete_account;
+pub mod delete_key;
+pub mod transfer;
 
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
@@ -65,6 +66,7 @@ fn popup_action(
         Action::Transfer => transfer::handle(stream, ordinal_action, total_actions),
         Action::CreateAccount => create_account::handle(stream, ordinal_action, total_actions),
         Action::DeleteAccount => delete_account::handle(stream, ordinal_action, total_actions),
+        Action::DeleteKey => delete_key::handle(stream, ordinal_action, total_actions),
         _ => unimplemented!(),
     }
 }

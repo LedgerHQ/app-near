@@ -5,7 +5,7 @@ use ledger_device_sdk::{
 
 use crate::{io, AppSW, Instruction};
 use ledger_secure_sdk_sys::{
-    cx_hash_t, cx_hash_update, cx_sha256_init_no_throw, cx_sha256_t, CX_OK, cx_hash_final
+    cx_hash_final, cx_hash_t, cx_hash_update, cx_sha256_init_no_throw, cx_sha256_t, CX_OK,
 };
 
 #[cfg(feature = "speculos")]
@@ -61,7 +61,6 @@ impl<R> HashingStream<R> {
             }
         }
         Ok(Sha256Digest(array))
-
     }
 }
 

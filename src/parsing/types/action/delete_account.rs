@@ -12,7 +12,6 @@ impl DeleteAccount {
         Self {
             beneficiary_id: CappedString::new(false),
         }
-        
     }
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         self.beneficiary_id.deserialize_reader_in_place(reader)?;

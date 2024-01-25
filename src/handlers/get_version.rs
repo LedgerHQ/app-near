@@ -20,7 +20,6 @@ use ledger_device_sdk::io;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-
 pub fn handler(comm: &mut io::Comm) -> Result<(), AppSW> {
     #[cfg(feature = "speculos")]
     testing::debug_print("enter `handler_get_version` fn\n");
