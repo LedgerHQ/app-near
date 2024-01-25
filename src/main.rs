@@ -62,7 +62,7 @@ pub mod parsing {
 
         pub use action::{
             create_account::CreateAccount, delete_account::DeleteAccount, delete_key::DeleteKey,
-            transfer::Transfer, Action,
+            stake::Stake, transfer::Transfer, Action,
         };
         pub use transaction_prefix::TransactionPrefix;
     }

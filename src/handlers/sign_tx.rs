@@ -36,6 +36,7 @@ pub struct Signature(pub [u8; 64]);
 pub mod create_account;
 pub mod delete_account;
 pub mod delete_key;
+pub mod stake;
 pub mod transfer;
 
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
@@ -67,6 +68,7 @@ fn popup_action(
         Action::CreateAccount => create_account::handle(stream, ordinal_action, total_actions),
         Action::DeleteAccount => delete_account::handle(stream, ordinal_action, total_actions),
         Action::DeleteKey => delete_key::handle(stream, ordinal_action, total_actions),
+        Action::Stake => stake::handle(stream, ordinal_action, total_actions),
         _ => unimplemented!(),
     }
 }

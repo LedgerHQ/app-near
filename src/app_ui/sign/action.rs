@@ -9,6 +9,7 @@ use numtoa::NumToA;
 mod create_account;
 mod delete_account;
 mod delete_key;
+mod stake;
 mod transfer;
 
 pub fn ui_display_transfer(
@@ -57,6 +58,15 @@ pub fn ui_display_delete_key(
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     delete_key::format(delete_key, &mut field_context, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_stake(stake: &parsing::types::Stake, ordinal: u32, total_actions: u32) -> bool {
+    let mut field_context: stake::FieldsContext = stake::FieldsContext::new();
+    let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
+
+    stake::format(stake, &mut field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }
