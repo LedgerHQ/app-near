@@ -1,3 +1,7 @@
+use ledger_device_sdk::ui::gadgets::Field;
+
+use super::capped_string::ElipsisFields;
+
 pub struct FmtBuffer<const N: usize> {
     buffer: [u8; N],
     used: usize,
@@ -23,12 +27,28 @@ impl<const N: usize> FmtBuffer<N> {
     pub fn truncated(&self) -> bool {
         self.truncated
     }
+
+    pub fn ui_fields<'a>(&'a self, title: &'a str) -> ElipsisFields<'a> {
+        if self.truncated() {
+            ElipsisFields::Two([
+                Field {
+                    name: title,
+                    value: self.as_str(),
+                },
+                Field {
+                    name: title,
+                    value: "...",
+                },
+            ])
+        } else {
+            return ElipsisFields::One([Field {
+                name: title,
+                value: self.as_str(),
+            }]);
+        }
+    }
 }
 
-// NOTE: doing formatting with
-// impl<const N: usize> core::fmt::Write for FmtBuffer<N> {
-// doesn't work due to app crashes in speculos and hangs of app on device )
-// potentially similar issue: https://github.com/rust-lang/rust/issues/44538
 impl<const N: usize> FmtBuffer<N> {
     pub fn write_str(&mut self, s: &str) {
         let remaining_buf = &mut self.buffer[self.used..];
