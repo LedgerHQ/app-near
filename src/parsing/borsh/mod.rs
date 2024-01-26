@@ -156,3 +156,19 @@ where
         }
     }
 }
+
+impl<T> BorshDeserialize for Option<T>
+where
+    T: BorshDeserialize,
+{
+    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+        let flag: u8 = BorshDeserialize::deserialize_reader(reader)?;
+        if flag == 0 {
+            Ok(None)
+        } else if flag == 1 {
+            Ok(Some(T::deserialize_reader(reader)?))
+        } else {
+            Err(Error::from(ErrorKind::InvalidData))
+        }
+    }
+}

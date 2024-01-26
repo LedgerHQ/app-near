@@ -6,6 +6,9 @@ use ledger_device_sdk::ui::{
 };
 use numtoa::NumToA;
 
+mod add_key_common;
+mod function_call_permission;
+
 mod create_account;
 mod delete_account;
 mod delete_key;
@@ -67,6 +70,42 @@ pub fn ui_display_stake(stake: &parsing::types::Stake, ordinal: u32, total_actio
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
 
     stake::format(stake, &mut field_context, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_add_key_fullaccess(
+    add_key: &parsing::types::AddKey,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut field_context: add_key_common::FieldsContext = add_key_common::FieldsContext::new();
+    let mut writer: FieldsWriter<'_, 4> = FieldsWriter::new();
+
+    add_key_common::format(add_key, &mut field_context, &mut writer, "Full Access");
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_add_key_functioncall(
+    add_key: &parsing::types::AddKey,
+    function_call_per: &parsing::types::FunctionCallPermission,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut common_field_context: add_key_common::FieldsContext =
+        add_key_common::FieldsContext::new();
+    let mut func_call_field_context: function_call_permission::FieldsContext =
+        function_call_permission::FieldsContext::new();
+    let mut writer: FieldsWriter<'_, 10> = FieldsWriter::new();
+
+    add_key_common::format(
+        add_key,
+        &mut common_field_context,
+        &mut writer,
+        "Function Call",
+    );
+    function_call_permission::format(function_call_per, &mut func_call_field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }

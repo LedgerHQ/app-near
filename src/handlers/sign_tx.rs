@@ -33,6 +33,7 @@ const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
+pub mod add_key;
 pub mod create_account;
 pub mod delete_account;
 pub mod delete_key;
@@ -69,6 +70,7 @@ fn popup_action(
         Action::DeleteAccount => delete_account::handle(stream, ordinal_action, total_actions),
         Action::DeleteKey => delete_key::handle(stream, ordinal_action, total_actions),
         Action::Stake => stake::handle(stream, ordinal_action, total_actions),
+        Action::AddKey => add_key::handle(stream, ordinal_action, total_actions),
         _ => unimplemented!(),
     }
 }

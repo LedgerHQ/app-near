@@ -13,10 +13,10 @@ pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> boo
     transaction_prefix.debug_print();
 
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
-    let signer_id = transaction_prefix.signer_id.ui_fields("Signer Id");
+    let signer_id = transaction_prefix.signer_id.ui_fields("Signer Id:");
     field_writer.push_fields(signer_id).unwrap();
 
-    let receiver_id = transaction_prefix.receiver_id.ui_fields("Receiver Id");
+    let receiver_id = transaction_prefix.receiver_id.ui_fields("Receiver Id:");
     field_writer.push_fields(receiver_id).unwrap();
     let mut numtoa_buf = [0u8; 10];
 
