@@ -5,6 +5,7 @@ use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
 
+use crate::utils::types::base58_buf::Base58Buf;
 use crate::utils::types::fmt_buffer::FmtBuffer;
 
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
@@ -51,14 +52,13 @@ impl PublicKeyBe {
     }
 
     pub fn display_str_base58(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
-        let mut out = [0u8; 50];
-        let len = bs58::encode(&self.0)
-            .onto(&mut out[..])
+        let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
+        bs58_buf
+            .encode(&self.0)
             .map_err(|_| AppSW::AddrDisplayFail)?;
-        let bs58_str = core::str::from_utf8(&out[..len]).map_err(|_| AppSW::AddrDisplayFail)?;
 
         buffer.write_str("ed25519:");
-        buffer.write_str(bs58_str);
+        buffer.write_str(bs58_buf.as_str());
 
         Ok(())
     }

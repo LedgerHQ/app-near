@@ -15,6 +15,7 @@ pub mod add_key;
 pub mod create_account;
 pub mod delete_account;
 pub mod delete_key;
+pub mod deploy_contract;
 pub mod stake;
 pub mod transfer;
 
@@ -34,8 +35,9 @@ impl BorshDeserialize for Action {
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let variant_tag = u8::deserialize_reader(reader)?;
         match variant_tag {
-            1 | 2 | 8 => unimplemented!("stub for other variants"),
+            2 | 8 => unimplemented!("stub for other variants"),
             0 => Ok(Self::CreateAccount),
+            1 => Ok(Self::DeployContract),
             3 => Ok(Self::Transfer),
             4 => Ok(Self::Stake),
             5 => Ok(Self::AddKey),
