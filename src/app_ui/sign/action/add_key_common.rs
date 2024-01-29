@@ -31,21 +31,21 @@ pub fn format<'b, 'a: 'b, const N: usize>(
         .format_public_key(&add_key.public_key);
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Action type:",
+            name: "Action type",
             value: "Add Key",
         }))
         .unwrap();
 
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Public Key:",
+            name: "Public Key",
             value: field_context.pub_key_context.buffer.as_str(),
         }))
         .unwrap();
 
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Access Key Nonce:",
+            name: "Access Key Nonce",
             value: add_key
                 .access_key
                 .nonce
@@ -55,7 +55,7 @@ pub fn format<'b, 'a: 'b, const N: usize>(
 
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Access Permission:",
+            name: "Access Permission",
             value: permission_value,
         }))
         .unwrap();

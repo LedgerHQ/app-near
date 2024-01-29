@@ -22,7 +22,7 @@ pub fn format<'b, 'a: 'b>(
 ) {
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Action type:",
+            name: "Action type",
             value: "Transfer",
         }))
         .unwrap();
@@ -31,7 +31,7 @@ pub fn format<'b, 'a: 'b>(
     let printed = field_context.float_buffer.format(deposit);
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Amount (NEAR):",
+            name: "Amount (NEAR)",
             value: printed,
         }))
         .unwrap();

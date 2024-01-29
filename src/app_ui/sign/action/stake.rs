@@ -31,7 +31,7 @@ pub fn format<'b, 'a: 'b>(
         .format_public_key(&stake.public_key);
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Action type:",
+            name: "Action type",
             value: "Stake",
         }))
         .unwrap();
@@ -45,7 +45,7 @@ pub fn format<'b, 'a: 'b>(
 
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Public Key:",
+            name: "Public Key",
             value: field_context.pub_key_context.buffer.as_str(),
         }))
         .unwrap();
