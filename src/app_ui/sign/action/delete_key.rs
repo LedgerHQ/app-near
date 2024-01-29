@@ -54,14 +54,14 @@ pub fn format<'b, 'a: 'b>(
     field_context.format_public_key(&delete_key.public_key);
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Action type:",
+            name: "Action type",
             value: "Delete Key",
         }))
         .unwrap();
 
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Public Key:",
+            name: "Public Key",
             value: field_context.buffer.as_str(),
         }))
         .unwrap();

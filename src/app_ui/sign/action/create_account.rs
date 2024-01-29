@@ -9,7 +9,7 @@ pub fn format(
 ) {
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Action type:",
+            name: "Action type",
             value: "Create Account",
         }))
         .unwrap();
