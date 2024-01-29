@@ -7,11 +7,11 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 mod add_key_common;
-mod function_call_permission;
-
 mod create_account;
 mod delete_account;
 mod delete_key;
+mod deploy_contract;
+mod function_call_permission;
 mod stake;
 mod transfer;
 
@@ -110,6 +110,17 @@ pub fn ui_display_add_key_functioncall(
     ui_display_common(&mut writer, ordinal, total_actions)
 }
 
+pub fn ui_display_deploy_contract(
+    deploy_contract: &parsing::types::DeployContract,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
+
+    deploy_contract::format(deploy_contract, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
 pub fn ui_display_common<const N: usize>(
     writer: &mut FieldsWriter<'_, N>,
     ordinal: u32,

@@ -27,6 +27,7 @@ mod utils {
         pub use public_key::{bip32_derive, PublicKeyBe};
     }
     pub mod types {
+        pub mod base58_buf;
         pub mod capped_string;
         pub mod fmt_buffer;
     }
@@ -65,6 +66,7 @@ pub mod parsing {
             create_account::CreateAccount,
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
+            deploy_contract::DeployContract,
             stake::Stake,
             transfer::Transfer,
             Action,

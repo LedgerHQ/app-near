@@ -3,7 +3,7 @@ use ledger_device_sdk::ui::gadgets::Field;
 use crate::{
     app_ui::fields_writer::FieldsWriter,
     parsing::{self, types::tx_public_key::TxPublicKey},
-    utils::types::{capped_string::ElipsisFields, fmt_buffer::FmtBuffer},
+    utils::types::{base58_buf::Base58Buf, capped_string::ElipsisFields, fmt_buffer::FmtBuffer},
 };
 
 pub struct FieldsContext {
@@ -20,27 +20,20 @@ impl FieldsContext {
     pub fn format_public_key(&mut self, public_key: &TxPublicKey) {
         match public_key {
             TxPublicKey::ED25519(arr) => {
-                let mut tmp_buf = [0u8; 50];
+                let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
                 // NOTE: expecting `tmp_buf` to be always large enough : 1.4 * 32
-                let len = bs58::encode(arr).onto(&mut tmp_buf[..]).unwrap();
-                // expecting `bs58` to always produce correct strings
-                // https://docs.rs/bs58/0.5.0/src/bs58/encode.rs.html#201
-                let bs58_str = core::str::from_utf8(&tmp_buf[..len]).unwrap();
+                bs58_buf.encode(arr).unwrap();
 
                 self.buffer.write_str("ed25519:");
-                self.buffer.write_str(bs58_str);
+                self.buffer.write_str(bs58_buf.as_str());
             }
             TxPublicKey::SECP256K1(arr) => {
-                let mut tmp_buf = [0u8; 90];
-
+                let mut bs58_buf: Base58Buf<90> = Base58Buf::new();
                 // expecting `tmp_buf` to be always large enough: 1.4 * 64
-                let len = bs58::encode(arr).onto(&mut tmp_buf[..]).unwrap();
-                // expecting `bs58` to always produce correct strings
-                // https://docs.rs/bs58/0.5.0/src/bs58/encode.rs.html#201
-                let bs58_str = core::str::from_utf8(&tmp_buf[..len]).unwrap();
+                bs58_buf.encode(arr).unwrap();
 
                 self.buffer.write_str("secp256k1:");
-                self.buffer.write_str(bs58_str);
+                self.buffer.write_str(bs58_buf.as_str());
             }
         }
     }
