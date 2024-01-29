@@ -1,6 +1,6 @@
 use ledger_device_sdk::ui::gadgets::Field;
 
-use crate::utils::types::capped_string::ElipsisFields;
+use crate::utils::types::elipsis_fields::ElipsisFields;
 
 pub struct FieldsWriter<'a, const N: usize> {
     buffer: [Field<'a>; N],

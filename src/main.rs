@@ -29,7 +29,11 @@ mod utils {
     pub mod types {
         pub mod base58_buf;
         pub mod capped_string;
+        pub mod elipsis_fields;
         pub mod fmt_buffer;
+        pub mod hex_display;
+
+        pub mod strcat;
     }
 }
 mod app_ui {
@@ -67,6 +71,7 @@ pub mod parsing {
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
             deploy_contract::DeployContract,
+            function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
             Action,

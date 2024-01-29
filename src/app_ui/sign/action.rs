@@ -1,4 +1,8 @@
-use crate::{app_ui::fields_writer::FieldsWriter, parsing, utils::types::fmt_buffer::FmtBuffer};
+use crate::{
+    app_ui::fields_writer::FieldsWriter,
+    parsing,
+    utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer, hex_display::HexDisplay},
+};
 
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
@@ -11,7 +15,10 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod function_call_bin;
+mod function_call_common;
 mod function_call_permission;
+mod function_call_str;
 mod stake;
 mod transfer;
 
@@ -46,8 +53,9 @@ pub fn ui_display_delete_account(
     total_actions: u32,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
+    let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
 
-    delete_account::format(delete_account, &mut writer);
+    delete_account::format(delete_account, &mut field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }
@@ -118,6 +126,42 @@ pub fn ui_display_deploy_contract(
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     deploy_contract::format(deploy_contract, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_function_call_str(
+    func_call_common: &parsing::types::FunctionCallCommon,
+    args: &CappedString<500>,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
+    let mut common_field_context: function_call_common::FieldsContext =
+        function_call_common::FieldsContext::new();
+
+    function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
+    let mut args_field_context: function_call_str::FieldsContext =
+        function_call_str::FieldsContext::new();
+    function_call_str::format(args, &mut args_field_context, &mut writer);
+
+    ui_display_common(&mut writer, ordinal, total_actions)
+}
+
+pub fn ui_display_function_call_bin(
+    func_call_common: &parsing::types::FunctionCallCommon,
+    args: &HexDisplay<500>,
+    ordinal: u32,
+    total_actions: u32,
+) -> bool {
+    let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
+    let mut common_field_context: function_call_common::FieldsContext =
+        function_call_common::FieldsContext::new();
+
+    function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
+    let mut args_field_context: function_call_bin::FieldsContext =
+        function_call_bin::FieldsContext::new();
+    function_call_bin::format(args, &mut args_field_context, &mut writer);
 
     ui_display_common(&mut writer, ordinal, total_actions)
 }

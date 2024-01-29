@@ -5,7 +5,7 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing, utils::types::capped_string::ElipsisFields,
+    app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
 };
 
 pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> bool {
@@ -13,10 +13,16 @@ pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> boo
     transaction_prefix.debug_print();
 
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
-    let signer_id = transaction_prefix.signer_id.ui_fields("Signer Id");
+    let mut display_buf1 = [0u8; 20];
+    let signer_id = transaction_prefix
+        .signer_id
+        .ui_fields("Signer Id", &mut display_buf1);
     field_writer.push_fields(signer_id).unwrap();
 
-    let receiver_id = transaction_prefix.receiver_id.ui_fields("Receiver Id");
+    let mut display_buf2 = [0u8; 20];
+    let receiver_id = transaction_prefix
+        .receiver_id
+        .ui_fields("Receiver Id", &mut display_buf2);
     field_writer.push_fields(receiver_id).unwrap();
     let mut numtoa_buf = [0u8; 10];
 

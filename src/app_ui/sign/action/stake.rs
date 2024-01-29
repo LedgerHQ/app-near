@@ -1,7 +1,10 @@
-use crate::parsing::{self, types::action::ONE_NEAR};
+use crate::{
+    parsing::{self, types::action::ONE_NEAR},
+    utils::types::elipsis_fields::ElipsisFields,
+};
 use ledger_device_sdk::ui::gadgets::Field;
 
-use crate::{app_ui::fields_writer::FieldsWriter, utils::types::capped_string::ElipsisFields};
+use crate::app_ui::fields_writer::FieldsWriter;
 
 use super::delete_key;
 

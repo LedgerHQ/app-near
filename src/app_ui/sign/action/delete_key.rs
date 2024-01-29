@@ -3,7 +3,7 @@ use ledger_device_sdk::ui::gadgets::Field;
 use crate::{
     app_ui::fields_writer::FieldsWriter,
     parsing::{self, types::tx_public_key::TxPublicKey},
-    utils::types::{base58_buf::Base58Buf, capped_string::ElipsisFields, fmt_buffer::FmtBuffer},
+    utils::types::{base58_buf::Base58Buf, elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
 };
 
 pub struct FieldsContext {

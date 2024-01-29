@@ -1,5 +1,5 @@
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing, utils::types::capped_string::ElipsisFields,
+    app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
 };
 
 use super::delete_key;
