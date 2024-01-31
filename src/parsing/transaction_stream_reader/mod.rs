@@ -3,7 +3,10 @@ use ledger_device_sdk::{
     io::{Comm, Event},
 };
 
-use crate::{io, AppSW, Instruction};
+use crate::{
+    io::{self},
+    AppSW, Instruction,
+};
 use ledger_secure_sdk_sys::{
     cx_hash_final, cx_hash_t, cx_hash_update, cx_sha256_init_no_throw, cx_sha256_t, CX_OK,
 };

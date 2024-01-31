@@ -39,7 +39,6 @@ impl BorshDeserialize for Action {
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let variant_tag = u8::deserialize_reader(reader)?;
         match variant_tag {
-            8 => unimplemented!("stub for other variants"),
             0 => Ok(Self::CreateAccount),
             1 => Ok(Self::DeployContract),
             2 => Ok(Self::FunctionCall),
@@ -48,6 +47,7 @@ impl BorshDeserialize for Action {
             5 => Ok(Self::AddKey),
             6 => Ok(Self::DeleteKey),
             7 => Ok(Self::DeleteAccount),
+            8 => Ok(Self::Delegate),
             _ => {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
