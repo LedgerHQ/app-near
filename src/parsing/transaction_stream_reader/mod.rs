@@ -31,7 +31,7 @@ impl<'a> SingleTxStream<'a> {
 pub struct Sha256Digest(pub [u8; 32]);
 
 pub struct HashingStream<R> {
-    reader: R,
+    pub reader: R,
     sha256_ctx: cx_sha256_t,
 }
 
@@ -91,27 +91,28 @@ impl<R: io::Read> io::Read for HashingStream<R> {
     }
 }
 
-impl<'a> io::Read for SingleTxStream<'a> {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+impl<'a> SingleTxStream<'a> {
+    pub fn peek_u8(&mut self) -> io::Result<Option<u8>> {
         let data = self
             .comm
             .get_data()
             .map_err(|_err| io::Error::from(io::ErrorKind::BrokenPipe))?;
 
-        let (_read, mut left) = data.split_at(self.chunk_counter);
+        let (_read, left) = data.split_at(self.chunk_counter);
 
         if left.is_empty() && self.is_last_chunk {
-            return Ok(0);
+            return Ok(None);
         }
 
         if !left.is_empty() {
-            let n = left.read(buf)?;
-            self.chunk_counter += n;
-            return Ok(n);
+            return Ok(Some(left[0]));
         }
 
-        // first inform the sender we're ready to receive next chunk
-        self.comm.reply_ok();
+        let data = self.get_next_chunk()?;
+        Ok(Some(data[0]))
+    }
+
+    fn get_next_chunk(&mut self) -> io::Result<&[u8]> {
         let is_last_chunk = loop {
             match self.comm.next_event() {
                 Event::Button(button) => match button {
@@ -133,13 +134,39 @@ impl<'a> io::Read for SingleTxStream<'a> {
 
         self.is_last_chunk = is_last_chunk;
         self.chunk_counter = 0;
-        let mut data = self
+        let data = self
             .comm
             .get_data()
             .map_err(|_err| io::Error::from(io::ErrorKind::BrokenPipe))?;
         if data.is_empty() {
             return Err(io::Error::from(io::ErrorKind::InvalidData));
         }
+        Ok(data)
+    }
+}
+
+impl<'a> io::Read for SingleTxStream<'a> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let data = self
+            .comm
+            .get_data()
+            .map_err(|_err| io::Error::from(io::ErrorKind::BrokenPipe))?;
+
+        let (_read, mut left) = data.split_at(self.chunk_counter);
+
+        if left.is_empty() && self.is_last_chunk {
+            return Ok(0);
+        }
+
+        if !left.is_empty() {
+            let n = left.read(buf)?;
+            self.chunk_counter += n;
+            return Ok(n);
+        }
+
+        // first inform the sender we're ready to receive next chunk
+        self.comm.reply_ok();
+        let mut data = self.get_next_chunk()?;
         let n = data.read(buf)?;
         self.chunk_counter += n;
         return Ok(n);

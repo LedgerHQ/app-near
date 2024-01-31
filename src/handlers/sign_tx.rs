@@ -38,6 +38,7 @@ pub mod create_account;
 pub mod delete_account;
 pub mod delete_key;
 pub mod deploy_contract;
+pub mod function_call;
 pub mod stake;
 pub mod transfer;
 
@@ -73,7 +74,7 @@ fn popup_action(
         Action::Stake => stake::handle(stream, ordinal_action, total_actions),
         Action::AddKey => add_key::handle(stream, ordinal_action, total_actions),
         Action::DeployContract => deploy_contract::handle(stream, ordinal_action, total_actions),
-
+        Action::FunctionCall => function_call::handle(stream, ordinal_action, total_actions),
         _ => unimplemented!(),
     }
 }

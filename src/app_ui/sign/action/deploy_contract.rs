@@ -1,7 +1,7 @@
-use crate::parsing;
+use crate::{parsing, utils::types::elipsis_fields::ElipsisFields};
 use ledger_device_sdk::ui::gadgets::Field;
 
-use crate::{app_ui::fields_writer::FieldsWriter, utils::types::capped_string::ElipsisFields};
+use crate::app_ui::fields_writer::FieldsWriter;
 
 pub fn format<'b>(
     deploy_contract: &'b parsing::types::DeployContract,

@@ -1,11 +1,13 @@
 use ledger_device_sdk::ui::gadgets::Field;
+use numtoa::NumToA;
 
-use super::capped_string::ElipsisFields;
+use super::{elipsis_fields::ElipsisFields, strcat};
 
 pub struct FmtBuffer<const N: usize> {
     buffer: [u8; N],
     used: usize,
     truncated: bool,
+    leftover: usize,
 }
 
 impl<const N: usize> FmtBuffer<N> {
@@ -14,6 +16,7 @@ impl<const N: usize> FmtBuffer<N> {
             buffer: [0u8; N],
             used: 0,
             truncated: false,
+            leftover: 0,
         }
     }
 
@@ -28,8 +31,23 @@ impl<const N: usize> FmtBuffer<N> {
         self.truncated
     }
 
-    pub fn ui_fields<'a>(&'a self, title: &'a str) -> ElipsisFields<'a> {
+    pub fn ui_fields<'a>(
+        &'a self,
+        title: &'a str,
+        display_buf: &'a mut [u8; 20],
+    ) -> ElipsisFields<'a> {
         if self.truncated() {
+            let mut numtoa_buf = [0u8; 10];
+
+            let elipsis_descr = strcat::concatenate(
+                &[
+                    "... ",
+                    self.leftover.numtoa_str(10, &mut numtoa_buf),
+                    " bytes",
+                ],
+                display_buf,
+            )
+            .unwrap(); // Fails if self.display_buf is too small
             ElipsisFields::Two([
                 Field {
                     name: title,
@@ -37,7 +55,7 @@ impl<const N: usize> FmtBuffer<N> {
                 },
                 Field {
                     name: title,
-                    value: "...",
+                    value: elipsis_descr,
                 },
             ])
         } else {
@@ -62,7 +80,7 @@ impl<const N: usize> FmtBuffer<N> {
             match s.char_indices().rfind(|&(ind, _char)| ind <= remaining_len) {
                 None => {
                     // noop, truncating all reftover chars
-                    return;
+                    0
                 }
                 Some((ind, _cahr)) => ind,
             }
@@ -71,5 +89,6 @@ impl<const N: usize> FmtBuffer<N> {
         };
         remaining_buf[..bytes_written].copy_from_slice(&raw_s[..bytes_written]);
         self.used += bytes_written;
+        self.leftover += raw_s_len - bytes_written;
     }
 }
