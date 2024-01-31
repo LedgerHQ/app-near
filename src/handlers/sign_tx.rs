@@ -28,9 +28,6 @@ use crate::AppSW;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-#[allow(unused)]
-const MAX_TRANSACTION_LEN: usize = 534;
-
 pub struct Signature(pub [u8; 64]);
 
 pub mod add_key;

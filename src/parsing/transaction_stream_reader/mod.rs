@@ -5,7 +5,7 @@ use ledger_device_sdk::{
 
 use crate::{
     io::{self},
-    AppSW, Instruction,
+    AppSW, Instruction, SignMode,
 };
 use ledger_secure_sdk_sys::{
     cx_hash_final, cx_hash_t, cx_hash_update, cx_sha256_init_no_throw, cx_sha256_t, CX_OK,
@@ -18,15 +18,17 @@ pub struct SingleTxStream<'a> {
     pub comm: &'a mut Comm,
     chunk_counter: usize,
     is_last_chunk: bool,
+    sign_mode: SignMode,
 }
 
 impl<'a> SingleTxStream<'a> {
-    pub fn new(comm: &'a mut Comm, is_last_chunk: bool) -> Self {
+    pub fn new(comm: &'a mut Comm, is_last_chunk: bool, sign_mode: SignMode) -> Self {
         let total_counter = 0;
         Self {
             comm,
             chunk_counter: total_counter,
             is_last_chunk,
+            sign_mode,
         }
     }
 }
@@ -64,6 +66,23 @@ impl<R> HashingStream<R> {
             }
         }
         Ok(Sha256Digest(array))
+    }
+}
+impl<R> HashingStream<R> {
+    pub fn feed_slice(&mut self, input: &[u8]) -> io::Result<()> {
+        unsafe {
+            if cx_hash_update(
+                &mut self.sha256_ctx.header as *mut cx_hash_t,
+                input.as_ptr(),
+                input.len(),
+            ) != CX_OK
+            {
+                #[cfg(feature = "speculos")]
+                testing::debug_print("`cx_hash_update` error encountered \n");
+                return Err(io::Error::from(io::ErrorKind::OutOfMemory));
+            }
+        }
+        Ok(())
     }
 }
 
@@ -130,7 +149,13 @@ impl<'a> SingleTxStream<'a> {
                 | Event::Command(Instruction::GetPubkey { .. }) => {
                     return Err(io::Error::from(io::ErrorKind::InvalidData))
                 }
-                Event::Command(Instruction::SignTx { is_last_chunk }) => break is_last_chunk,
+                Event::Command(Instruction::SignTx {
+                    is_last_chunk,
+                    sign_mode,
+                }) if sign_mode == self.sign_mode => break is_last_chunk,
+                Event::Command(Instruction::SignTx { .. }) => {
+                    return Err(io::Error::from(io::ErrorKind::InvalidData))
+                }
                 _ => (),
             };
         };
