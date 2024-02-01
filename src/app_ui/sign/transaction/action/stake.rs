@@ -1,5 +1,5 @@
 use crate::{
-    parsing::{self, types::action::ONE_NEAR},
+    parsing::{self, types::ONE_NEAR},
     utils::types::elipsis_fields::ElipsisFields,
 };
 use ledger_device_sdk::ui::gadgets::Field;

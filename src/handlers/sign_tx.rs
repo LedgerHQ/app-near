@@ -18,7 +18,7 @@
 use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
-use crate::parsing::types::action::Action;
+use crate::parsing::types::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;
@@ -27,9 +27,6 @@ use crate::AppSW;
 
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
-
-#[allow(unused)]
-const MAX_TRANSACTION_LEN: usize = 534;
 
 pub struct Signature(pub [u8; 64]);
 
@@ -45,8 +42,8 @@ pub mod transfer;
 
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
-        signer_id: CappedString::new(false),
-        receiver_id: CappedString::new(false),
+        signer_id: CappedString::new(),
+        receiver_id: CappedString::new(),
         number_of_actions: 0,
     };
 
@@ -54,7 +51,7 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::transaction_prefix::ui_display(&tx_prefix) {
+    if !sign_ui::prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(tx_prefix.number_of_actions)

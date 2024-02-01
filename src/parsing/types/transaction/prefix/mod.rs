@@ -3,11 +3,9 @@ use ledger_device_sdk::testing;
 
 use crate::{
     io::{Read, Result},
-    parsing::borsh::BorshDeserialize,
+    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
     utils::types::capped_string::CappedString,
 };
-
-use super::tx_public_key::TxPublicKey;
 
 // NOTE: works on nanos, and speculos
 //

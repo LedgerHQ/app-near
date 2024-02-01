@@ -21,12 +21,12 @@ pub struct HexDisplay<const N: usize> {
 }
 
 impl<const N: usize> HexDisplay<N> {
-    pub fn new(truncated: bool) -> Self {
+    pub fn new() -> Self {
         HexDisplay {
             buffer: [0u8; N],
             used: 0,
             leftover: 0,
-            truncated,
+            truncated: false,
         }
     }
 

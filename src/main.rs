@@ -41,9 +41,17 @@ mod app_ui {
     pub mod fields_writer;
     pub mod menu;
     pub mod sign {
-        pub mod action;
-        pub mod transaction_prefix;
+        pub mod transaction {
+            pub mod action;
+            pub mod prefix;
+        }
+        pub mod nep413 {
+            pub mod payload;
+        }
         pub mod widgets;
+
+        pub use transaction::action;
+        pub use transaction::prefix;
     }
 }
 pub use app_ui::sign as sign_ui;
@@ -52,6 +60,7 @@ mod handlers {
     pub mod get_public_key;
     pub mod get_version;
     pub mod get_wallet_id;
+    pub mod sign_nep413_msg;
     pub mod sign_tx;
 }
 
@@ -60,13 +69,22 @@ pub mod parsing {
     pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
-        pub mod action;
-        pub mod crypto_hash;
-        pub mod transaction_prefix;
-        pub mod tx_public_key;
+        pub mod transaction {
+            pub mod action;
+            pub mod prefix;
+        }
+        pub mod common {
+            pub mod message_discriminant;
+            pub mod tx_public_key;
+        }
+        pub mod nep413 {
+            pub mod payload;
+        }
 
-        pub use action::{
-            add_key::{AddKey, FunctionCallPermission},
+        pub use common::message_discriminant::MessageDiscriminant;
+        pub use common::tx_public_key::TxPublicKey;
+        pub use transaction::action::{
+            add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
             create_account::CreateAccount,
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
@@ -74,16 +92,16 @@ pub mod parsing {
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
-            Action,
+            Action, ONE_NEAR,
         };
-        pub use transaction_prefix::TransactionPrefix;
+        pub use transaction::prefix::TransactionPrefix;
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};
 }
 
 use app_ui::menu::ui_menu_main;
-use handlers::{get_public_key, get_version, get_wallet_id, sign_tx};
+use handlers::{get_public_key, get_version, get_wallet_id, sign_nep413_msg, sign_tx};
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
@@ -97,6 +115,8 @@ const INS_GET_VERSION: u8 = 6; // Instruction code to get app version from the L
 const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
 const INS_GET_WALLET_ID: u8 = 0x05; // Get Wallet ID
 const INS_SIGN_TRANSACTION: u8 = 2; // Instruction code to sign a transaction on the Ledger
+
+const INS_SIGN_NEP413_MESSAGE: u8 = 7; // Instruction code to sign a nep-413 message with Ledger
 
 const P1_SIGN_NORMAL: u8 = 0;
 const P1_SIGN_LAST_CHUNK: u8 = 0x80;
@@ -134,8 +154,19 @@ impl From<AppSW> for Reply {
 pub enum Instruction {
     GetVersion,
     GetWalletID,
-    GetPubkey { display: bool },
-    SignTx { is_last_chunk: bool },
+    GetPubkey {
+        display: bool,
+    },
+    SignTx {
+        is_last_chunk: bool,
+        sign_mode: SignMode,
+    },
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum SignMode {
+    Transaction,
+    NEP413Message,
 }
 
 /// APDU parsing logic.
@@ -160,6 +191,13 @@ impl TryFrom<ApduHeader> for Instruction {
             (CLA, INS_SIGN_TRANSACTION, P1_SIGN_NORMAL | P1_SIGN_LAST_CHUNK, _) => {
                 Ok(Instruction::SignTx {
                     is_last_chunk: value.p1 == P1_SIGN_LAST_CHUNK,
+                    sign_mode: SignMode::Transaction,
+                })
+            }
+            (CLA, INS_SIGN_NEP413_MESSAGE, P1_SIGN_NORMAL | P1_SIGN_LAST_CHUNK, _) => {
+                Ok(Instruction::SignTx {
+                    is_last_chunk: value.p1 == P1_SIGN_LAST_CHUNK,
+                    sign_mode: SignMode::NEP413Message,
                 })
             }
             (CLA, INS_GET_PUBLIC_KEY | INS_SIGN_TRANSACTION, _, _) => Err(AppSW::WrongP1P2),
@@ -192,11 +230,26 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
         Instruction::GetVersion => get_version::handler(comm),
         Instruction::GetWalletID => get_wallet_id::handler(comm),
         Instruction::GetPubkey { display } => get_public_key::handler(comm, display),
-        Instruction::SignTx { is_last_chunk } => {
-            let stream = SingleTxStream::new(comm, is_last_chunk);
+        Instruction::SignTx {
+            is_last_chunk,
+            sign_mode,
+        } if sign_mode == SignMode::Transaction => {
+            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             let signature = sign_tx::handler(stream)?;
             comm.append(&signature.0);
             Ok(())
+        }
+        Instruction::SignTx {
+            is_last_chunk,
+            sign_mode,
+        } if sign_mode == SignMode::NEP413Message => {
+            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
+            let signature = sign_nep413_msg::handler(stream)?;
+            comm.append(&signature.0);
+            Ok(())
+        }
+        _ => {
+            return Err(AppSW::InsNotSupported);
         }
     }
 }

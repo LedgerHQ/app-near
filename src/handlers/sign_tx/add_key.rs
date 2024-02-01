@@ -1,5 +1,5 @@
-use crate::parsing::types::action::add_key::{AccessKeyPermission, FunctionCallPermission};
 use crate::parsing::types::AddKey;
+use crate::parsing::types::{AccessKeyPermission, FunctionCallPermission};
 use crate::{parsing, sign_ui};
 use crate::{
     parsing::{borsh::BorshDeserialize, HashingStream, SingleTxStream},
