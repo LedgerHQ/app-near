@@ -51,7 +51,7 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::transaction_prefix::ui_display(&tx_prefix) {
+    if !sign_ui::prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(tx_prefix.number_of_actions)

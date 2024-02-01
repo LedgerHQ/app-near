@@ -41,9 +41,14 @@ mod app_ui {
     pub mod fields_writer;
     pub mod menu;
     pub mod sign {
-        pub mod action;
-        pub mod transaction_prefix;
+        pub mod transaction {
+            pub mod action;
+            pub mod prefix;
+        }
         pub mod widgets;
+
+        pub use transaction::action;
+        pub use transaction::prefix;
     }
 }
 pub use app_ui::sign as sign_ui;
