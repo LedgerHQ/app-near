@@ -45,6 +45,9 @@ mod app_ui {
             pub mod action;
             pub mod prefix;
         }
+        pub mod nep413 {
+            pub mod payload;
+        }
         pub mod widgets;
 
         pub use transaction::action;
@@ -75,7 +78,6 @@ pub mod parsing {
             pub mod tx_public_key;
         }
         pub mod nep413 {
-
             pub mod payload;
         }
 

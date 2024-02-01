@@ -1,3 +1,4 @@
+use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
 use crate::{
     io::{ErrorKind, Read},
@@ -26,7 +27,16 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .feed_slice(&prefix_bytes)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    read_till_end(&mut stream)?;
+    let mut payload: Payload = Payload::new();
+
+    payload
+        .deserialize_reader_in_place(&mut stream)
+        .map_err(|_err| AppSW::TxParsingFail)?;
+
+    if !sign_ui::nep413::payload::ui_display(&payload) {
+        return Err(AppSW::Deny);
+    }
+
     // test no redundant bytes left in stream
     let mut buf = [0u8; 1];
     match stream.read_exact(&mut buf) {
@@ -41,24 +51,4 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
 
     Ok(Signature(sig))
-}
-
-pub fn read_till_end<R: Read>(stream: &mut R) -> Result<(), AppSW> {
-    let mut buff = [0u8; 50];
-    loop {
-        let n = stream.read(&mut buff).map_err(|err| {
-            if err.kind() == ErrorKind::OutOfMemory {
-                return AppSW::TxHashFail;
-            }
-            AppSW::TxParsingFail
-        })?;
-
-        #[cfg(feature = "speculos")]
-        debug_print_slice(&buff, n);
-
-        if n == 0 {
-            break;
-        }
-    }
-    Ok(())
 }

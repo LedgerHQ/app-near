@@ -8,33 +8,54 @@ use crate::{
     app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
 };
 
-pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> bool {
-    #[cfg(feature = "speculos")]
-    transaction_prefix.debug_print();
+struct FieldsContext {
+    display_buf1: [u8; 20],
+    display_buf2: [u8; 20],
+    numtoa_buf: [u8; 10],
+}
 
-    let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
-    let mut display_buf1 = [0u8; 20];
+impl FieldsContext {
+    pub fn new() -> Self {
+        Self {
+            display_buf1: [0u8; 20],
+            display_buf2: [0u8; 20],
+            numtoa_buf: [0u8; 10],
+        }
+    }
+}
+
+fn format<'b, 'a: 'b>(
+    transaction_prefix: &'b parsing::types::TransactionPrefix,
+    field_context: &'a mut FieldsContext,
+    writer: &'_ mut FieldsWriter<'b, 5>,
+) {
     let signer_id = transaction_prefix
         .signer_id
-        .ui_fields("Signer Id", &mut display_buf1);
-    field_writer.push_fields(signer_id).unwrap();
+        .ui_fields("Signer Id", &mut field_context.display_buf1);
+    writer.push_fields(signer_id).unwrap();
 
-    let mut display_buf2 = [0u8; 20];
     let receiver_id = transaction_prefix
         .receiver_id
-        .ui_fields("Receiver Id", &mut display_buf2);
-    field_writer.push_fields(receiver_id).unwrap();
-    let mut numtoa_buf = [0u8; 10];
+        .ui_fields("Receiver Id", &mut field_context.display_buf2);
+    writer.push_fields(receiver_id).unwrap();
 
     let num_actions_str = transaction_prefix
         .number_of_actions
-        .numtoa_str(10, &mut numtoa_buf);
-    field_writer
+        .numtoa_str(10, &mut field_context.numtoa_buf);
+    writer
         .push_fields(ElipsisFields::one(Field {
             name: "Total actions",
             value: num_actions_str,
         }))
         .unwrap();
+}
+pub fn ui_display(transaction_prefix: &parsing::types::TransactionPrefix) -> bool {
+    #[cfg(feature = "speculos")]
+    transaction_prefix.debug_print();
+
+    let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
+    let mut field_context: FieldsContext = FieldsContext::new();
+    format(transaction_prefix, &mut field_context, &mut field_writer);
 
     let my_review = MultiFieldReview::new(
         field_writer.get_fields(),
