@@ -1,6 +1,6 @@
 use crate::{
     app_ui::fields_writer::FieldsWriter,
-    parsing::{self, types::action::ONE_NEAR},
+    parsing::{self, types::ONE_NEAR},
     utils::types::{elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
 };
 

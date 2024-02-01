@@ -2,7 +2,7 @@ use crate::sign_ui;
 use crate::{
     io::{ErrorKind, Read},
     parsing::{
-        borsh::BorshDeserialize, types::message_discriminant::MessageDiscriminant, HashingStream,
+        borsh::BorshDeserialize, types::MessageDiscriminant, HashingStream,
         SingleTxStream,
     },
     utils::crypto,

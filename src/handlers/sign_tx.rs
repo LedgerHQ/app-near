@@ -18,7 +18,7 @@
 use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
-use crate::parsing::types::action::Action;
+use crate::parsing::types::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;

@@ -1,6 +1,6 @@
 use crate::{
     io::{Error, ErrorKind, Read, Result},
-    parsing::{borsh::BorshDeserialize, types::tx_public_key::TxPublicKey},
+    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
     utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer},
 };
 

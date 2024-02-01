@@ -1,6 +1,6 @@
 use crate::{
     io::{Read, Result},
-    parsing::{borsh::BorshDeserialize, types::tx_public_key::TxPublicKey},
+    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
 };
 
 use super::Balance;

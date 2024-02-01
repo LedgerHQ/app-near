@@ -61,14 +61,18 @@ pub mod parsing {
     pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
-        pub mod action;
-        pub mod crypto_hash;
-        pub mod message_discriminant;
-        pub mod transaction_prefix;
-        pub mod tx_public_key;
+        pub mod transaction {
+            pub mod action;
+            pub mod prefix;
+        }
+        pub mod common {
+            pub mod tx_public_key;
+            pub mod message_discriminant;
+        }
 
-        pub use action::{
-            add_key::{AddKey, FunctionCallPermission},
+        pub use common::tx_public_key::TxPublicKey;
+        pub use transaction::action::{
+            add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
             create_account::CreateAccount,
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
@@ -76,9 +80,10 @@ pub mod parsing {
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
-            Action,
+            Action, ONE_NEAR,
         };
-        pub use transaction_prefix::TransactionPrefix;
+        pub use transaction::prefix::TransactionPrefix;
+        pub use common::message_discriminant::MessageDiscriminant;
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};

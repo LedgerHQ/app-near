@@ -1,5 +1,5 @@
 use crate::io::ErrorKind;
-use crate::parsing::types::action::function_call::FunctionCallCommon;
+use crate::parsing::types::FunctionCallCommon;
 use crate::sign_ui;
 use crate::utils::types::capped_string::CappedString;
 use crate::utils::types::hex_display::HexDisplay;
