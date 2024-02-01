@@ -15,7 +15,7 @@ pub fn handle(
     ordinal_action: u32,
     total_actions: u32,
 ) -> Result<(), AppSW> {
-    let mut method_name: CappedString<50> = CappedString::new(false);
+    let mut method_name: CappedString<50> = CappedString::new();
 
     method_name
         .deserialize_reader_in_place(stream)
@@ -31,7 +31,7 @@ pub fn handle(
     {
         // '{' char
         Some(123) => {
-            let mut args_str: CappedString<500> = CappedString::new(false);
+            let mut args_str: CappedString<500> = CappedString::new();
             match args_str.deserialize_with_bytes_count(stream, args_bytes_count) {
                 Err(err) if err.kind() == ErrorKind::InvalidData => {
                     let args_str_mut_ref = &mut args_str;
@@ -75,7 +75,7 @@ pub fn handle(
             }
         }
         Some(_first_byte) => {
-            let mut args_bin: HexDisplay<500> = HexDisplay::new(false);
+            let mut args_bin: HexDisplay<500> = HexDisplay::new();
             args_bin
                 .deserialize_with_bytes_count(stream, args_bytes_count)
                 .map_err(|_err| AppSW::TxParsingFail)?;

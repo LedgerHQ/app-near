@@ -10,7 +10,7 @@ pub struct DeleteAccount {
 impl DeleteAccount {
     pub fn new() -> Self {
         Self {
-            beneficiary_id: CappedString::new(false),
+            beneficiary_id: CappedString::new(),
         }
     }
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {

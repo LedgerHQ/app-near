@@ -103,7 +103,7 @@ impl FunctionCallPermission {
     pub fn new() -> Self {
         Self {
             allowance: None,
-            receiver_id: CappedString::new(false),
+            receiver_id: CappedString::new(),
             number_of_method_names: 0,
             method_names: FmtBuffer::new(),
         }
@@ -116,7 +116,7 @@ impl FunctionCallPermission {
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;
 
-        let mut per_method_buffer: CappedString<40> = CappedString::new(false);
+        let mut per_method_buffer: CappedString<40> = CappedString::new();
         for _i in 0..(self.number_of_method_names as usize) {
             per_method_buffer.deserialize_reader_in_place(reader)?;
 

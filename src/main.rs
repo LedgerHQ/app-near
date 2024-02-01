@@ -66,10 +66,15 @@ pub mod parsing {
             pub mod prefix;
         }
         pub mod common {
-            pub mod tx_public_key;
             pub mod message_discriminant;
+            pub mod tx_public_key;
+        }
+        pub mod nep413 {
+
+            pub mod payload;
         }
 
+        pub use common::message_discriminant::MessageDiscriminant;
         pub use common::tx_public_key::TxPublicKey;
         pub use transaction::action::{
             add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
@@ -83,7 +88,6 @@ pub mod parsing {
             Action, ONE_NEAR,
         };
         pub use transaction::prefix::TransactionPrefix;
-        pub use common::message_discriminant::MessageDiscriminant;
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};

@@ -42,8 +42,8 @@ pub mod transfer;
 
 fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
-        signer_id: CappedString::new(false),
-        receiver_id: CappedString::new(false),
+        signer_id: CappedString::new(),
+        receiver_id: CappedString::new(),
         number_of_actions: 0,
     };
 

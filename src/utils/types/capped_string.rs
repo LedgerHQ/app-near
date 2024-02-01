@@ -18,12 +18,12 @@ pub struct CappedString<const N: usize> {
 }
 
 impl<const N: usize> CappedString<N> {
-    pub fn new(truncated: bool) -> Self {
+    pub fn new() -> Self {
         CappedString {
             buffer: [0u8; N],
             used: 0,
             leftover: 0,
-            truncated,
+            truncated: false,
         }
     }
 
