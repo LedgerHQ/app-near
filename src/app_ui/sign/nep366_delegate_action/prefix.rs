@@ -25,14 +25,14 @@ impl FieldsContext {
 }
 
 fn format<'b, 'a: 'b>(
-    prefix: &'b parsing::types::transaction::prefix::Prefix,
+    prefix: &'b parsing::types::nep366_delegate_action::prefix::Prefix,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 5>,
 ) {
-    let signer_id = prefix
-        .signer_id
-        .ui_fields("Signer Id", &mut field_context.display_buf1);
-    writer.push_fields(signer_id).unwrap();
+    let sender_id = prefix
+        .sender_id
+        .ui_fields("Sender Id", &mut field_context.display_buf1);
+    writer.push_fields(sender_id).unwrap();
 
     let receiver_id = prefix
         .receiver_id
@@ -44,24 +44,21 @@ fn format<'b, 'a: 'b>(
         .numtoa_str(10, &mut field_context.numtoa_buf);
     writer
         .push_fields(ElipsisFields::one(Field {
-            name: "Total actions",
+            name: "Total subactions",
             value: num_actions_str,
         }))
         .unwrap();
 }
-pub fn ui_display(prefix: &parsing::types::transaction::prefix::Prefix) -> bool {
-    #[cfg(feature = "speculos")]
-    prefix.debug_print();
-
+pub fn ui_display(prefix: &parsing::types::nep366_delegate_action::prefix::Prefix) -> bool {
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
     let my_review = MultiFieldReview::new(
         field_writer.get_fields(),
-        &["View header"],
+        &["View NEP366 prefix"],
         Some(&EYE),
-        "Continue to actions",
+        "Proceed to subactions",
         Some(&VALIDATE_14),
         "Reject",
         Some(&CROSSMARK),

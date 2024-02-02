@@ -18,63 +18,29 @@
 use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
-use crate::parsing::types::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;
-use crate::utils::types::capped_string::CappedString;
 use crate::AppSW;
 
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
+use crate::handlers::common::action::{handle_action, ActionParams};
+
 pub struct Signature(pub [u8; 64]);
 
-pub mod add_key;
-pub mod create_account;
-pub mod delegate;
-pub mod delete_account;
-pub mod delete_key;
-pub mod deploy_contract;
-pub mod function_call;
-pub mod stake;
-pub mod transfer;
-
-fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
-    let mut tx_prefix = parsing::types::TransactionPrefix {
-        signer_id: CappedString::new(),
-        receiver_id: CappedString::new(),
-        number_of_actions: 0,
-    };
+fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
+    let mut tx_prefix = parsing::types::transaction::prefix::Prefix::new();
 
     tx_prefix
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::prefix::ui_display(&tx_prefix) {
+    if !sign_ui::transaction::prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(tx_prefix.number_of_actions)
-}
-
-fn popup_action(
-    stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
-) -> Result<(), AppSW> {
-    let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
-
-    match action {
-        Action::Transfer => transfer::handle(stream, ordinal_action, total_actions),
-        Action::CreateAccount => create_account::handle(stream, ordinal_action, total_actions),
-        Action::DeleteAccount => delete_account::handle(stream, ordinal_action, total_actions),
-        Action::DeleteKey => delete_key::handle(stream, ordinal_action, total_actions),
-        Action::Stake => stake::handle(stream, ordinal_action, total_actions),
-        Action::AddKey => add_key::handle(stream, ordinal_action, total_actions),
-        Action::DeployContract => deploy_contract::handle(stream, ordinal_action, total_actions),
-        Action::FunctionCall => function_call::handle(stream, ordinal_action, total_actions),
-        Action::Delegate => delegate::handle(stream, ordinal_action, total_actions),
-    }
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -87,11 +53,16 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let mut stream = HashingStream::new(stream)?;
 
-    let number_of_actions = popup_transaction_prefix(&mut stream)?;
+    let number_of_actions = handle_transaction_prefix(&mut stream)?;
 
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();
-        popup_action(&mut stream, i, number_of_actions)?;
+        let params = ActionParams {
+            ordinal_action: i + 1,
+            total_actions: number_of_actions,
+            is_nested_delegate: false,
+        };
+        handle_action(&mut stream, params)?;
     }
 
     // test no redundant bytes left in stream

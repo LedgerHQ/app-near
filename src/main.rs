@@ -41,17 +41,24 @@ mod app_ui {
     pub mod fields_writer;
     pub mod menu;
     pub mod sign {
-        pub mod transaction {
+        pub mod common {
             pub mod action;
+            pub mod tx_public_key_context;
+        }
+        pub mod transaction {
             pub mod prefix;
         }
         pub mod nep413 {
             pub mod payload;
         }
+
+        pub mod nep366_delegate_action {
+            pub mod prefix;
+            pub mod suffix;
+        }
         pub mod widgets;
 
-        pub use transaction::action;
-        pub use transaction::prefix;
+        pub use common::action;
     }
 }
 pub use app_ui::sign as sign_ui;
@@ -60,8 +67,13 @@ mod handlers {
     pub mod get_public_key;
     pub mod get_version;
     pub mod get_wallet_id;
+    pub mod sign_nep366_delegate;
     pub mod sign_nep413_msg;
     pub mod sign_tx;
+
+    pub mod common {
+        pub mod action;
+    }
 }
 
 mod io;
@@ -70,20 +82,22 @@ pub mod parsing {
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod transaction {
-            pub mod action;
             pub mod prefix;
         }
         pub mod common {
+            pub mod action;
             pub mod message_discriminant;
             pub mod tx_public_key;
         }
         pub mod nep413 {
             pub mod payload;
         }
+        pub mod nep366_delegate_action {
+            pub mod prefix;
+            pub mod suffix;
+        }
 
-        pub use common::message_discriminant::MessageDiscriminant;
-        pub use common::tx_public_key::TxPublicKey;
-        pub use transaction::action::{
+        pub use common::action::{
             add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
             create_account::CreateAccount,
             delete_account::DeleteAccount,
@@ -94,14 +108,17 @@ pub mod parsing {
             transfer::Transfer,
             Action, ONE_NEAR,
         };
-        pub use transaction::prefix::TransactionPrefix;
+        pub use common::message_discriminant::MessageDiscriminant;
+        pub use common::tx_public_key::TxPublicKey;
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};
 }
 
 use app_ui::menu::ui_menu_main;
-use handlers::{get_public_key, get_version, get_wallet_id, sign_nep413_msg, sign_tx};
+use handlers::{
+    get_public_key, get_version, get_wallet_id, sign_nep366_delegate, sign_nep413_msg, sign_tx,
+};
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
@@ -117,6 +134,7 @@ const INS_GET_WALLET_ID: u8 = 0x05; // Get Wallet ID
 const INS_SIGN_TRANSACTION: u8 = 2; // Instruction code to sign a transaction on the Ledger
 
 const INS_SIGN_NEP413_MESSAGE: u8 = 7; // Instruction code to sign a nep-413 message with Ledger
+const INS_SIGN_NEP366_DELEGATE_ACTION: u8 = 8; // Instruction code to sign a nep-413 message with Ledger
 
 const P1_SIGN_NORMAL: u8 = 0;
 const P1_SIGN_LAST_CHUNK: u8 = 0x80;
@@ -167,6 +185,7 @@ pub enum Instruction {
 pub enum SignMode {
     Transaction,
     NEP413Message,
+    NEP366DelegateAction,
 }
 
 /// APDU parsing logic.
@@ -198,6 +217,12 @@ impl TryFrom<ApduHeader> for Instruction {
                 Ok(Instruction::SignTx {
                     is_last_chunk: value.p1 == P1_SIGN_LAST_CHUNK,
                     sign_mode: SignMode::NEP413Message,
+                })
+            }
+            (CLA, INS_SIGN_NEP366_DELEGATE_ACTION, P1_SIGN_NORMAL | P1_SIGN_LAST_CHUNK, _) => {
+                Ok(Instruction::SignTx {
+                    is_last_chunk: value.p1 == P1_SIGN_LAST_CHUNK,
+                    sign_mode: SignMode::NEP366DelegateAction,
                 })
             }
             (CLA, INS_GET_PUBLIC_KEY | INS_SIGN_TRANSACTION, _, _) => Err(AppSW::WrongP1P2),
@@ -245,6 +270,15 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
         } if sign_mode == SignMode::NEP413Message => {
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             let signature = sign_nep413_msg::handler(stream)?;
+            comm.append(&signature.0);
+            Ok(())
+        }
+        Instruction::SignTx {
+            is_last_chunk,
+            sign_mode,
+        } if sign_mode == SignMode::NEP366DelegateAction => {
+            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
+            let signature = sign_nep366_delegate::handler(stream)?;
             comm.append(&signature.0);
             Ok(())
         }

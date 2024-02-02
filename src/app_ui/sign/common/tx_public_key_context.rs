@@ -1,9 +1,6 @@
-use ledger_device_sdk::ui::gadgets::Field;
-
 use crate::{
-    app_ui::fields_writer::FieldsWriter,
-    parsing::{self, types::TxPublicKey},
-    utils::types::{base58_buf::Base58Buf, elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
+    parsing::types::TxPublicKey,
+    utils::types::{base58_buf::Base58Buf, fmt_buffer::FmtBuffer},
 };
 
 pub struct FieldsContext {
@@ -37,25 +34,4 @@ impl FieldsContext {
             }
         }
     }
-}
-
-pub fn format<'b, 'a: 'b>(
-    delete_key: &parsing::types::DeleteKey,
-    field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 2>,
-) {
-    field_context.format_public_key(&delete_key.public_key);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Delete Key",
-        }))
-        .unwrap();
-
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Public Key",
-            value: field_context.buffer.as_str(),
-        }))
-        .unwrap();
 }

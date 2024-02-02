@@ -6,10 +6,11 @@ use crate::{
     AppSW,
 };
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let add_key_common = AddKey::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
@@ -17,15 +18,9 @@ pub fn handle(
     add_key_common.debug_print();
 
     match add_key_common.access_key.permission {
-        AccessKeyPermission::FunctionCall => {
-            handle_function_call(&add_key_common, stream, ordinal_action, total_actions)
-        }
+        AccessKeyPermission::FunctionCall => handle_function_call(&add_key_common, stream, params),
         AccessKeyPermission::FullAccess => {
-            if !sign_ui::action::ui_display_add_key_fullaccess(
-                &add_key_common,
-                ordinal_action + 1,
-                total_actions,
-            ) {
+            if !sign_ui::action::ui_display_add_key_fullaccess(&add_key_common, params) {
                 return Err(AppSW::Deny);
             }
             Ok(())
@@ -36,8 +31,7 @@ pub fn handle(
 pub fn handle_function_call(
     add_key_common: &parsing::types::AddKey,
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let mut function_call_perm = FunctionCallPermission::new();
 
@@ -50,8 +44,7 @@ pub fn handle_function_call(
     if !sign_ui::action::ui_display_add_key_functioncall(
         add_key_common,
         &function_call_perm,
-        ordinal_action + 1,
-        total_actions,
+        params,
     ) {
         return Err(AppSW::Deny);
     }

@@ -10,10 +10,11 @@ use crate::{
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let mut method_name: CappedString<50> = CappedString::new();
 
@@ -45,13 +46,7 @@ pub fn handle(
                     testing::debug_print(
                         "flow with assuming `args` as binary after parsing error\n",
                     );
-                    handle_args_bin(
-                        args_bin_mut_ref,
-                        stream,
-                        method_name,
-                        ordinal_action,
-                        total_actions,
-                    )
+                    handle_args_bin(args_bin_mut_ref, stream, method_name, params)
                 }
                 Ok(_) => {
                     let func_call_common =
@@ -62,8 +57,7 @@ pub fn handle(
                     if !sign_ui::action::ui_display_function_call_str(
                         &func_call_common,
                         &args_str,
-                        ordinal_action + 1,
-                        total_actions,
+                        params,
                     ) {
                         return Err(AppSW::Deny);
                     }
@@ -79,13 +73,7 @@ pub fn handle(
             args_bin
                 .deserialize_with_bytes_count(stream, args_bytes_count)
                 .map_err(|_err| AppSW::TxParsingFail)?;
-            handle_args_bin(
-                &mut args_bin,
-                stream,
-                method_name,
-                ordinal_action,
-                total_actions,
-            )
+            handle_args_bin(&mut args_bin, stream, method_name, params)
         }
         None => Err(AppSW::TxParsingFail),
     }
@@ -95,18 +83,12 @@ fn handle_args_bin(
     args_bin: &mut HexDisplay<500>,
     stream: &mut HashingStream<SingleTxStream<'_>>,
     method_name: CappedString<50>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     args_bin.reformat();
     let func_call_common = FunctionCallCommon::deserialize_with_method_name(stream, method_name)
         .map_err(|_err| AppSW::TxParsingFail)?;
-    if !sign_ui::action::ui_display_function_call_bin(
-        &func_call_common,
-        &args_bin,
-        ordinal_action + 1,
-        total_actions,
-    ) {
+    if !sign_ui::action::ui_display_function_call_bin(&func_call_common, &args_bin, params) {
         return Err(AppSW::Deny);
     }
     Ok(())

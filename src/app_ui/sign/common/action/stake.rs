@@ -1,23 +1,22 @@
 use crate::{
     parsing::{self, types::ONE_NEAR},
+    sign_ui::common::tx_public_key_context,
     utils::types::elipsis_fields::ElipsisFields,
 };
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
-use super::delete_key;
-
 pub struct FieldsContext {
     pub float_buffer: dtoa::Buffer,
-    pub pub_key_context: delete_key::FieldsContext,
+    pub pub_key_context: tx_public_key_context::FieldsContext,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
             float_buffer: dtoa::Buffer::new(),
-            pub_key_context: delete_key::FieldsContext::new(),
+            pub_key_context: tx_public_key_context::FieldsContext::new(),
         }
     }
 }

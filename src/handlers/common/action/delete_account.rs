@@ -4,10 +4,11 @@ use crate::{
     AppSW,
 };
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let mut delete_account = DeleteAccount::new();
     delete_account
@@ -17,11 +18,7 @@ pub fn handle(
     #[cfg(feature = "speculos")]
     delete_account.debug_print();
 
-    if !sign_ui::action::ui_display_delete_account(
-        &delete_account,
-        ordinal_action + 1,
-        total_actions,
-    ) {
+    if !sign_ui::action::ui_display_delete_account(&delete_account, params) {
         return Err(AppSW::Deny);
     }
     Ok(())
