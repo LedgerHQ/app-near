@@ -5,10 +5,11 @@ use crate::{
     AppSW,
 };
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let deploy_contract =
         DeployContract::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
@@ -16,11 +17,7 @@ pub fn handle(
     #[cfg(feature = "speculos")]
     deploy_contract.debug_print();
 
-    if !sign_ui::action::ui_display_deploy_contract(
-        &deploy_contract,
-        ordinal_action + 1,
-        total_actions,
-    ) {
+    if !sign_ui::action::ui_display_deploy_contract(&deploy_contract, params) {
         return Err(AppSW::Deny);
     }
     Ok(())

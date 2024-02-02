@@ -7,10 +7,11 @@ use crate::{
 };
 use crate::{sign_ui, Instruction};
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    _ordinal_action: u32,
-    _total_actions: u32,
+    _params: ActionParams,
 ) -> Result<(), AppSW> {
     stream.reader.comm.reply(AppSW::TxParsingFail);
     sign_ui::widgets::delegate_error_screen();

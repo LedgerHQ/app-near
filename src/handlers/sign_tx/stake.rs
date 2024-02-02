@@ -4,17 +4,18 @@ use crate::{
     AppSW,
 };
 
+use super::ActionParams;
+
 pub fn handle(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let stake = Stake::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
     #[cfg(feature = "speculos")]
     stake.debug_print();
 
-    if !sign_ui::action::ui_display_stake(&stake, ordinal_action + 1, total_actions) {
+    if !sign_ui::action::ui_display_stake(&stake, params) {
         return Err(AppSW::Deny);
     }
     Ok(())

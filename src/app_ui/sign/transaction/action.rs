@@ -1,5 +1,6 @@
 use crate::{
     app_ui::fields_writer::FieldsWriter,
+    handlers::sign_tx::ActionParams,
     parsing,
     utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer, hex_display::HexDisplay},
 };
@@ -22,84 +23,72 @@ mod function_call_str;
 mod stake;
 mod transfer;
 
-pub fn ui_display_transfer(
-    transfer: &parsing::types::Transfer,
-    ordinal: u32,
-    total_actions: u32,
-) -> bool {
+pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     transfer::format(transfer, &mut field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_create_account(
     create_account: &parsing::types::CreateAccount,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 1> = FieldsWriter::new();
 
     create_account::format(create_account, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_delete_account(
     delete_account: &parsing::types::DeleteAccount,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
     let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
 
     delete_account::format(delete_account, &mut field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
-pub fn ui_display_delete_key(
-    delete_key: &parsing::types::DeleteKey,
-    ordinal: u32,
-    total_actions: u32,
-) -> bool {
+pub fn ui_display_delete_key(delete_key: &parsing::types::DeleteKey, params: ActionParams) -> bool {
     let mut field_context: delete_key::FieldsContext = delete_key::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     delete_key::format(delete_key, &mut field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
-pub fn ui_display_stake(stake: &parsing::types::Stake, ordinal: u32, total_actions: u32) -> bool {
+pub fn ui_display_stake(stake: &parsing::types::Stake, params: ActionParams) -> bool {
     let mut field_context: stake::FieldsContext = stake::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
 
     stake::format(stake, &mut field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_add_key_fullaccess(
     add_key: &parsing::types::AddKey,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut field_context: add_key_common::FieldsContext = add_key_common::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 4> = FieldsWriter::new();
 
     add_key_common::format(add_key, &mut field_context, &mut writer, "Full Access");
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_add_key_functioncall(
     add_key: &parsing::types::AddKey,
     function_call_per: &parsing::types::FunctionCallPermission,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut common_field_context: add_key_common::FieldsContext =
         add_key_common::FieldsContext::new();
@@ -115,26 +104,24 @@ pub fn ui_display_add_key_functioncall(
     );
     function_call_permission::format(function_call_per, &mut func_call_field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_deploy_contract(
     deploy_contract: &parsing::types::DeployContract,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     deploy_contract::format(deploy_contract, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_function_call_str(
     func_call_common: &parsing::types::FunctionCallCommon,
     args: &CappedString<500>,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
@@ -145,14 +132,13 @@ pub fn ui_display_function_call_str(
         function_call_str::FieldsContext::new();
     function_call_str::format(args, &mut args_field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_function_call_bin(
     func_call_common: &parsing::types::FunctionCallCommon,
     args: &HexDisplay<500>,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
@@ -163,15 +149,14 @@ pub fn ui_display_function_call_bin(
         function_call_bin::FieldsContext::new();
     function_call_bin::format(args, &mut args_field_context, &mut writer);
 
-    ui_display_common(&mut writer, ordinal, total_actions)
+    ui_display_common(&mut writer, params)
 }
 pub fn ui_display_common<const N: usize>(
     writer: &mut FieldsWriter<'_, N>,
-    ordinal: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> bool {
     let mut ordinal_fmt_buf = FmtBuffer::<25>::new();
-    let is_last = ordinal_string(&mut ordinal_fmt_buf, ordinal, total_actions);
+    let is_last = ordinal_string(&mut ordinal_fmt_buf, params);
 
     let ordinal_str = ordinal_fmt_buf.as_str();
 
@@ -190,12 +175,17 @@ pub fn ui_display_common<const N: usize>(
     my_review.show()
 }
 
-fn ordinal_string(fmt_buf: &mut FmtBuffer<25>, ordinal: u32, total_actions: u32) -> bool {
+fn ordinal_string(fmt_buf: &mut FmtBuffer<25>, params: ActionParams) -> bool {
     let mut num_out = [0u8; 10];
-    fmt_buf.write_str("View action ");
-    fmt_buf.write_str(ordinal.numtoa_str(10, &mut num_out));
+    let header = if params.is_nested_delegate {
+        "Delegate sub-action "
+    } else {
+        "View action "
+    };
+    fmt_buf.write_str(header);
+    fmt_buf.write_str(params.ordinal_action.numtoa_str(10, &mut num_out));
     fmt_buf.write_str(" / ");
-    fmt_buf.write_str(total_actions.numtoa_str(10, &mut num_out));
+    fmt_buf.write_str(params.total_actions.numtoa_str(10, &mut num_out));
 
-    ordinal == total_actions
+    params.ordinal_action == params.total_actions
 }

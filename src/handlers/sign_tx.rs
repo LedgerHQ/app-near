@@ -57,23 +57,29 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
     Ok(tx_prefix.number_of_actions)
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct ActionParams {
+    pub ordinal_action: u32,
+    pub total_actions: u32,
+    pub is_nested_delegate: bool,
+}
+
 fn popup_action(
     stream: &mut HashingStream<SingleTxStream<'_>>,
-    ordinal_action: u32,
-    total_actions: u32,
+    params: ActionParams,
 ) -> Result<(), AppSW> {
     let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
     match action {
-        Action::Transfer => transfer::handle(stream, ordinal_action, total_actions),
-        Action::CreateAccount => create_account::handle(stream, ordinal_action, total_actions),
-        Action::DeleteAccount => delete_account::handle(stream, ordinal_action, total_actions),
-        Action::DeleteKey => delete_key::handle(stream, ordinal_action, total_actions),
-        Action::Stake => stake::handle(stream, ordinal_action, total_actions),
-        Action::AddKey => add_key::handle(stream, ordinal_action, total_actions),
-        Action::DeployContract => deploy_contract::handle(stream, ordinal_action, total_actions),
-        Action::FunctionCall => function_call::handle(stream, ordinal_action, total_actions),
-        Action::Delegate => delegate::handle(stream, ordinal_action, total_actions),
+        Action::Transfer => transfer::handle(stream, params),
+        Action::CreateAccount => create_account::handle(stream, params),
+        Action::DeleteAccount => delete_account::handle(stream, params),
+        Action::DeleteKey => delete_key::handle(stream, params),
+        Action::Stake => stake::handle(stream, params),
+        Action::AddKey => add_key::handle(stream, params),
+        Action::DeployContract => deploy_contract::handle(stream, params),
+        Action::FunctionCall => function_call::handle(stream, params),
+        Action::Delegate => delegate::handle(stream, params),
     }
 }
 
@@ -91,7 +97,12 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();
-        popup_action(&mut stream, i, number_of_actions)?;
+        let params = ActionParams {
+            ordinal_action: i + 1,
+            total_actions: number_of_actions,
+            is_nested_delegate: false,
+        };
+        popup_action(&mut stream, params)?;
     }
 
     // test no redundant bytes left in stream
