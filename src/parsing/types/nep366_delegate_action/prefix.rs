@@ -34,6 +34,7 @@ impl Prefix {
 #[cfg(feature = "speculos")]
 impl Prefix {
     pub fn debug_print(&self) {
+        use ledger_device_sdk::testing;
         use numtoa::NumToA;
         testing::debug_print("debug printing delegate action prefix:\n");
         let mut numtoa_buf = [0u8; 40];

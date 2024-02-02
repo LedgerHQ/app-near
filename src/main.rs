@@ -43,6 +43,7 @@ mod app_ui {
     pub mod sign {
         pub mod common {
             pub mod action;
+            pub mod tx_public_key_context;
         }
         pub mod transaction {
             pub mod prefix;
@@ -53,6 +54,7 @@ mod app_ui {
 
         pub mod nep366_delegate_action {
             pub mod prefix;
+            pub mod suffix;
         }
         pub mod widgets;
 
@@ -92,6 +94,7 @@ pub mod parsing {
         }
         pub mod nep366_delegate_action {
             pub mod prefix;
+            pub mod suffix;
         }
 
         pub use common::action::{

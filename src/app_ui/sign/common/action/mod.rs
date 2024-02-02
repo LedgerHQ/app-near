@@ -11,6 +11,8 @@ use ledger_device_sdk::ui::{
 };
 use numtoa::NumToA;
 
+use super::tx_public_key_context;
+
 mod add_key_common;
 mod create_account;
 mod delete_account;
@@ -56,7 +58,8 @@ pub fn ui_display_delete_account(
 }
 
 pub fn ui_display_delete_key(delete_key: &parsing::types::DeleteKey, params: ActionParams) -> bool {
-    let mut field_context: delete_key::FieldsContext = delete_key::FieldsContext::new();
+    let mut field_context: tx_public_key_context::FieldsContext =
+        tx_public_key_context::FieldsContext::new();
     let mut writer: FieldsWriter<'_, 2> = FieldsWriter::new();
 
     delete_key::format(delete_key, &mut field_context, &mut writer);
@@ -167,11 +170,17 @@ pub fn ui_display_common<const N: usize>(
     } else {
         "Next Action"
     };
+
+    let last_msg = if params.is_nested_delegate {
+        "To NEP366 suffix"
+    } else {
+        "Sign"
+    };
     let my_review = MultiFieldReview::new(
         writer.get_fields(),
         &binding,
         Some(&EYE),
-        if is_last { "Sign" } else { next_msg },
+        if is_last { last_msg } else { next_msg },
         Some(&VALIDATE_14),
         "Reject",
         Some(&CROSSMARK),

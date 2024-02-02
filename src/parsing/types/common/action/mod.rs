@@ -12,6 +12,9 @@ pub type Gas = u64;
 /// Nonce for transactions.
 pub type Nonce = u64;
 
+/// Height of the block.
+pub type BlockHeight = u64;
+
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 
 pub mod add_key;

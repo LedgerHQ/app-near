@@ -50,9 +50,6 @@ fn format<'b, 'a: 'b>(
         .unwrap();
 }
 pub fn ui_display(prefix: &parsing::types::nep366_delegate_action::prefix::Prefix) -> bool {
-    #[cfg(feature = "speculos")]
-    prefix.debug_print();
-
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);

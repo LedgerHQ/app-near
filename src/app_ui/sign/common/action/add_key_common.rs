@@ -1,21 +1,21 @@
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
+    app_ui::fields_writer::FieldsWriter, parsing, sign_ui::common::tx_public_key_context,
+    utils::types::elipsis_fields::ElipsisFields,
 };
 
-use super::delete_key;
 use ledger_device_sdk::ui::gadgets::Field;
 use numtoa::NumToA;
 
 pub struct FieldsContext {
     pub num_buf: [u8; 20],
-    pub pub_key_context: delete_key::FieldsContext,
+    pub pub_key_context: tx_public_key_context::FieldsContext,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
             num_buf: [0u8; 20],
-            pub_key_context: delete_key::FieldsContext::new(),
+            pub_key_context: tx_public_key_context::FieldsContext::new(),
         }
     }
 }

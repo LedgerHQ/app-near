@@ -22,7 +22,7 @@ impl Transfer {
         use ledger_device_sdk::testing;
         use numtoa::NumToA;
 
-        use crate::parsing::types::action::ONE_NEAR;
+        use crate::parsing::types::ONE_NEAR;
 
         let mut numtoa_buf = [0u8; 40];
 
