@@ -41,8 +41,10 @@ mod app_ui {
     pub mod fields_writer;
     pub mod menu;
     pub mod sign {
-        pub mod transaction {
+        pub mod common {
             pub mod action;
+        }
+        pub mod transaction {
             pub mod prefix;
         }
         pub mod nep413 {
@@ -50,7 +52,7 @@ mod app_ui {
         }
         pub mod widgets;
 
-        pub use transaction::action;
+        pub use common::action;
         pub use transaction::prefix;
     }
 }
@@ -63,6 +65,10 @@ mod handlers {
     pub mod sign_nep366_delegate;
     pub mod sign_nep413_msg;
     pub mod sign_tx;
+
+    pub mod common {
+        pub mod action;
+    }
 }
 
 mod io;
@@ -71,20 +77,21 @@ pub mod parsing {
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod transaction {
-            pub mod action;
             pub mod prefix;
         }
         pub mod common {
+            pub mod action;
             pub mod message_discriminant;
             pub mod tx_public_key;
         }
         pub mod nep413 {
             pub mod payload;
         }
+        pub mod nep366_delegate_action {
+            pub mod prefix;
+        }
 
-        pub use common::message_discriminant::MessageDiscriminant;
-        pub use common::tx_public_key::TxPublicKey;
-        pub use transaction::action::{
+        pub use common::action::{
             add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
             create_account::CreateAccount,
             delete_account::DeleteAccount,
@@ -95,6 +102,8 @@ pub mod parsing {
             transfer::Transfer,
             Action, ONE_NEAR,
         };
+        pub use common::message_discriminant::MessageDiscriminant;
+        pub use common::tx_public_key::TxPublicKey;
         pub use transaction::prefix::TransactionPrefix;
     }
 

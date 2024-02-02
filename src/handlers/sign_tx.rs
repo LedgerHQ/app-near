@@ -18,7 +18,6 @@
 use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
-use crate::parsing::types::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;
@@ -28,19 +27,11 @@ use crate::AppSW;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
+use crate::handlers::common::action::{handle_action, ActionParams};
+
 pub struct Signature(pub [u8; 64]);
 
-pub mod add_key;
-pub mod create_account;
-pub mod delegate;
-pub mod delete_account;
-pub mod delete_key;
-pub mod deploy_contract;
-pub mod function_call;
-pub mod stake;
-pub mod transfer;
-
-fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
+fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::TransactionPrefix {
         signer_id: CappedString::new(),
         receiver_id: CappedString::new(),
@@ -57,32 +48,6 @@ fn popup_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> R
     Ok(tx_prefix.number_of_actions)
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct ActionParams {
-    pub ordinal_action: u32,
-    pub total_actions: u32,
-    pub is_nested_delegate: bool,
-}
-
-fn popup_action(
-    stream: &mut HashingStream<SingleTxStream<'_>>,
-    params: ActionParams,
-) -> Result<(), AppSW> {
-    let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
-
-    match action {
-        Action::Transfer => transfer::handle(stream, params),
-        Action::CreateAccount => create_account::handle(stream, params),
-        Action::DeleteAccount => delete_account::handle(stream, params),
-        Action::DeleteKey => delete_key::handle(stream, params),
-        Action::Stake => stake::handle(stream, params),
-        Action::AddKey => add_key::handle(stream, params),
-        Action::DeployContract => deploy_contract::handle(stream, params),
-        Action::FunctionCall => function_call::handle(stream, params),
-        Action::Delegate => delegate::handle(stream, params),
-    }
-}
-
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
@@ -93,7 +58,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let mut stream = HashingStream::new(stream)?;
 
-    let number_of_actions = popup_transaction_prefix(&mut stream)?;
+    let number_of_actions = handle_transaction_prefix(&mut stream)?;
 
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();
@@ -102,7 +67,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
             total_actions: number_of_actions,
             is_nested_delegate: false,
         };
-        popup_action(&mut stream, params)?;
+        handle_action(&mut stream, params)?;
     }
 
     // test no redundant bytes left in stream

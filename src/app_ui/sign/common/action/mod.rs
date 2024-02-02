@@ -1,6 +1,6 @@
 use crate::{
     app_ui::fields_writer::FieldsWriter,
-    handlers::sign_tx::ActionParams,
+    handlers::common::action::ActionParams,
     parsing,
     utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer, hex_display::HexDisplay},
 };

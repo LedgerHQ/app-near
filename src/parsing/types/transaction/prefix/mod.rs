@@ -7,15 +7,6 @@ use crate::{
     utils::types::capped_string::CappedString,
 };
 
-// NOTE: works on nanos, and speculos
-//
-// signer_id: CappedString<500>,
-// receiver_id: CappedString<500>,
-// works
-//
-// signer_id: CappedString<300>, (Signer Id 1/18 -> Signer Id 18/18)
-// receiver_id: CappedString<300> (Receiver Id 1/18 -> Receiver Id 18/18)
-// works
 pub struct TransactionPrefix {
     pub signer_id: CappedString<64>,
     pub receiver_id: CappedString<64>,
