@@ -162,11 +162,16 @@ pub fn ui_display_common<const N: usize>(
 
     let binding = [ordinal_str];
 
+    let next_msg = if params.is_nested_delegate {
+        "Next Subaction"
+    } else {
+        "Next Action"
+    };
     let my_review = MultiFieldReview::new(
         writer.get_fields(),
         &binding,
         Some(&EYE),
-        if is_last { "Sign" } else { "Next Action" },
+        if is_last { "Sign" } else { next_msg },
         Some(&VALIDATE_14),
         "Reject",
         Some(&CROSSMARK),
@@ -178,7 +183,7 @@ pub fn ui_display_common<const N: usize>(
 fn ordinal_string(fmt_buf: &mut FmtBuffer<25>, params: ActionParams) -> bool {
     let mut num_out = [0u8; 10];
     let header = if params.is_nested_delegate {
-        "Delegate subaction "
+        "View subaction "
     } else {
         "View action "
     };

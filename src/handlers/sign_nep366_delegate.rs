@@ -11,7 +11,10 @@ use crate::{
     AppSW,
 };
 
-use super::sign_tx::Signature;
+use super::{
+    common::action::{handle_action, ActionParams},
+    sign_tx::Signature,
+};
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();
@@ -53,6 +56,16 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
 pub fn handle_delegate_action(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {
     let num_of_actions = handle_prefix(stream)?;
+
+    for i in 0..num_of_actions {
+        sign_ui::widgets::display_receiving();
+        let params = ActionParams {
+            ordinal_action: i + 1,
+            total_actions: num_of_actions,
+            is_nested_delegate: true,
+        };
+        handle_action(stream, params)?;
+    }
     Ok(())
 }
 
