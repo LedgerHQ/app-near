@@ -21,7 +21,6 @@ use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto;
-use crate::utils::types::capped_string::CappedString;
 use crate::AppSW;
 
 #[cfg(feature = "speculos")]
@@ -32,17 +31,13 @@ use crate::handlers::common::action::{handle_action, ActionParams};
 pub struct Signature(pub [u8; 64]);
 
 fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
-    let mut tx_prefix = parsing::types::TransactionPrefix {
-        signer_id: CappedString::new(),
-        receiver_id: CappedString::new(),
-        number_of_actions: 0,
-    };
+    let mut tx_prefix = parsing::types::transaction::prefix::Prefix::new();
 
     tx_prefix
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::prefix::ui_display(&tx_prefix) {
+    if !sign_ui::transaction::prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(tx_prefix.number_of_actions)

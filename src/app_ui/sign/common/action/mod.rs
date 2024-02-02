@@ -178,7 +178,7 @@ pub fn ui_display_common<const N: usize>(
 fn ordinal_string(fmt_buf: &mut FmtBuffer<25>, params: ActionParams) -> bool {
     let mut num_out = [0u8; 10];
     let header = if params.is_nested_delegate {
-        "Delegate sub-action "
+        "Delegate subaction "
     } else {
         "View action "
     };

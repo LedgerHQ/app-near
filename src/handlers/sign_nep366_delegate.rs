@@ -1,6 +1,7 @@
 use crate::{
     io::{ErrorKind, Read},
     parsing::{
+        self,
         borsh::BorshDeserialize,
         types::{common::message_discriminant::NEP_366_META_TRANSACTIONS, MessageDiscriminant},
         HashingStream, SingleTxStream,
@@ -30,6 +31,8 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .feed_slice(&prefix_bytes)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
+    handle_delegate_action(&mut stream)?;
+
     read_till_end(&mut stream)?;
 
     // test no redundant bytes left in stream
@@ -48,6 +51,23 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     Ok(Signature(sig))
 }
 
+pub fn handle_delegate_action(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {
+    let num_of_actions = handle_prefix(stream)?;
+    Ok(())
+}
+
+fn handle_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
+    let mut delegate_action_prefix = parsing::types::nep366_delegate_action::prefix::Prefix::new();
+
+    delegate_action_prefix
+        .deserialize_reader_in_place(stream)
+        .map_err(|_err| AppSW::TxParsingFail)?;
+
+    if !sign_ui::nep366_delegate_action::prefix::ui_display(&delegate_action_prefix) {
+        return Err(AppSW::Deny);
+    }
+    Ok(delegate_action_prefix.number_of_actions)
+}
 pub fn read_till_end<R: Read>(stream: &mut R) -> Result<(), AppSW> {
     let mut buff = [0u8; 50];
     loop {

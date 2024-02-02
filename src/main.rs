@@ -50,10 +50,13 @@ mod app_ui {
         pub mod nep413 {
             pub mod payload;
         }
+
+        pub mod nep366_delegate_action {
+            pub mod prefix;
+        }
         pub mod widgets;
 
         pub use common::action;
-        pub use transaction::prefix;
     }
 }
 pub use app_ui::sign as sign_ui;
@@ -104,7 +107,6 @@ pub mod parsing {
         };
         pub use common::message_discriminant::MessageDiscriminant;
         pub use common::tx_public_key::TxPublicKey;
-        pub use transaction::prefix::TransactionPrefix;
     }
 
     pub use transaction_stream_reader::{HashingStream, SingleTxStream};

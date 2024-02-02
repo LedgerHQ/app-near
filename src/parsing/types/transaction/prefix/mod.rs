@@ -7,7 +7,7 @@ use crate::{
     utils::types::capped_string::CappedString,
 };
 
-pub struct TransactionPrefix {
+pub struct Prefix {
     pub signer_id: CappedString<64>,
     pub receiver_id: CappedString<64>,
     pub number_of_actions: u32,
@@ -21,7 +21,14 @@ impl BorshDeserialize for CryptoHash {
     }
 }
 
-impl TransactionPrefix {
+impl Prefix {
+    pub fn new() -> Self {
+        Self {
+            signer_id: CappedString::new(),
+            receiver_id: CappedString::new(),
+            number_of_actions: 0,
+        }
+    }
     // NOTE: using this instead of `BorshDeserialize`
     // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
@@ -44,7 +51,7 @@ impl TransactionPrefix {
 }
 
 #[cfg(feature = "speculos")]
-impl TransactionPrefix {
+impl Prefix {
     pub fn debug_print(&self) {
         use numtoa::NumToA;
         testing::debug_print("debug printing tx_prefix:\n");
