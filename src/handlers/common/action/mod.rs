@@ -13,7 +13,7 @@ pub mod function_call;
 pub mod stake;
 pub mod transfer;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct ActionParams {
     pub ordinal_action: u32,
     pub total_actions: u32,

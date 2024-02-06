@@ -1,13 +1,13 @@
 use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
 use crate::{
-    io::{ErrorKind, Read},
     parsing::{borsh::BorshDeserialize, types::MessageDiscriminant, HashingStream, SingleTxStream},
     utils::crypto,
     AppSW,
 };
 
-use super::sign_tx::Signature;
+use super::common::finalize_sign::{Signature, self};
+
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();
@@ -37,18 +37,5 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         return Err(AppSW::Deny);
     }
 
-    // test no redundant bytes left in stream
-    let mut buf = [0u8; 1];
-    match stream.read_exact(&mut buf) {
-        Err(f) if f.kind() == ErrorKind::UnexpectedEof => { // ok
-        }
-        _ => return Err(AppSW::TxParsingFail),
-    }
-
-    let digest = stream.finalize()?;
-
-    let private_key = crypto::bip32_derive(&path.0);
-    let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
-
-    Ok(Signature(sig))
+    finalize_sign::end(&mut stream, &path)
 }

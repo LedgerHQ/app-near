@@ -6,7 +6,6 @@ const MIN_ON_CHAIN_DISCRIMINANT: u32 = 1 << 30;
 
 pub const NEP_366_META_TRANSACTIONS: u32 = 366;
 
-#[derive(Debug)]
 pub struct MessageDiscriminant {
     /// The unique prefix, serialized in little-endian by borsh.
     discriminant: u32,
