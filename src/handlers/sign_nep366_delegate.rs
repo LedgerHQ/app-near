@@ -1,5 +1,4 @@
 use crate::{
-    io::{ErrorKind, Read},
     parsing::{
         self,
         borsh::BorshDeserialize,
@@ -11,9 +10,9 @@ use crate::{
     AppSW,
 };
 
-use super::{
-    common::action::{handle_action, ActionParams},
-    sign_tx::Signature,
+use super::common::{
+    action::{handle_action, ActionParams},
+    finalize_sign::{Signature, self},
 };
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -36,20 +35,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     handle_delegate_action(&mut stream)?;
 
-    // test no redundant bytes left in stream
-    let mut buf = [0u8; 1];
-    match stream.read_exact(&mut buf) {
-        Err(f) if f.kind() == ErrorKind::UnexpectedEof => { // ok
-        }
-        _ => return Err(AppSW::TxParsingFail),
-    }
-
-    let digest = stream.finalize()?;
-
-    let private_key = crypto::bip32_derive(&path.0);
-    let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
-
-    Ok(Signature(sig))
+    finalize_sign::end(&mut stream, &path)
 }
 
 pub fn handle_delegate_action(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<(), AppSW> {

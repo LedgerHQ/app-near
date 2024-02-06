@@ -15,7 +15,6 @@
  *  limitations under the License.
  *****************************************************************************/
 // use crate::app_ui::sign::ui_display_tx;
-use crate::io::{ErrorKind, Read};
 use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::{HashingStream, SingleTxStream};
@@ -28,7 +27,7 @@ use ledger_device_sdk::testing;
 
 use crate::handlers::common::action::{handle_action, ActionParams};
 
-pub struct Signature(pub [u8; 64]);
+use super::common::finalize_sign::{Signature, self};
 
 fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
     let mut tx_prefix = parsing::types::transaction::prefix::Prefix::new();
@@ -65,20 +64,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         handle_action(&mut stream, params)?;
     }
 
-    // test no redundant bytes left in stream
-    let mut buf = [0u8; 1];
-    match stream.read_exact(&mut buf) {
-        Err(f) if f.kind() == ErrorKind::UnexpectedEof => { // ok
-        }
-        _ => return Err(AppSW::TxParsingFail),
-    }
-
-    let digest = stream.finalize()?;
-
-    let private_key = crypto::bip32_derive(&path.0);
-    let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
-
-    Ok(Signature(sig))
+    finalize_sign::end(&mut stream, &path)
 }
 
 #[cfg(feature = "speculos")]

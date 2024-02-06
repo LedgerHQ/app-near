@@ -73,6 +73,7 @@ mod handlers {
 
     pub mod common {
         pub mod action;
+        pub mod finalize_sign;
     }
 }
 
@@ -181,7 +182,7 @@ pub enum Instruction {
     },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SignMode {
     Transaction,
     NEP413Message,
@@ -258,32 +259,15 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
         Instruction::SignTx {
             is_last_chunk,
             sign_mode,
-        } if sign_mode == SignMode::Transaction => {
+        } => {
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
-            let signature = sign_tx::handler(stream)?;
+            let signature = match sign_mode {
+                SignMode::Transaction => sign_tx::handler(stream)?,
+                SignMode::NEP413Message => sign_nep413_msg::handler(stream)?,
+                SignMode::NEP366DelegateAction => sign_nep366_delegate::handler(stream)?,
+            };
             comm.append(&signature.0);
             Ok(())
-        }
-        Instruction::SignTx {
-            is_last_chunk,
-            sign_mode,
-        } if sign_mode == SignMode::NEP413Message => {
-            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
-            let signature = sign_nep413_msg::handler(stream)?;
-            comm.append(&signature.0);
-            Ok(())
-        }
-        Instruction::SignTx {
-            is_last_chunk,
-            sign_mode,
-        } if sign_mode == SignMode::NEP366DelegateAction => {
-            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
-            let signature = sign_nep366_delegate::handler(stream)?;
-            comm.append(&signature.0);
-            Ok(())
-        }
-        _ => {
-            return Err(AppSW::InsNotSupported);
         }
     }
 }
