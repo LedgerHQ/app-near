@@ -79,6 +79,7 @@ pub fn handle(
     }
 }
 
+#[inline(always)]
 fn handle_args_bin(
     args_bin: &mut HexDisplay<500>,
     stream: &mut HashingStream<SingleTxStream<'_>>,
