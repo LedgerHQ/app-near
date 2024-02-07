@@ -6,8 +6,7 @@ use crate::{
     AppSW,
 };
 
-use super::common::finalize_sign::{Signature, self};
-
+use super::common::finalize_sign::{self, Signature};
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();
