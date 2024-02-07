@@ -74,6 +74,7 @@ mod handlers {
     pub mod common {
         pub mod action;
         pub mod finalize_sign;
+        pub mod validate_public_key;
     }
 }
 
@@ -160,6 +161,7 @@ pub enum AppSW {
     VersionParsingFail = 0xB00A,
     Bip32PathParsingFail = 0xB00B,
     TxHashFinalizeFail = 0xB00C,
+    PublicKeyMismatch = 0xB00D,
     WrongApduLength = StatusWords::BadLen as u16,
 }
 

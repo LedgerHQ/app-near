@@ -10,6 +10,7 @@ use crate::{
 pub struct Prefix {
     pub signer_id: CappedString<64>,
     pub receiver_id: CappedString<64>,
+    pub public_key: TxPublicKey,
     pub number_of_actions: u32,
 }
 
@@ -26,6 +27,7 @@ impl Prefix {
         Self {
             signer_id: CappedString::new(),
             receiver_id: CappedString::new(),
+            public_key: TxPublicKey::ED25519([0u8; 32]),
             number_of_actions: 0,
         }
     }
@@ -34,7 +36,8 @@ impl Prefix {
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         self.signer_id.deserialize_reader_in_place(reader)?;
         let pk: TxPublicKey = BorshDeserialize::deserialize_reader(reader)?;
-        drop(pk);
+
+        self.public_key = pk;
         let nonce: u64 = BorshDeserialize::deserialize_reader(reader)?;
         #[allow(dropping_copy_types)]
         drop(nonce);

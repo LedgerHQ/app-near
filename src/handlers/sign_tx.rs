@@ -19,7 +19,8 @@ use crate::parsing;
 use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
-use crate::utils::crypto;
+use crate::utils::crypto::public_key::NoSecpAllowed;
+use crate::utils::crypto::{self, PublicKeyBe};
 use crate::AppSW;
 
 #[cfg(feature = "speculos")]
@@ -27,9 +28,17 @@ use ledger_device_sdk::testing;
 
 use crate::handlers::common::action::{handle_action, ActionParams};
 
-use super::common::finalize_sign::{Signature, self};
+use super::common::finalize_sign::{self, Signature};
+use super::common::validate_public_key;
 
-fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, AppSW> {
+struct PrefixResult {
+    number_of_actions: u32,
+    tx_public_key_prevalidation: Result<PublicKeyBe, NoSecpAllowed>,
+}
+
+fn handle_transaction_prefix(
+    stream: &mut HashingStream<SingleTxStream<'_>>,
+) -> Result<PrefixResult, AppSW> {
     let mut tx_prefix = parsing::types::transaction::prefix::Prefix::new();
 
     tx_prefix
@@ -39,7 +48,12 @@ fn handle_transaction_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> 
     if !sign_ui::transaction::prefix::ui_display(&tx_prefix) {
         return Err(AppSW::Deny);
     }
-    Ok(tx_prefix.number_of_actions)
+    let tx_public_key = PublicKeyBe::try_from(tx_prefix.public_key);
+
+    Ok(PrefixResult {
+        number_of_actions: tx_prefix.number_of_actions,
+        tx_public_key_prevalidation: tx_public_key,
+    })
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -52,7 +66,11 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let mut stream = HashingStream::new(stream)?;
 
-    let number_of_actions = handle_transaction_prefix(&mut stream)?;
+    let PrefixResult {
+        number_of_actions,
+        tx_public_key_prevalidation,
+    } = handle_transaction_prefix(&mut stream)?;
+    validate_public_key::validate(&mut stream, tx_public_key_prevalidation, &path)?;
 
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();

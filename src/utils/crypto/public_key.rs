@@ -5,6 +5,7 @@ use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
 
+use crate::parsing::types::TxPublicKey;
 use crate::utils::types::base58_buf::Base58Buf;
 use crate::utils::types::fmt_buffer::FmtBuffer;
 
@@ -12,6 +13,8 @@ const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
 
 const HDW_ED25519_SLIP10: u32 = 1;
+
+#[derive(PartialEq, Eq)]
 pub struct PublicKeyBe(pub [u8; PUBLIC_KEY_BIG_ENDIAN_LEN]);
 
 pub fn bip32_derive(path: &[u32]) -> ECPrivateKey<32, 'E'> {
@@ -32,6 +35,18 @@ pub fn bip32_derive(path: &[u32]) -> ECPrivateKey<32, 'E'> {
     };
 
     Ed25519::from(tmp.as_ref())
+}
+
+pub struct NoSecpAllowed;
+
+impl TryFrom<TxPublicKey> for PublicKeyBe {
+    type Error = NoSecpAllowed;
+    fn try_from(value: TxPublicKey) -> Result<Self, Self::Error> {
+        match value {
+            TxPublicKey::SECP256K1(_arr) => Err(NoSecpAllowed),
+            TxPublicKey::ED25519(arr) => Ok(Self(arr)),
+        }
+    }
 }
 
 impl PublicKeyBe {

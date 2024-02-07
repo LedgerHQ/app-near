@@ -12,7 +12,7 @@ use crate::{
 
 use super::common::{
     action::{handle_action, ActionParams},
-    finalize_sign::{Signature, self},
+    finalize_sign::{self, Signature},
 };
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
