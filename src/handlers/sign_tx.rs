@@ -70,7 +70,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         number_of_actions,
         tx_public_key_prevalidation,
     } = handle_transaction_prefix(&mut stream)?;
-    validate_public_key::validate(&mut stream, tx_public_key_prevalidation, &path)?;
+    validate_public_key::validate(tx_public_key_prevalidation, &path)?;
 
     for i in 0..number_of_actions {
         sign_ui::widgets::display_receiving();

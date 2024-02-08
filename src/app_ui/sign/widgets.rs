@@ -51,19 +51,3 @@ pub fn delegate_error_screen() {
 
     screen_update();
 }
-
-pub fn public_key_mismatch() {
-    clear_screen();
-
-    // Add icon and text to match the C SDK equivalent.
-    if cfg!(target_os = "nanos") {
-        "Public key".place(Location::Custom(2), Layout::Centered, true);
-        "field mismatch...".place(Location::Custom(14), Layout::Centered, true);
-    } else {
-        WARNING.draw(57, 10);
-        "Public key field".place(Location::Custom(28), Layout::Centered, true);
-        "field mismatch...".place(Location::Custom(42), Layout::Centered, true);
-    }
-
-    screen_update();
-}
