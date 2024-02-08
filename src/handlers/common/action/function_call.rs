@@ -7,8 +7,6 @@ use crate::{
     parsing::{borsh::BorshDeserialize, HashingStream, SingleTxStream},
     AppSW,
 };
-#[cfg(feature = "speculos")]
-use ledger_device_sdk::testing;
 
 use super::ActionParams;
 
@@ -25,85 +23,69 @@ pub fn handle(
     let args_bytes_count: u32 =
         u32::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    match stream
+    let representation = match stream
         .reader
         .peek_u8()
         .map_err(|_err| AppSW::TxParsingFail)?
     {
         // '{' char
         Some(123) => {
-            let mut args_str: CappedString<500> = CappedString::new();
+            let mut args_str: CappedString<200> = CappedString::new();
             match args_str.deserialize_with_bytes_count(stream, args_bytes_count) {
                 Err(err) if err.kind() == ErrorKind::InvalidData => {
-                    let args_str_mut_ref = &mut args_str;
-
-                    let args_bin_mut_ref = unsafe {
-                        core::mem::transmute::<&mut CappedString<500>, &mut HexDisplay<500>>(
-                            args_str_mut_ref,
-                        )
+                    let mut args_bin: HexDisplay<200> = unsafe {
+                        core::mem::transmute::<CappedString<200>, HexDisplay<200>>(args_str)
                     };
-                    #[cfg(feature = "speculos")]
-                    testing::debug_print(
-                        "flow with assuming `args` as binary after parsing error\n",
-                    );
-                    handle_args_bin(args_bin_mut_ref, stream, method_name, params)
+                    args_bin.reformat();
+                    ArgsRepr::BinHex(args_bin)
                 }
-                Ok(_) => {
-                    let func_call_common =
-                        FunctionCallCommon::deserialize_with_method_name(stream, method_name)
-                            .map_err(|_err| AppSW::TxParsingFail)?;
-                    #[cfg(feature = "speculos")]
-                    debug_print(&args_str, &func_call_common);
-                    if !sign_ui::action::ui_display_function_call_str(
-                        &func_call_common,
-                        &args_str,
-                        params,
-                    ) {
-                        return Err(AppSW::Deny);
-                    }
-                    Ok(())
-                }
+                Ok(_) => ArgsRepr::String(args_str),
                 Err(_err) => {
                     return Err(AppSW::TxParsingFail);
                 }
             }
         }
         Some(_first_byte) => {
-            let mut args_bin: HexDisplay<500> = HexDisplay::new();
+            let mut args_bin: HexDisplay<200> = HexDisplay::new();
             args_bin
                 .deserialize_with_bytes_count(stream, args_bytes_count)
                 .map_err(|_err| AppSW::TxParsingFail)?;
-            handle_args_bin(&mut args_bin, stream, method_name, params)
-        }
-        None => Err(AppSW::TxParsingFail),
-    }
-}
+            args_bin.reformat();
 
-#[inline(always)]
-fn handle_args_bin(
-    args_bin: &mut HexDisplay<500>,
+            ArgsRepr::BinHex(args_bin)
+        }
+        None => {
+            return Err(AppSW::TxParsingFail);
+        }
+    };
+    handle_common(stream, method_name, params, &representation)
+}
+fn handle_common(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     method_name: CappedString<50>,
     params: ActionParams,
+    representation: &ArgsRepr,
 ) -> Result<(), AppSW> {
-    args_bin.reformat();
     let func_call_common = FunctionCallCommon::deserialize_with_method_name(stream, method_name)
         .map_err(|_err| AppSW::TxParsingFail)?;
-    if !sign_ui::action::ui_display_function_call_bin(&func_call_common, &args_bin, params) {
-        return Err(AppSW::Deny);
+    match representation {
+        ArgsRepr::BinHex(args_bin) => {
+            if !sign_ui::action::ui_display_function_call_bin(&func_call_common, &args_bin, params)
+            {
+                return Err(AppSW::Deny);
+            }
+        }
+        ArgsRepr::String(args_str) => {
+            if !sign_ui::action::ui_display_function_call_str(&func_call_common, &args_str, params)
+            {
+                return Err(AppSW::Deny);
+            }
+        }
     }
     Ok(())
 }
-#[cfg(feature = "speculos")]
-pub fn debug_print(args_str: &CappedString<500>, func_call_common: &FunctionCallCommon) {
-    func_call_common.debug_print();
-    use numtoa::NumToA;
 
-    let mut numtoa_buf = [0u8; 40];
-
-    testing::debug_print("debug printing function call args str  action:\n");
-    testing::debug_print("size of self: \n");
-    testing::debug_print(core::mem::size_of_val(args_str).numtoa_str(10, &mut numtoa_buf));
-    testing::debug_print("\n");
-    testing::debug_print("debug printing function call args str  action finish:\n");
+enum ArgsRepr {
+    String(CappedString<200>),
+    BinHex(HexDisplay<200>),
 }

@@ -13,7 +13,7 @@ impl FieldsContext {
     }
 }
 pub fn format<'b, 'a: 'b>(
-    args: &'b HexDisplay<500>,
+    args: &'b HexDisplay<200>,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 7>,
 ) {

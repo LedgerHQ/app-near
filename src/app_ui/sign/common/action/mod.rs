@@ -123,7 +123,7 @@ pub fn ui_display_deploy_contract(
 
 pub fn ui_display_function_call_str(
     func_call_common: &parsing::types::FunctionCallCommon,
-    args: &CappedString<500>,
+    args: &CappedString<200>,
     params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
@@ -140,7 +140,7 @@ pub fn ui_display_function_call_str(
 
 pub fn ui_display_function_call_bin(
     func_call_common: &parsing::types::FunctionCallCommon,
-    args: &HexDisplay<500>,
+    args: &HexDisplay<200>,
     params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
