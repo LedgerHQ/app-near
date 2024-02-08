@@ -10,11 +10,13 @@ use super::{
     elipsis_fields::ElipsisFields,
     strcat::{self, read_leftover},
 };
+
+#[derive(Clone)]
 pub struct CappedString<const N: usize> {
-    buffer: [u8; N],
-    used: usize,
-    truncated: bool,
-    leftover: usize,
+    pub buffer: [u8; N],
+    pub used: usize,
+    pub truncated: bool,
+    pub leftover: usize,
 }
 
 impl<const N: usize> CappedString<N> {
