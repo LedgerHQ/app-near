@@ -7,9 +7,12 @@ INS_GET_APP_CONFIGURATION = 0x06
 # Parameter not used for this APDU
 P1_P2_NOT_USED = 0x57
 
+
 @dataclass
-class Nearbackend():
+class Nearbackend:
     backend: BackendInterface
 
     def get_version(self) -> RAPDU:
-        return self.backend.exchange(CLA, INS_GET_APP_CONFIGURATION, P1_P2_NOT_USED, P1_P2_NOT_USED, bytes())
+        return self.backend.exchange(
+            CLA, INS_GET_APP_CONFIGURATION, P1_P2_NOT_USED, P1_P2_NOT_USED, bytes()
+        )

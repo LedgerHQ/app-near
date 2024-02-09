@@ -1,4 +1,4 @@
-from utils import Nearbackend
+from application_client.client import Nearbackend
 
 # In this test we check that the get_version replies the right application version
 def test_get_version_cmd(backend):
