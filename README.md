@@ -38,45 +38,9 @@ By using Ledger's own developer tools [Docker image](https://github.com/LedgerHQ
 
 ## Compilation and load
 
-If you do not wish to use the [VS Code extension](#with-vs-code), you can follow the following steps to setup a development environment on a host running a Debian based Linux distribution (such as Ubuntu).
-
-### Prerequisites
-
-* Install the [Rust language](https://www.rust-lang.org/)
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-* Install Ledger Rust building tools dependencies
-
-```bash
-# Clang compiler, GCC ARM cross-compiling toolchain 
-apt install clang gcc-arm-none-eabi gcc-multilib
-# Rust nightly toolchain used to compile ledger devices binaries
-rustup install nightly-2022-12-02
-# Install required component of the nightly toolchain
-rustup component add rust-src --toolchain nightly-2022-12-02
-```
-
-* Install [ledgerwallet](https://github.com/LedgerHQ/ledgerctl/) and [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger)
-
-```bash
-# Install ledgerwallet, a Python dependency of cargo-ledger to sideload binaries on Ledger devices
-pip install ledgerwallet
-# Install latest cargo-ledger from crates.io
-cargo install cargo-ledger
-# Setup the custom nightly Rust toolchain as default
-rustup default nightly-2022-12-02
-# Run cargo-ledger command to install custom target files on the custom nightly toolchain
-cargo ledger setup
-```
-
-You are now ready to build the Near app for Ledger devices !
-
 ### Building
 
-Now that you have followed the [prerequisites](#prerequisites) guide, you can build the Near with the following command executed in the root directory of the app.
+You can build the Near app with the following command executed in the root directory of the app.
 
 ```bash
 cargo ledger nanox build 
@@ -95,25 +59,6 @@ cargo ledger build nanox --load
 ```
 
 As for the build command, you can replace `nanos` with `nanox` or `nanosplus`.
-
-## Test
-
-### Ragger functional tests
-
-This Near app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger) test framework.
-
-* Install the tests requirements
-
-```bash
-pip install -r tests/requirements.txt 
-```
-
-* Run the functional tests (here for Nano S Plus but available for any supported device once you have built the binaries) :
-
-```shell
-mkdir -p build/nanos2/bin && cp target/nanosplus/release/app-near-rust build/nanos2/bin/app.elf 
-pytest tests/ --tb=short -v --device nanosp
-```
 
 ### Emulator
 
