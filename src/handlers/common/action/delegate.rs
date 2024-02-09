@@ -16,16 +16,10 @@ pub fn handle(
     stream.reader.comm.reply(AppSW::TxParsingFail);
     sign_ui::widgets::delegate_error_screen();
     loop {
-        match stream.reader.comm.next_event::<Instruction>() {
-            Event::Button(button) => match button {
-                ButtonEvent::BothButtonsRelease => {
-                    return Err(AppSW::TxParsingFail);
-                }
-                _ => {
-                    // ignore all other button presses
-                }
-            },
-            _ => (),
+        if let Event::Button(ButtonEvent::BothButtonsRelease) =
+            stream.reader.comm.next_event::<Instruction>()
+        {
+            return Err(AppSW::TxParsingFail);
         };
     }
 }

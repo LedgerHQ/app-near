@@ -38,7 +38,7 @@ fn format<'b, 'a: 'b>(
     writer.push_fields(message_fields).unwrap();
 
     // 3
-    hex::encode_to_slice(&payload.nonce, &mut field_context.nonce_buffer).unwrap();
+    hex::encode_to_slice(payload.nonce, &mut field_context.nonce_buffer).unwrap();
     writer
         .push_fields(ElipsisFields::one(Field {
             name: "Nonce",

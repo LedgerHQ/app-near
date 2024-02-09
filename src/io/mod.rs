@@ -226,7 +226,7 @@ fn _assert_error_is_sync_send() {
 
 /// A trait for objects which are byte-oriented sinks.
 ///
-/// Implementors of the `Write` trait are sometimes called 'writers'.
+/// Implementers of the `Write` trait are sometimes called 'writers'.
 ///
 /// Writers are defined by two required methods, [`write`] and [`flush`]:
 ///
@@ -237,7 +237,7 @@ fn _assert_error_is_sync_send() {
 ///   themselves for ensuring that all buffered data has been pushed out to the
 ///   'true sink'.
 ///
-/// Writers are intended to be composable with one another. Many implementors
+/// Writers are intended to be composable with one another. Many implementers
 /// throughout [`std::io`] take and provide types which implement the `Write`
 /// trait.
 ///
@@ -509,6 +509,7 @@ impl<W: Write + ?Sized> Write for &mut W {
 ///
 /// Note that writing updates the slice to point to the yet unwritten part.
 /// The slice will be empty when it has been completely overwritten.
+#[allow(clippy::mem_replace_with_default)]
 impl Write for &mut [u8] {
     fn write(&mut self, data: &[u8]) -> Result<usize> {
         let amt = core::cmp::min(data.len(), self.len());
@@ -533,15 +534,15 @@ impl Write for &mut [u8] {
 
 /// The `Read` trait allows for reading bytes from a source.
 ///
-/// Implementors of the `Read` trait are called 'readers'.
+/// Implementers of the `Read` trait are called 'readers'.
 ///
 /// Readers are defined by one required method, [`read()`]. Each call to [`read()`]
 /// will attempt to pull bytes from this source into a provided buffer. A
 /// number of other methods are implemented in terms of [`read()`], giving
-/// implementors a number of ways to read bytes while only needing to implement
+/// implementers a number of ways to read bytes while only needing to implement
 /// a single method.
 ///
-/// Readers are intended to be composable with one another. Many implementors
+/// Readers are intended to be composable with one another. Many implementers
 /// throughout [`std::io`] take and provide types which implement the `Read`
 /// trait.
 ///

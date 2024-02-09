@@ -36,10 +36,8 @@ pub fn handler(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     #[cfg(feature = "speculos")]
     pk.debug_print()?;
 
-    if display {
-        if !address::ui_display_pk_base58(&pk)? {
-            return Err(AppSW::Deny);
-        }
+    if display && !address::ui_display_pk_base58(&pk)? {
+        return Err(AppSW::Deny);
     }
 
     comm.append(&pk.0);

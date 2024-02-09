@@ -17,6 +17,7 @@
 
 #![no_std]
 #![no_main]
+#![allow(clippy::new_without_default)]
 
 mod utils {
     pub mod crypto {

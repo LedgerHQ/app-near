@@ -43,8 +43,7 @@ impl Prefix {
         drop(nonce);
         self.receiver_id.deserialize_reader_in_place(reader)?;
 
-        let crypto_hash: CryptoHash = BorshDeserialize::deserialize_reader(reader)?;
-        drop(crypto_hash);
+        let _crypto_hash: CryptoHash = BorshDeserialize::deserialize_reader(reader)?;
 
         let number_of_actions: u32 = BorshDeserialize::deserialize_reader(reader)?;
         self.number_of_actions = number_of_actions;

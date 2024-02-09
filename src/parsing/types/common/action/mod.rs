@@ -51,9 +51,7 @@ impl BorshDeserialize for Action {
             6 => Ok(Self::DeleteKey),
             7 => Ok(Self::DeleteAccount),
             8 => Ok(Self::Delegate),
-            _ => {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
+            _ => Err(Error::from(ErrorKind::InvalidData)),
         }
     }
 }

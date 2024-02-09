@@ -71,7 +71,7 @@ impl BorshDeserialize for u32 {
         reader
             .read_exact(&mut buf)
             .map_err(unexpected_eof_to_unexpected_length_of_input)?;
-        let res = u32::from_le_bytes(buf.try_into().unwrap());
+        let res = u32::from_le_bytes(buf);
         Ok(res)
     }
 }
@@ -82,7 +82,7 @@ impl BorshDeserialize for u64 {
         reader
             .read_exact(&mut buf)
             .map_err(unexpected_eof_to_unexpected_length_of_input)?;
-        let res = u64::from_le_bytes(buf.try_into().unwrap());
+        let res = u64::from_le_bytes(buf);
         Ok(res)
     }
 }
@@ -93,7 +93,7 @@ impl BorshDeserialize for u128 {
         reader
             .read_exact(&mut buf)
             .map_err(unexpected_eof_to_unexpected_length_of_input)?;
-        let res = u128::from_le_bytes(buf.try_into().unwrap());
+        let res = u128::from_le_bytes(buf);
         Ok(res)
     }
 }

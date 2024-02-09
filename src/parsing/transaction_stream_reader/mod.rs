@@ -88,7 +88,7 @@ impl<R> HashingStream<R> {
 
 impl<R: io::Read> io::Read for HashingStream<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        if buf.len() > 0 {
+        if !buf.is_empty() {
             let n = self.reader.read(buf)?;
 
             // update hash on each chunk passing through
@@ -137,14 +137,9 @@ impl<'a> SingleTxStream<'a> {
     fn get_next_chunk(&mut self) -> io::Result<&[u8]> {
         let is_last_chunk = loop {
             match self.comm.next_event() {
-                Event::Button(button) => match button {
-                    ButtonEvent::BothButtonsRelease => {
-                        return Err(io::Error::from(io::ErrorKind::Interrupted))
-                    }
-                    _ => {
-                        // ignore all other button presses
-                    }
-                },
+                Event::Button(ButtonEvent::BothButtonsRelease) => {
+                    return Err(io::Error::from(io::ErrorKind::Interrupted))
+                }
                 Event::Command(Instruction::GetVersion)
                 | Event::Command(Instruction::GetPubkey { .. }) => {
                     return Err(io::Error::from(io::ErrorKind::InvalidData))
@@ -197,6 +192,6 @@ impl<'a> io::Read for SingleTxStream<'a> {
         let mut data = self.get_next_chunk()?;
         let n = data.read(buf)?;
         self.chunk_counter += n;
-        return Ok(n);
+        Ok(n)
     }
 }

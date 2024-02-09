@@ -53,7 +53,7 @@ impl<const N: usize> HexDisplay<N> {
         for ind in (0..self.used).rev() {
             let char_range = ind * 2..=ind * 2 + 1;
             tmp_buffer.copy_from_slice(&self.buffer[ind..ind + 1]);
-            hex::encode_to_slice(&tmp_buffer, &mut self.buffer[char_range]).unwrap();
+            hex::encode_to_slice(tmp_buffer, &mut self.buffer[char_range]).unwrap();
         }
     }
 
