@@ -70,14 +70,12 @@ fn handle_common(
         .map_err(|_err| AppSW::TxParsingFail)?;
     match representation {
         ArgsRepr::BinHex(args_bin) => {
-            if !sign_ui::action::ui_display_function_call_bin(&func_call_common, &args_bin, params)
-            {
+            if !sign_ui::action::ui_display_function_call_bin(&func_call_common, args_bin, params) {
                 return Err(AppSW::Deny);
             }
         }
         ArgsRepr::String(args_str) => {
-            if !sign_ui::action::ui_display_function_call_str(&func_call_common, &args_str, params)
-            {
+            if !sign_ui::action::ui_display_function_call_str(&func_call_common, args_str, params) {
                 return Err(AppSW::Deny);
             }
         }

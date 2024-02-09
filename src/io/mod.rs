@@ -509,6 +509,7 @@ impl<W: Write + ?Sized> Write for &mut W {
 ///
 /// Note that writing updates the slice to point to the yet unwritten part.
 /// The slice will be empty when it has been completely overwritten.
+#[allow(clippy::mem_replace_with_default)]
 impl Write for &mut [u8] {
     fn write(&mut self, data: &[u8]) -> Result<usize> {
         let amt = core::cmp::min(data.len(), self.len());
