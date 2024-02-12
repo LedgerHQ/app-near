@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Generator, Optional, List, Union
 
 from dataclasses import dataclass
 from contextlib import contextmanager
@@ -16,6 +16,14 @@ P1_CONFIRM = 0x00
 
 # Return codes
 SW_OK = 0x9000
+
+FINISH_STUB_APDU = RAPDU(0xFFFF, bytes())
+
+
+@dataclass(frozen=True)
+class AsyncAPDU:
+    data: bytes
+    expected_response: RAPDU
 
 
 @dataclass
@@ -36,3 +44,18 @@ class Nearbackend:
 
     def get_async_response(self) -> Optional[RAPDU]:
         return self.backend.last_async_response
+
+    def sign_message_chunks(
+        self, chunks: List[Union[bytes, AsyncAPDU]]
+    ) -> Generator[RAPDU, None, RAPDU]:
+        for chunk in chunks:
+            if isinstance(chunk, AsyncAPDU):
+                with self.backend.exchange_async_raw(chunk.data):
+                    yield chunk.expected_response
+            elif isinstance(chunk, bytes):
+                rapdu = self.backend.exchange_raw(chunk)
+                if rapdu.status != SW_OK:
+                    return rapdu
+            else:
+                raise TypeError("bytes or AsyncAPDU expected")
+        return FINISH_STUB_APDU
