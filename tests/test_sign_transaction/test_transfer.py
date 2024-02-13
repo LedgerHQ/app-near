@@ -1,4 +1,11 @@
-from application_client.client import AsyncAPDU, SW_OK, NavigableConditions, Nearbackend
+from application_client.client import (
+    AsyncAPDU,
+    SW_OK,
+    NavigableConditions,
+    Nearbackend,
+    FINISH_STUB_APDU,
+    generic_test_sign,
+)
 from ragger.backend.interface import RAPDU
 from ragger.navigator import NavInsID, Navigator
 from common import ROOT_SCREENSHOT_PATH
@@ -43,22 +50,4 @@ def test_sign_transfer(firmware, backend, navigator: Navigator, test_name):
             ),
         )
     ]
-    numbered_chunks = enumerate(client.sign_message_chunks(chunks))
-
-    for index, chunk_event in numbered_chunks:
-        if isinstance(chunk_event, NavigableConditions):
-            for condition in chunk_event.value:
-                condition_folder = test_name + "_" + str(index) + "_" + condition.lower().replace(" ", "_")
-                navigator.navigate_until_text_and_compare(
-                    NavInsID.RIGHT_CLICK,
-                    [NavInsID.BOTH_CLICK],
-                    condition,
-                    ROOT_SCREENSHOT_PATH,
-                    condition_folder,
-                    screen_change_after_last_instruction=False,
-                )
-        elif isinstance(chunk_event, RAPDU):
-            response = client.get_async_response()
-
-            assert response.status == chunk_event.status
-            assert response.data == chunk_event.data
+    generic_test_sign(client, chunks, navigator, test_name)
