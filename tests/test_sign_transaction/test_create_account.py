@@ -3,16 +3,14 @@ from application_client.client import (
     SW_OK,
     NavigableConditions,
     Nearbackend,
-    FINISH_STUB_APDU,
     generic_test_sign,
 )
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
-
-def test_sign_transfer(firmware, backend, navigator: Navigator, test_name):
+def test_sign_create_account(firmware, backend, navigator: Navigator, test_name):
     """
-    Transaction {
+     Transaction {
         signer_id: AccountId(
             "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
         ),
@@ -23,19 +21,17 @@ def test_sign_transfer(firmware, backend, navigator: Navigator, test_name):
         ),
         block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
         actions: [
-            Transfer(
-                TransferAction {
-                    deposit: 150000000000000000000000,
-                },
+            CreateAccount(
+                CreateAccountAction,
             ),
         ],
-    }
+    }   
     """
     client = Nearbackend(backend)
     chunks = [
         AsyncAPDU(
             data=bytes.fromhex(
-                "80028057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000030000c071f0d12b84c31f000000000000"
+                "80028057ea8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000000"
             ),
             navigable_conditions=NavigableConditions(
                 value=["Continue to actions", "Sign"],
@@ -44,7 +40,7 @@ def test_sign_transfer(firmware, backend, navigator: Navigator, test_name):
                 SW_OK,
                 # signature
                 bytes.fromhex(
-                    "f735265a9b6f2653d223705c79ab0354ee6606f6e1ccb44dff3cdea1c553fb62925d717c97d128e954403cd99aafb1108d4fe96cf425fcbb3d11a3ccc5da0108"
+                    "a2c1efe9c020858eb7429b8430b126059d6a6a0f1f2ec56b2364250d999aefa4b5c7ca957e652078cc94d2e02dce95de2d95b5d7867261d77ca2c8987d7ae209"
                 ),
             ),
         )
