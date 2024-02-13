@@ -21,8 +21,14 @@ FINISH_STUB_APDU = RAPDU(0xFFFF, bytes())
 
 
 @dataclass(frozen=True)
+class NavigableConditions:
+    value: List[str]
+
+
+@dataclass(frozen=True)
 class AsyncAPDU:
     data: bytes
+    navigable_conditions: NavigableConditions
     expected_response: RAPDU
 
 
@@ -47,11 +53,12 @@ class Nearbackend:
 
     def sign_message_chunks(
         self, chunks: List[Union[bytes, AsyncAPDU]]
-    ) -> Generator[RAPDU, None, RAPDU]:
+    ) -> Generator[Union[NavigableConditions, RAPDU], None, RAPDU]:
         for chunk in chunks:
             if isinstance(chunk, AsyncAPDU):
                 with self.backend.exchange_async_raw(chunk.data):
-                    yield chunk.expected_response
+                    yield chunk.navigable_conditions
+                yield chunk.expected_response
             elif isinstance(chunk, bytes):
                 rapdu = self.backend.exchange_raw(chunk)
                 if rapdu.status != SW_OK:
