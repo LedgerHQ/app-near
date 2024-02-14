@@ -68,6 +68,10 @@ You can also run the app directly on the [Speculos emulator](https://github.com/
 speculos --model nanox target/nanox/release/app-near-rust
 ```
 
+### Testing
+
+See [local_test_helper.sh](./local_test_helper.sh).
+
 ## Continuous Integration
 
 The following workflows are executed in [GitHub Actions](https://github.com/features/actions) :
