@@ -8,7 +8,7 @@ from application_client.client import (
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
-def test_sign_delete_delete_key_ed25519(firmware, backend, navigator: Navigator, test_name):
+def test_sign_delete_key_ed25519(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -61,7 +61,7 @@ def test_sign_delete_delete_key_ed25519(firmware, backend, navigator: Navigator,
     ]
     generic_test_sign(client, chunks, navigator, test_name)
 
-def test_sign_delete_delete_key_secp256k1(firmware, backend, navigator: Navigator, test_name):
+def test_sign_delete_key_secp256k1(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
