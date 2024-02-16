@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Generator, Optional, List, Union
 from ragger.navigator import NavInsID, Navigator
 
@@ -90,7 +91,7 @@ def generic_test_sign(
                 for cond_index, condition in enumerate(chunk_event.value):
                     str_index = condition_folder_name(index, len(chunk_event.value) > 1, cond_index)
                     condition_folder = (
-                        test_name + "_" + str_index + "_" + condition.lower().replace(" ", "_")
+                        Path(test_name) / (str_index + "_" + condition.lower().replace(" ", "_"))
                     )
                     navigator.navigate_until_text_and_compare(
                         NavInsID.RIGHT_CLICK,
