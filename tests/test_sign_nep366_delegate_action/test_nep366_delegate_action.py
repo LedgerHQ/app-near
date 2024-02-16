@@ -64,8 +64,122 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
         ),
         actions: [
             NonDelegateAction(
+                CreateAccount(
+                    CreateAccountAction,
+                ),
+            ),
+            NonDelegateAction(
+                DeleteAccount(
+                    DeleteAccountAction {
+                        beneficiary_id: AccountId(
+                            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                        ),
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                DeleteKey(
+                    DeleteKeyAction {
+                        public_key: ed25519:AVHQN9NRrHGeagz7RiVEUyhB9aiSGZCJbXKbJbW8z63E,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                DeleteKey(
+                    DeleteKeyAction {
+                        public_key: secp256k1:2xV3hzGShUE3X5jE9jmAyFC67GfgwAUo5FoBJ79Zh84Z5Ubdxy94Ka73EWwrFg5FbVYAvtdqJK77P6CAdyMkEnca,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                Stake(
+                    StakeAction {
+                        stake: 1157130000000000000000000,
+                        public_key: secp256k1:2xV3hzGShUE3X5jE9jmAyFC67GfgwAUo5FoBJ79Zh84Z5Ubdxy94Ka73EWwrFg5FbVYAvtdqJK77P6CAdyMkEnca,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                AddKey(
+                    AddKeyAction {
+                        public_key: secp256k1:2xV3hzGShUE3X5jE9jmAyFC67GfgwAUo5FoBJ79Zh84Z5Ubdxy94Ka73EWwrFg5FbVYAvtdqJK77P6CAdyMkEnca,
+                        access_key: AccessKey {
+                            nonce: 127127127127,
+                            permission: FullAccess,
+                        },
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                AddKey(
+                    AddKeyAction {
+                        public_key: secp256k1:2xV3hzGShUE3X5jE9jmAyFC67GfgwAUo5FoBJ79Zh84Z5Ubdxy94Ka73EWwrFg5FbVYAvtdqJK77P6CAdyMkEnca,
+                        access_key: AccessKey {
+                            nonce: 127127127127,
+                            permission: FunctionCall(
+                                FunctionCallPermission {
+                                    allowance: Some(
+                                        150000000000000000000,
+                                    ),
+                                    receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                    method_names: [
+                                        "first_method",
+                                        "saturating_add_signed",
+                                        "iterator_chain_to_do_multiple_instances_of_an_operation_that_can_fail",
+                                        "from_residual",
+                                        "from_output",
+                                        "unwrap_err_unchecked",
+                                        "try_reserve_exact",
+                                        "first_method",
+                                        "saturating_add_signed",
+                                        "iterator_chain_to_do_multiple_instances_of_an_operation_that_can_fail",
+                                    ],
+                                },
+                            ),
+                        },
+                    },
+                ),
+            ),
+            NonDelegateAction(
                 Transfer(
                     TransferAction {
+                        deposit: 150000000000000000000000,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                DeployContract(
+                    DeployContractAction {
+                        code: KioqKioqKioqKioqKioqKioqKioqKioqKioqKioq,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: saturating_add_signed,
+                        args: eyJwcmV2aW91c192ZXN0aW5nX3NjaGVkdWxlX3dpdGhfc2FsdCI6eyJ2ZXN0aW5nX3NjaGVkdWxlIjp7InN0YXJ0X3RpbWVzdGFtcCI6IjE1Nzc5MTk2MDAwMDAwMDAwMDAiLCJjbGlmZl90aW1lc3RhbXAiOiIxNjA5NDU1NjAwMDAwMDAwMDAwIiwiZW5kX3RpbWVzdGFtcCI6IjE3MDQxNTAwMDAwMDAwMDAwMDAifSwic2FsdCI6IjdiYzcwOWMyMjgwMTExOGI3NDNmYWUzODY2ZWRiNGRlYTE2MzBhOTdhYjljZDY3ZTk5MzQyOGI5NGEwZjM5N2EifSwgInZlc3Rpbmdfc2NoZWR1bGVfd2l0aF9zYWx0Ijp7InZlc3Rpbmdfc2NoZWR1bGUiOnsic3RhcnRfdGltZXN0YW1wIjoiMTU3NzkxOTYwMDAwMDAwMDAwMCIsImNsaWZmX3RpbWVzdGFtcCI6IjE2MDk0NTU2MDAwMDAwMDAwMDAiLCJlbmRfdGltZXN0YW1wIjoiMTcwNDE1MDAwMDAwMDAwMDAwMCJ9LCJzYWx0IjoiN2JjNzA5YzIyODAxMTE4Yjc0M2ZhZTM4NjZlZGI0ZGVhMTYzMGE5N2FiOWNkNjdlOTkzNDI4Yjk0YTBmMzk3YWFiYWJhYiJ9fQ==,
+                        gas: 127127122121,
+                        deposit: 150000000000000000000000,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: saturating_add_signed,
+                        args: IE9uIG9sZGVyIHRlcm1pbmFscywgdGhlIHVuZGVyc2NvcmUgY29kZSBpcyBkaXNwbGF5ZWQgYXMgYSBsZWZ0CiAgICAgICBhcnJvdywgY2FsbGVkIGJhY2thcnJvdywgdGhlIGNhcmV0IGlzIGRpc3BsYXllZCBhcyBhbiB1cC1hcnJvdwogICAgICAgYW5kIHRoZSB2ZXJ0aWNhbCBiYXIgaGFzIGEgaG9sZSBpbiB0aGUgbWlkZGxlLgoKICAgICAgIFVwcGVyY2FzZSBhbmQgbG93ZXJjYXNlIGNoYXJhY3RlcnMgZGlmZmVyIGJ5IGp1c3Qgb25lIGJpdCBhbmQgdGhlCiAgICAgICBBU0NJSSBjaGFyYWN0ZXIgMiBkaWZmZXJzIGZyb20gdGhlIGRvdWJsZSBxdW90ZSBieSBqdXN0IG9uZSBiaXQsCiAgICAgICB0b28uICBUaGF0IG1hZGUgaXQgbXVjaCBlYXNpZXIgdG8gZW5jb2RlIGNoYXJhY3RlcnMgbWVjaGFuaWNhbGx5CiAgICAgICBvciB3aXRoIGEgbm9uLW1pY3JvY29udHJvbGxlci1iYXNlZCBlbGVjdHJvbmljIGtleWJvYXJkIGFuZCB0aGF0CiAgICAgICBwYWlyaW5nIHdhcyBmb3VuZCBvbiBvbGQgdGVsZXR5cGVzLgo=,
+                        gas: 127127122121,
+                        deposit: 150000000000000000000000,
+                    },
+                ),
+            ),
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: saturating_add_signed,
+                        args: ewABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/g==,
+                        gas: 127127122121,
                         deposit: 150000000000000000000000,
                     },
                 ),
