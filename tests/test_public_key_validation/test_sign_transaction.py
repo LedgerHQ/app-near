@@ -49,3 +49,44 @@ def test_sign_wrong_pubkey_transfer(firmware, backend, navigator: Navigator, tes
         )
     ]
     generic_test_sign(client, chunks, navigator, test_name)
+
+def test_sign_wrong_pubkey_delegate_action_transfer(firmware, backend, navigator: Navigator, test_name):
+    """
+    DelegateAction {
+        sender_id: AccountId(
+            "bob.near",
+        ),
+        receiver_id: AccountId(
+            "alice.near",
+        ),
+        actions: [
+            NonDelegateAction(
+                Transfer(
+                    TransferAction {
+                        deposit: 150000000000000000000000,
+                    },
+                ),
+            ),
+        ],
+        nonce: 127127122121,
+        max_block_height: 100500,
+        public_key: ed25519:2pffV8fXgXUyuKdTS8Nqnvbkua16wEtTv8tdWZCpVtat,
+    }
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057748000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e65617201000000030000c071f0d12b84c31f000000000000c9f05d991d0000009488010000000000001b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions", "To NEP366 suffix", "Sign", "Error!"],
+            ),
+            expected_response=RAPDU(
+                0xB00D,
+                bytes(),
+            ),
+        )
+    ]
+    generic_test_sign(client, chunks, navigator, test_name)
