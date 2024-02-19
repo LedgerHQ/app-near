@@ -76,6 +76,7 @@ def condition_folder_name(event_index: int, additional_index: bool, condition_in
         return str(event_index) + "_" + str(condition_index)
     return str(event_index)
 
+
 def generic_test_sign(
     client: Nearbackend,
     chunks: List[Union[bytes, AsyncAPDU]],
@@ -90,8 +91,8 @@ def generic_test_sign(
             if isinstance(chunk_event, NavigableConditions):
                 for cond_index, condition in enumerate(chunk_event.value):
                     str_index = condition_folder_name(index, len(chunk_event.value) > 1, cond_index)
-                    condition_folder = (
-                        Path(test_name) / (str_index + "_" + condition.lower().replace(" ", "_"))
+                    condition_folder = Path(test_name) / (
+                        str_index + "_" + condition.lower().replace(" ", "_").replace("!", "_bang")
                     )
                     navigator.navigate_until_text_and_compare(
                         NavInsID.RIGHT_CLICK,
