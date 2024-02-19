@@ -8,6 +8,7 @@ from application_client.client import (
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
+
 def test_sign_stake(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
@@ -58,6 +59,6 @@ def test_sign_stake(firmware, backend, navigator: Navigator, test_name):
                     "01832293252eb74d7a8a856f19b5a9087620292dd8a6ba8ee3104a1dc54618cbc05c0669079f1d27b8544724bd893f314288833583384419d0bece462e044003"
                 ),
             ),
-        )
+        ),
     ]
     generic_test_sign(client, chunks, navigator, test_name)

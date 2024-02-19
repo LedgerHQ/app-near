@@ -8,6 +8,7 @@ from application_client.client import (
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
+
 def test_sign_create_account(firmware, backend, navigator: Navigator, test_name):
     """
      Transaction {
@@ -25,7 +26,7 @@ def test_sign_create_account(firmware, backend, navigator: Navigator, test_name)
                 CreateAccountAction,
             ),
         ],
-    }   
+    }
     """
     client = Nearbackend(backend)
     chunks = [

@@ -8,6 +8,7 @@ from application_client.client import (
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
+
 def test_sign_delete_account_short(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
@@ -29,7 +30,7 @@ def test_sign_delete_account_short(firmware, backend, navigator: Navigator, test
                 },
             ),
         ],
-    }   
+    }
     """
     client = Nearbackend(backend)
     chunks = [
@@ -50,6 +51,7 @@ def test_sign_delete_account_short(firmware, backend, navigator: Navigator, test
         )
     ]
     generic_test_sign(client, chunks, navigator, test_name)
+
 
 def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_name):
     """
@@ -72,7 +74,7 @@ def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_
                 },
             ),
         ],
-    }   
+    }
     """
     client = Nearbackend(backend)
     chunks = [
@@ -102,6 +104,6 @@ def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_
                     "318ab694a182f1793d7796f8741fa399c44ef033fcebef23a57293a37f536e53a993ecd7b480763dc154d606d39bdae8f90f698a935e856e8c0114a6d9567009"
                 ),
             ),
-        )
+        ),
     ]
     generic_test_sign(client, chunks, navigator, test_name)
