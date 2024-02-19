@@ -50,7 +50,10 @@ def test_sign_wrong_pubkey_transfer(firmware, backend, navigator: Navigator, tes
     ]
     generic_test_sign(client, chunks, navigator, test_name)
 
-def test_sign_wrong_pubkey_delegate_action_transfer(firmware, backend, navigator: Navigator, test_name):
+
+def test_sign_wrong_pubkey_delegate_action_transfer(
+    firmware, backend, navigator: Navigator, test_name
+):
     """
     DelegateAction {
         sender_id: AccountId(

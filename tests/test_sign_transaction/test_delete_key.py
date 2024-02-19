@@ -8,6 +8,7 @@ from application_client.client import (
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
+
 def test_sign_delete_key_ed25519(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
@@ -44,9 +45,7 @@ def test_sign_delete_key_ed25519(firmware, backend, navigator: Navigator, test_n
             ),
         ),
         AsyncAPDU(
-            data=bytes.fromhex(
-                "8002805711de081df2c5c3af03260cfd2c81dc1d18ad"
-            ),
+            data=bytes.fromhex("8002805711de081df2c5c3af03260cfd2c81dc1d18ad"),
             navigable_conditions=NavigableConditions(
                 value=["Sign"],
             ),
@@ -57,9 +56,10 @@ def test_sign_delete_key_ed25519(firmware, backend, navigator: Navigator, test_n
                     "62ae46a48cbd3ac193cc6e5fed7a33fb877f4c6a775eb283eb8813b1a0168ee768252cd2d2208073ddde78974c0e84ceca7cde95254629ee2e3eed8671be170f"
                 ),
             ),
-        )
+        ),
     ]
     generic_test_sign(client, chunks, navigator, test_name)
+
 
 def test_sign_delete_key_secp256k1(firmware, backend, navigator: Navigator, test_name):
     """
@@ -110,6 +110,6 @@ def test_sign_delete_key_secp256k1(firmware, backend, navigator: Navigator, test
                     "6b412a1b34e3e6c799e9d58db2acb99e1b38457157449824da5ad599a5ed96cd5388116058991d4539dc630513751ce8d10b126ee5d0a7a9c62bf54853b56502"
                 ),
             ),
-        )
+        ),
     ]
     generic_test_sign(client, chunks, navigator, test_name)
