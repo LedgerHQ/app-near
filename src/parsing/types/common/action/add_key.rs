@@ -1,10 +1,13 @@
 use crate::{
     io::{Error, ErrorKind, Read, Result},
-    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
+    parsing::{
+        borsh::BorshDeserialize,
+        types::{common::near_token::NearToken, TxPublicKey},
+    },
     utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer},
 };
 
-use super::{Balance, Nonce};
+use super::Nonce;
 
 pub struct AddKey {
     /// A public key which will be associated with an access_key
@@ -38,7 +41,7 @@ pub struct FunctionCallPermission {
     /// `None` means unlimited allowance.
     /// NOTE: To change or increase the allowance, the old access key needs to be deleted and a new
     /// access key should be created.
-    pub allowance: Option<Balance>,
+    pub allowance: Option<NearToken>,
 
     // This isn't an AccountId because already existing records in testnet genesis have invalid
     // values for this field (see: https://github.com/near/nearcore/pull/4621#issuecomment-892099860)
@@ -95,7 +98,8 @@ impl FunctionCallPermission {
     // NOTE: using this instead of `BorshDeserialize`
     // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.allowance = BorshDeserialize::deserialize_reader(reader)?;
+        let allowance: Option<u128> = BorshDeserialize::deserialize_reader(reader)?;
+        self.allowance = allowance.map(NearToken::from_yoctonear);
         self.receiver_id.deserialize_reader_in_place(reader)?;
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;

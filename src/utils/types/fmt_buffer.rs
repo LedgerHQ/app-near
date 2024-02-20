@@ -65,6 +65,13 @@ impl<const N: usize> FmtBuffer<N> {
             }]);
         }
     }
+
+    pub fn ui_field<'a>(&'a self, title: &'a str) -> ElipsisFields<'a> {
+        return ElipsisFields::One([Field {
+            name: title,
+            value: self.as_str(),
+        }]);
+    }
 }
 
 impl<const N: usize> FmtBuffer<N> {

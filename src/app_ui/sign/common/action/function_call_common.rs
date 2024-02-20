@@ -1,6 +1,6 @@
 use crate::{
-    parsing::{self, types::ONE_NEAR},
-    utils::types::elipsis_fields::ElipsisFields,
+    parsing::{self},
+    utils::types::{elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
 };
 use ledger_device_sdk::ui::gadgets::Field;
 use numtoa::NumToA;
@@ -10,7 +10,7 @@ use crate::app_ui::fields_writer::FieldsWriter;
 pub struct FieldsContext {
     pub method_name_display_buf: [u8; 20],
     pub gas_buf: [u8; 20],
-    pub float_buffer: dtoa::Buffer,
+    pub deposit_buffer: FmtBuffer<30>,
 }
 
 impl FieldsContext {
@@ -18,7 +18,7 @@ impl FieldsContext {
         Self {
             method_name_display_buf: [0u8; 20],
             gas_buf: [0u8; 20],
-            float_buffer: dtoa::Buffer::new(),
+            deposit_buffer: FmtBuffer::new(),
         }
     }
 }
@@ -49,12 +49,10 @@ pub fn format<'b, 'a: 'b, const N: usize>(
         }))
         .unwrap();
 
-    let deposit_amount = (func_call_common.deposit as f64) / (ONE_NEAR as f64);
-    let printed_amount = field_context.float_buffer.format(deposit_amount);
+    func_call_common
+        .deposit
+        .display_as_buffer(&mut field_context.deposit_buffer);
     writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Deposit (NEAR)",
-            value: printed_amount,
-        }))
+        .push_fields(field_context.deposit_buffer.ui_field("Deposit"))
         .unwrap();
 }

@@ -1,6 +1,6 @@
 use crate::{
     io::{Read, Result},
-    parsing::borsh::BorshDeserialize,
+    parsing::{borsh::BorshDeserialize, types::common::near_token::NearToken},
     utils::types::capped_string::CappedString,
 };
 
@@ -9,7 +9,7 @@ use super::{Balance, Gas};
 pub struct FunctionCallCommon {
     pub method_name: CappedString<50>,
     pub gas: Gas,
-    pub deposit: Balance,
+    pub deposit: NearToken,
 }
 
 impl FunctionCallCommon {
@@ -23,7 +23,7 @@ impl FunctionCallCommon {
         let r = Self {
             method_name,
             gas,
-            deposit,
+            deposit: NearToken::from_yoctonear(deposit),
         };
         Ok(r)
     }

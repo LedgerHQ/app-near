@@ -1,6 +1,6 @@
 use crate::{
     app_ui::fields_writer::FieldsWriter,
-    parsing::{self, types::ONE_NEAR},
+    parsing,
     utils::types::{elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
 };
 
@@ -11,7 +11,7 @@ pub struct FieldsContext {
     pub num_buf: [u8; 10],
     pub receiver_display_buf: [u8; 20],
     pub method_names_display_buf: [u8; 20],
-    pub allowance_str: FmtBuffer<30>,
+    pub allowance_buffer: FmtBuffer<30>,
 }
 
 impl FieldsContext {
@@ -20,7 +20,7 @@ impl FieldsContext {
             num_buf: [0u8; 10],
             receiver_display_buf: [0u8; 20],
             method_names_display_buf: [0u8; 20],
-            allowance_str: FmtBuffer::new(),
+            allowance_buffer: FmtBuffer::new(),
         }
     }
 }
@@ -32,13 +32,8 @@ pub fn format<'b, 'a: 'b>(
 ) {
     let allowance = match function_call_perm.allowance {
         Some(allowance) => {
-            let mut float_buffer = dtoa::Buffer::new();
-            let allowance = (allowance as f64) / (ONE_NEAR as f64);
-            field_context
-                .allowance_str
-                .write_str(float_buffer.format(allowance));
-            field_context.allowance_str.write_str(" NEAR");
-            field_context.allowance_str.as_str()
+            allowance.display_as_buffer(&mut field_context.allowance_buffer);
+            field_context.allowance_buffer.as_str()
         }
         None => "Unlimited NEAR",
     };

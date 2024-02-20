@@ -90,6 +90,7 @@ pub mod parsing {
         pub mod common {
             pub mod action;
             pub mod message_discriminant;
+            pub mod near_token;
             pub mod tx_public_key;
         }
         pub mod nep413 {
