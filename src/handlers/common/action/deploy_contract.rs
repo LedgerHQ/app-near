@@ -14,9 +14,6 @@ pub fn handle(
     let deploy_contract =
         DeployContract::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    deploy_contract.debug_print();
-
     if !sign_ui::action::ui_display_deploy_contract(&deploy_contract, params) {
         return Err(AppSW::Deny);
     }

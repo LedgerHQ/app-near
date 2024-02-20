@@ -12,9 +12,6 @@ pub fn handle(
 ) -> Result<(), AppSW> {
     let stake = Stake::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    stake.debug_print();
-
     if !sign_ui::action::ui_display_stake(&stake, params) {
         return Err(AppSW::Deny);
     }

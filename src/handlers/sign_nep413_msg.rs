@@ -13,9 +13,6 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    path.debug_print();
-
     let mut stream = HashingStream::new(stream)?;
 
     let msg_discriminant = MessageDiscriminant::new_off_chain(413).unwrap();

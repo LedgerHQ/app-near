@@ -14,9 +14,6 @@ pub fn handle(
 ) -> Result<(), AppSW> {
     let add_key_common = AddKey::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    add_key_common.debug_print();
-
     match add_key_common.access_key.permission {
         AccessKeyPermission::FunctionCall => handle_function_call(&add_key_common, stream, params),
         AccessKeyPermission::FullAccess => {
@@ -34,9 +31,6 @@ pub fn handle_function_call(
     params: ActionParams,
 ) -> Result<(), AppSW> {
     let mut function_call_perm = FunctionCallPermission::new();
-
-    #[cfg(feature = "speculos")]
-    function_call_perm.debug_print();
 
     function_call_perm
         .deserialize_reader_in_place(stream)

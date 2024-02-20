@@ -60,9 +60,6 @@ fn format<'b, 'a: 'b>(
     }
 }
 pub fn ui_display(payload: &Payload) -> bool {
-    #[cfg(feature = "speculos")]
-    payload.debug_print();
-
     let mut field_writer: FieldsWriter<'_, 7> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);

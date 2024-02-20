@@ -1,6 +1,4 @@
 use ledger_device_sdk::ecc::{CurvesId, ECPrivateKey, ECPublicKey, Ed25519, Secret};
-#[cfg(feature = "speculos")]
-use ledger_device_sdk::testing;
 use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
@@ -83,19 +81,5 @@ impl PublicKeyBe {
         hex::encode_to_slice(self.0, buffer).unwrap();
 
         core::str::from_utf8(buffer).unwrap()
-    }
-
-    #[cfg(feature = "speculos")]
-    pub fn debug_print(&self) -> Result<(), AppSW> {
-        testing::debug_print("debug printing pub key:\n");
-
-        let mut out_buf = FmtBuffer::<60>::new();
-
-        self.display_str_base58(&mut out_buf)?;
-
-        testing::debug_print(out_buf.as_str());
-        testing::debug_print("\n");
-        testing::debug_print("debug printing pub key finish:\n\n");
-        Ok(())
     }
 }

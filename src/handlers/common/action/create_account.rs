@@ -13,9 +13,6 @@ pub fn handle(
     let create_account =
         CreateAccount::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    create_account.debug_print();
-
     if !sign_ui::action::ui_display_create_account(&create_account, params) {
         return Err(AppSW::Deny);
     }
