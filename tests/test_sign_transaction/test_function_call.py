@@ -244,3 +244,177 @@ Dx8vP09fb3+Pn6+/z9/g==,
         ),
     ]
     generic_test_sign(client, chunks, navigator, test_name)
+
+
+def test_sign_function_call_amount_1(firmware, backend, navigator: Navigator, test_name):
+    """
+    1 yoctoNEAR
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: saturating_call_signed,
+                    args: eyJrZXkiOiJ2YWx1ZSJ9,
+                    gas: 127127122121,
+                    deposit: 1,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000021600000073617475726174696e675f63"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805735616c6c5f7369676e65640f0000007b226b6579223a2276616c7565227dc9f05d991d00000001000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "19dfc1496e17b979a79b5442eed52ab79112eaf35d98638fdd56c6bbdf3c327a8cf1f1a6702e93db757200dfcef18ac2b62db1bf3f6f6c1772be60b6a44d8004"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name)
+
+
+def test_sign_function_call_amount_2(firmware, backend, navigator: Navigator, test_name):
+    """
+    1M NEAR
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: saturating_call_signed,
+                    args: eyJrZXkiOiJ2YWx1ZSJ9,
+                    gas: 127127122121,
+                    deposit: 1000000000000000000000000000000,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000021600000073617475726174696e675f63"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805735616c6c5f7369676e65640f0000007b226b6579223a2276616c7565227dc9f05d991d00000000000040eaed7446d09c2c9f0c000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "f2f7fef77b3ac0371b05586a831d022783f7edbec25c40cf65894fcc53db1fdefede704ce8132980f9038ef2e5832c8b9377c68dac820e08743ff77554965a0f"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name)
+
+
+def test_sign_function_call_amount_3(firmware, backend, navigator: Navigator, test_name):
+    """
+    0.00001 NEAR
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: saturating_call_signed,
+                    args: eyJrZXkiOiJ2YWx1ZSJ9,
+                    gas: 127127122121,
+                    deposit: 10000000000000000000,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000021600000073617475726174696e675f63"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805735616c6c5f7369676e65640f0000007b226b6579223a2276616c7565227dc9f05d991d0000000000e8890423c78a0000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "6c3bdf78ca23ea3c0c8797d90fb384293c4396487f2de5094b20e69232bf67a5a5da142e953ef4b7306aac53498befac0afa7b7877589651a711960712ea560b"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name)

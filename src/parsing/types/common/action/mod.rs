@@ -15,9 +15,6 @@ pub type Nonce = u64;
 /// Height of the block.
 pub type BlockHeight = u64;
 
-pub const ONE_NEAR: u128 = 10_u128.pow(24);
-pub const ONE_MILLINEAR: u128 = 10_u128.pow(21);
-
 pub mod add_key;
 pub mod create_account;
 pub mod delete_account;
