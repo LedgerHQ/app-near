@@ -23,3 +23,4 @@ build/
 
 fmt_buffer/Cargo.lock
 near_token/Cargo.lock
+near_gas/Cargo.lock

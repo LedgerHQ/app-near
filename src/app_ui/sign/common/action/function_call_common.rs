@@ -4,13 +4,12 @@ use crate::{
 };
 use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::gadgets::Field;
-use numtoa::NumToA;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
     pub method_name_display_buf: [u8; 20],
-    pub gas_buf: [u8; 20],
+    pub gas_buf: Buffer<30>,
     pub deposit_buffer: Buffer<30>,
 }
 
@@ -18,7 +17,7 @@ impl FieldsContext {
     pub fn new() -> Self {
         Self {
             method_name_display_buf: [0u8; 20],
-            gas_buf: [0u8; 20],
+            gas_buf: Buffer::new(),
             deposit_buffer: Buffer::new(),
         }
     }
@@ -43,12 +42,13 @@ pub fn format<'b, 'a: 'b, const N: usize>(
 
     writer.push_fields(method_name).unwrap();
 
+    func_call_common
+        .gas
+        .display_as_buffer(&mut field_context.gas_buf);
     writer
         .push_fields(ElipsisFields::one(Field {
             name: "Gas",
-            value: func_call_common
-                .gas
-                .numtoa_str(10, &mut field_context.gas_buf),
+            value: field_context.gas_buf.as_str(),
         }))
         .unwrap();
 

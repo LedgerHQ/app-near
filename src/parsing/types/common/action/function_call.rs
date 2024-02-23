@@ -1,3 +1,4 @@
+use near_gas::{Gas, NearGas};
 use near_token::{Balance, NearToken};
 
 use crate::{
@@ -6,11 +7,9 @@ use crate::{
     utils::types::capped_string::CappedString,
 };
 
-use super::Gas;
-
 pub struct FunctionCallCommon {
     pub method_name: CappedString<50>,
-    pub gas: Gas,
+    pub gas: NearGas,
     pub deposit: NearToken,
 }
 
@@ -24,7 +23,7 @@ impl FunctionCallCommon {
 
         let r = Self {
             method_name,
-            gas,
+            gas: NearGas::from_gas(gas),
             deposit: NearToken::from_yoctonear(deposit),
         };
         Ok(r)

@@ -3,9 +3,6 @@ use crate::{
     parsing::borsh::BorshDeserialize,
 };
 
-/// Gas is a type for storing amount of gas.
-pub type Gas = u64;
-
 /// Nonce for transactions.
 pub type Nonce = u64;
 

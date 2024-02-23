@@ -1,0 +1,8 @@
+[package]
+name = "near_gas"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fmt_buffer =  { version = "0.1.0", path = "../fmt_buffer" }
+numtoa = "0.2.4"
