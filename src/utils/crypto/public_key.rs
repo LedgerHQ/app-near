@@ -5,7 +5,7 @@ use crate::AppSW;
 
 use crate::parsing::types::TxPublicKey;
 use crate::utils::types::base58_buf::Base58Buf;
-use crate::utils::types::fmt_buffer::FmtBuffer;
+use fmt_buffer::Buffer;
 
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
@@ -65,7 +65,7 @@ impl PublicKeyBe {
         PublicKeyBe(out)
     }
 
-    pub fn display_str_base58(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
+    pub fn display_str_base58(&self, buffer: &mut Buffer<60>) -> Result<(), AppSW> {
         let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
         bs58_buf
             .encode(&self.0)

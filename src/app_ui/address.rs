@@ -16,13 +16,13 @@
  *****************************************************************************/
 
 use crate::utils::crypto;
-use crate::utils::types::fmt_buffer::FmtBuffer;
 use crate::AppSW;
+use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 
 pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
-    let mut out_buf = FmtBuffer::<60>::new();
+    let mut out_buf = Buffer::<60>::new();
     public_key.display_str_base58(&mut out_buf)?;
 
     let my_field = [Field {

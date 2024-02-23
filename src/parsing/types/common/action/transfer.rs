@@ -1,6 +1,8 @@
+use near_token::NearToken;
+
 use crate::{
     io::{Read, Result},
-    parsing::{borsh::BorshDeserialize, types::common::near_token::NearToken},
+    parsing::borsh::BorshDeserialize,
 };
 
 pub struct Transfer {

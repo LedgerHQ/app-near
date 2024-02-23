@@ -20,3 +20,6 @@ __pycache__/
 ledger/
 # Build directory
 build/
+
+fmt_buffer/Cargo.lock
+near_token/Cargo.lock

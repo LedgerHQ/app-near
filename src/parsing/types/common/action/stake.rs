@@ -1,9 +1,8 @@
+use near_token::NearToken;
+
 use crate::{
     io::{Read, Result},
-    parsing::{
-        borsh::BorshDeserialize,
-        types::{common::near_token::NearToken, TxPublicKey},
-    },
+    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
 };
 
 pub struct Stake {

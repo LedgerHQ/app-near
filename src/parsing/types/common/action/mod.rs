@@ -3,9 +3,6 @@ use crate::{
     parsing::borsh::BorshDeserialize,
 };
 
-/// Balance is type for storing amounts of tokens.
-pub type Balance = u128;
-
 /// Gas is a type for storing amount of gas.
 pub type Gas = u64;
 

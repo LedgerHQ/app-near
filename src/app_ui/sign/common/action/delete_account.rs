@@ -26,8 +26,10 @@ pub fn format<'b, 'a: 'b>(
         }))
         .unwrap();
 
-    let beneficiary_id = delete_account
-        .beneficiary_id
-        .ui_fields("Beneficiary", &mut field_context.beneficiary_display_buf);
+    let beneficiary_id = ElipsisFields::from_capped_string(
+        &delete_account.beneficiary_id,
+        "Beneficiary",
+        &mut field_context.beneficiary_display_buf,
+    );
     writer.push_fields(beneficiary_id).unwrap();
 }

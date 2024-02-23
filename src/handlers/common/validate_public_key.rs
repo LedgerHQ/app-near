@@ -4,12 +4,10 @@ use ledger_device_sdk::ui::{
 };
 
 use crate::{
-    utils::{
-        crypto::{self, public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
-        types::fmt_buffer::FmtBuffer,
-    },
+    utils::crypto::{self, public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
 };
+use fmt_buffer::Buffer;
 
 pub fn validate(
     tx_public_key: Result<PublicKeyBe, NoSecpAllowed>,
@@ -51,8 +49,8 @@ enum KeyMismatchInfo {
 }
 
 fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
-    let mut key_buf1 = FmtBuffer::<60>::new();
-    let mut key_buf2 = FmtBuffer::<60>::new();
+    let mut key_buf1 = Buffer::<60>::new();
+    let mut key_buf2 = Buffer::<60>::new();
     match info {
         KeyMismatchInfo::NoSecpAllowed {
             matching_private_key,

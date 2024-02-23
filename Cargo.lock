@@ -16,10 +16,12 @@ name = "app-near-rust"
 version = "1.0.0"
 dependencies = [
  "bs58",
+ "fmt_buffer",
  "hex",
  "include_gif",
  "ledger_device_sdk",
  "ledger_secure_sdk_sys",
+ "near_token",
  "numtoa",
 ]
 
@@ -126,6 +128,10 @@ dependencies = [
  "libc",
  "windows-sys 0.52.0",
 ]
+
+[[package]]
+name = "fmt_buffer"
+version = "0.1.0"
 
 [[package]]
 name = "gif"
@@ -246,6 +252,14 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
+name = "near_token"
+version = "0.1.0"
+dependencies = [
+ "fmt_buffer",
+ "numtoa",
+]
 
 [[package]]
 name = "nom"

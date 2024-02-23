@@ -1,11 +1,10 @@
 use crate::{
     io::{Error, ErrorKind, Read, Result},
-    parsing::{
-        borsh::BorshDeserialize,
-        types::{common::near_token::NearToken, TxPublicKey},
-    },
-    utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer},
+    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
+    utils::types::capped_string::CappedString,
 };
+use fmt_buffer::Buffer;
+use near_token::NearToken;
 
 use super::Nonce;
 
@@ -54,7 +53,7 @@ pub struct FunctionCallPermission {
     /// function call of one of the given method names.
     /// Empty list means any method name can be used.
     // pub method_names: Vec<String>,
-    pub method_names: FmtBuffer<210>,
+    pub method_names: Buffer<210>,
 }
 
 impl BorshDeserialize for AccessKeyPermission {
@@ -92,7 +91,7 @@ impl FunctionCallPermission {
             allowance: None,
             receiver_id: CappedString::new(),
             number_of_method_names: 0,
-            method_names: FmtBuffer::new(),
+            method_names: Buffer::new(),
         }
     }
     // NOTE: using this instead of `BorshDeserialize`

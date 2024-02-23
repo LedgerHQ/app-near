@@ -31,7 +31,6 @@ mod utils {
         pub mod base58_buf;
         pub mod capped_string;
         pub mod elipsis_fields;
-        pub mod fmt_buffer;
         pub mod hex_display;
 
         pub mod strcat;
@@ -90,7 +89,6 @@ pub mod parsing {
         pub mod common {
             pub mod action;
             pub mod message_discriminant;
-            pub mod near_token;
             pub mod tx_public_key;
         }
         pub mod nep413 {

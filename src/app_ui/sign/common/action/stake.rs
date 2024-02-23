@@ -1,21 +1,22 @@
 use crate::{
     parsing::{self},
     sign_ui::common::tx_public_key_context,
-    utils::types::{elipsis_fields::ElipsisFields, fmt_buffer::FmtBuffer},
+    utils::types::elipsis_fields::ElipsisFields,
 };
+use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
-    pub stake_buffer: FmtBuffer<30>,
+    pub stake_buffer: Buffer<30>,
     pub pub_key_context: tx_public_key_context::FieldsContext,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            stake_buffer: FmtBuffer::new(),
+            stake_buffer: Buffer::new(),
             pub_key_context: tx_public_key_context::FieldsContext::new(),
         }
     }
@@ -40,7 +41,10 @@ pub fn format<'b, 'a: 'b>(
         .stake
         .display_as_buffer(&mut field_context.stake_buffer);
     writer
-        .push_fields(field_context.stake_buffer.ui_field("Stake"))
+        .push_fields(ElipsisFields::One([Field {
+            name: "Stake",
+            value: field_context.stake_buffer.as_str(),
+        }]))
         .unwrap();
 
     writer

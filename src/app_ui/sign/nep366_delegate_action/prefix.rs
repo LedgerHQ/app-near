@@ -29,14 +29,18 @@ fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 5>,
 ) {
-    let sender_id = prefix
-        .sender_id
-        .ui_fields("Sender Id", &mut field_context.display_buf1);
+    let sender_id = ElipsisFields::from_capped_string(
+        &prefix.sender_id,
+        "Sender Id",
+        &mut field_context.display_buf1,
+    );
     writer.push_fields(sender_id).unwrap();
 
-    let receiver_id = prefix
-        .receiver_id
-        .ui_fields("Receiver Id", &mut field_context.display_buf2);
+    let receiver_id = ElipsisFields::from_capped_string(
+        &prefix.receiver_id,
+        "Receiver Id",
+        &mut field_context.display_buf2,
+    );
     writer.push_fields(receiver_id).unwrap();
 
     let num_actions_str = prefix

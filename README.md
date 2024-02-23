@@ -72,6 +72,10 @@ speculos --model nanox target/nanox/release/app-near-rust
 
 See [local_test_helper.sh](./local_test_helper.sh).
 
+#### Unit testing
+
+See [local_unit_tests.sh](./local_unit_tests.sh).
+
 ## Continuous Integration
 
 The following workflows are executed in [GitHub Actions](https://github.com/features/actions) :

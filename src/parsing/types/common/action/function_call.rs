@@ -1,10 +1,12 @@
+use near_token::{Balance, NearToken};
+
 use crate::{
     io::{Read, Result},
-    parsing::{borsh::BorshDeserialize, types::common::near_token::NearToken},
+    parsing::borsh::BorshDeserialize,
     utils::types::capped_string::CappedString,
 };
 
-use super::{Balance, Gas};
+use super::Gas;
 
 pub struct FunctionCallCommon {
     pub method_name: CappedString<50>,
