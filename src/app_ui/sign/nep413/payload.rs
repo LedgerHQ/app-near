@@ -59,7 +59,7 @@ fn format<'b, 'a: 'b>(
     // 7
     if let Some(callback_url) = payload.callback_url.as_ref() {
         let callback_url_fields = ElipsisFields::from_capped_string(
-            &callback_url,
+            callback_url,
             "Callback Url",
             &mut field_context.callback_url_display_buf,
         );
