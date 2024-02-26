@@ -1,3 +1,6 @@
+#![no_std]
+pub mod io;
+
 use crate::io::{Error, ErrorKind, Read, Result};
 use core::mem::size_of;
 

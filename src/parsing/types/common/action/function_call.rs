@@ -1,11 +1,9 @@
-use near_gas::{Gas, NearGas};
-use near_token::{Balance, NearToken};
+use near_gas::NearGas;
+use near_token::NearToken;
 
-use crate::{
-    io::{Read, Result},
-    parsing::borsh::BorshDeserialize,
-    utils::types::capped_string::CappedString,
-};
+use crate::utils::types::capped_string::CappedString;
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct FunctionCallCommon {
     pub method_name: CappedString<50>,
@@ -18,13 +16,13 @@ impl FunctionCallCommon {
         reader: &mut R,
         method_name: CappedString<50>,
     ) -> Result<Self> {
-        let gas: Gas = BorshDeserialize::deserialize_reader(reader)?;
-        let deposit: Balance = BorshDeserialize::deserialize_reader(reader)?;
+        let gas: NearGas = BorshDeserialize::deserialize_reader(reader)?;
+        let deposit: NearToken = BorshDeserialize::deserialize_reader(reader)?;
 
         let r = Self {
             method_name,
-            gas: NearGas::from_gas(gas),
-            deposit: NearToken::from_yoctonear(deposit),
+            gas,
+            deposit,
         };
         Ok(r)
     }

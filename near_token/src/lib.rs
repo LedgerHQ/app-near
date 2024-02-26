@@ -1,8 +1,12 @@
 #![no_std]
+use borsh::{
+    io::{Read, Result},
+    BorshDeserialize,
+};
 use fmt_buffer::Buffer;
 
 /// Balance is type for storing amounts of tokens.
-pub type Balance = u128;
+type Balance = u128;
 
 const ONE_MILLINEAR: u128 = 10_u128.pow(21);
 use numtoa::NumToA;
@@ -80,6 +84,13 @@ impl NearToken {
     }
 }
 
+impl BorshDeserialize for NearToken {
+    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+        let inner: Balance = BorshDeserialize::deserialize_reader(reader)?;
+
+        Ok(Self::from_yoctonear(inner))
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::NearToken;

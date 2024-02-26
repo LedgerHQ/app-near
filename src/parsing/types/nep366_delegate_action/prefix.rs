@@ -1,8 +1,6 @@
-use crate::{
-    io::{Read, Result},
-    parsing::borsh::BorshDeserialize,
-    utils::types::capped_string::CappedString,
-};
+use crate::utils::types::capped_string::CappedString;
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct Prefix {
     /// Signer of the delegated actions

@@ -1,7 +1,7 @@
-use crate::io::{Error, ErrorKind, Read, Result};
-use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::HashingStream;
 use crate::utils::types::base58_buf::Base58Buf;
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct DeployContract {
     /// WebAssembly binary (hash)

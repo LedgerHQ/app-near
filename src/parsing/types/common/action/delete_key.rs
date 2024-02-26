@@ -1,7 +1,6 @@
-use crate::{
-    io::{Read, Result},
-    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
-};
+use crate::parsing::types::TxPublicKey;
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct DeleteKey {
     /// A public key associated with the access_key to be deleted.

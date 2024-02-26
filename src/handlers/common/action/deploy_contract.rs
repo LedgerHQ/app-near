@@ -1,9 +1,10 @@
 use crate::parsing::types::DeployContract;
 use crate::sign_ui;
 use crate::{
-    parsing::{borsh::BorshDeserialize, HashingStream, SingleTxStream},
+    parsing::{HashingStream, SingleTxStream},
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::ActionParams;
 

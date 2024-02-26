@@ -1,10 +1,11 @@
 use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
 use crate::{
-    parsing::{borsh::BorshDeserialize, types::MessageDiscriminant, HashingStream, SingleTxStream},
+    parsing::{types::MessageDiscriminant, HashingStream, SingleTxStream},
     utils::crypto,
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::common::finalize_sign::{self, Signature};
 

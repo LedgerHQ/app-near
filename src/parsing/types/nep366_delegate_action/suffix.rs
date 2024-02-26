@@ -1,13 +1,9 @@
-use crate::{
-    io::{Read, Result},
-    parsing::{
-        borsh::BorshDeserialize,
-        types::{
-            common::action::{BlockHeight, Nonce},
-            TxPublicKey,
-        },
-    },
+use crate::parsing::types::{
+    common::action::{BlockHeight, Nonce},
+    TxPublicKey,
 };
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct Suffix {
     /// Nonce to ensure that the same delegate action is not sent twice by a

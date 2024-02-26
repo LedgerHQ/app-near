@@ -15,6 +15,7 @@ dependencies = [
 name = "app-near-rust"
 version = "1.0.0"
 dependencies = [
+ "borsh",
  "bs58",
  "fmt_buffer",
  "hex",
@@ -66,6 +67,10 @@ name = "bitflags"
 version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
+
+[[package]]
+name = "borsh"
+version = "0.1.0"
 
 [[package]]
 name = "bs58"
@@ -258,6 +263,7 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 name = "near_gas"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "fmt_buffer",
  "numtoa",
 ]
@@ -266,6 +272,7 @@ dependencies = [
 name = "near_token"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "fmt_buffer",
  "numtoa",
 ]

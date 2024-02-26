@@ -1,7 +1,6 @@
 use crate::{
     parsing::{
         self,
-        borsh::BorshDeserialize,
         types::{common::message_discriminant::NEP_366_META_TRANSACTIONS, MessageDiscriminant},
         HashingStream, SingleTxStream,
     },
@@ -9,6 +8,7 @@ use crate::{
     utils::crypto::{self, public_key::NoSecpAllowed, PublicKeyBe},
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::common::{
     action::{handle_action, ActionParams},

@@ -78,9 +78,7 @@ mod handlers {
     }
 }
 
-mod io;
 pub mod parsing {
-    pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod transaction {

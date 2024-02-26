@@ -1,8 +1,6 @@
-use crate::{
-    io::{Error, ErrorKind, Read, Result},
-    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
-    utils::types::capped_string::CappedString,
-};
+use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 use fmt_buffer::Buffer;
 use near_token::NearToken;
 

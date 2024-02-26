@@ -1,8 +1,6 @@
-use crate::{
-    io::{Error, ErrorKind, Read, Result},
-    parsing::borsh::BorshDeserialize,
-    utils::types::capped_string::CappedString,
-};
+use crate::utils::types::capped_string::CappedString;
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct Payload {
     pub message: CappedString<400>,

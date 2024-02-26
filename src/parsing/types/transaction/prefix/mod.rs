@@ -1,8 +1,6 @@
-use crate::{
-    io::{Read, Result},
-    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
-    utils::types::capped_string::CappedString,
-};
+use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct Prefix {
     pub signer_id: CappedString<64>,

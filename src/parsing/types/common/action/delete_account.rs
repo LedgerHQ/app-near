@@ -1,7 +1,5 @@
-use crate::{
-    io::{Read, Result},
-    utils::types::capped_string::CappedString,
-};
+use crate::utils::types::capped_string::CappedString;
+use borsh::io::{Read, Result};
 
 pub struct DeleteAccount {
     pub beneficiary_id: CappedString<64>,

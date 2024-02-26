@@ -1,7 +1,5 @@
-use crate::{
-    io::{Error, ErrorKind, Read, Result},
-    parsing::borsh::BorshDeserialize,
-};
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 use super::strcat::read_leftover;
 

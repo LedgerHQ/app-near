@@ -1,4 +1,8 @@
 #![no_std]
+use borsh::{
+    io::{Read, Result},
+    BorshDeserialize,
+};
 use fmt_buffer::Buffer;
 use numtoa::NumToA;
 
@@ -6,7 +10,7 @@ use numtoa::NumToA;
 pub struct NearGas(u64);
 
 /// Gas is a type for storing amount of gas.
-pub type Gas = u64;
+type Gas = u64;
 
 const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
@@ -95,6 +99,14 @@ impl NearGas {
 
             result.write_str(" Tgas");
         }
+    }
+}
+
+impl BorshDeserialize for NearGas {
+    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+        let inner: Gas = BorshDeserialize::deserialize_reader(reader)?;
+
+        Ok(Self::from_gas(inner))
     }
 }
 

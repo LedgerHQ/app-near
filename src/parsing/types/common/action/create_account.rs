@@ -1,7 +1,5 @@
-use crate::{
-    io::{Read, Result},
-    parsing::borsh::BorshDeserialize,
-};
+use borsh::io::{Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct CreateAccount {}
 

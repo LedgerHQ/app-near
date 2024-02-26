@@ -15,12 +15,12 @@
  *  limitations under the License.
  *****************************************************************************/
 use crate::parsing;
-use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto::public_key::NoSecpAllowed;
 use crate::utils::crypto::{self, PublicKeyBe};
 use crate::AppSW;
+use borsh::BorshDeserialize;
 
 use crate::handlers::common::action::{handle_action, ActionParams};
 
