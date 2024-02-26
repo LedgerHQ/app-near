@@ -32,9 +32,11 @@ fn format<'b, 'a: 'b>(
     writer: &'_ mut FieldsWriter<'b, 7>,
 ) {
     // 2
-    let message_fields = payload
-        .message
-        .ui_fields("Message", &mut field_context.msg_display_buf);
+    let message_fields = ElipsisFields::from_capped_string(
+        &payload.message,
+        "Message",
+        &mut field_context.msg_display_buf,
+    );
     writer.push_fields(message_fields).unwrap();
 
     // 3
@@ -47,22 +49,24 @@ fn format<'b, 'a: 'b>(
         .unwrap();
 
     // 5
-    let recipient_fields = payload
-        .recipient
-        .ui_fields("Recipient", &mut field_context.recipient_display_buf);
+    let recipient_fields = ElipsisFields::from_capped_string(
+        &payload.recipient,
+        "Recipient",
+        &mut field_context.recipient_display_buf,
+    );
     writer.push_fields(recipient_fields).unwrap();
 
     // 7
     if let Some(callback_url) = payload.callback_url.as_ref() {
-        let callback_url_fields =
-            callback_url.ui_fields("Callback Url", &mut field_context.callback_url_display_buf);
+        let callback_url_fields = ElipsisFields::from_capped_string(
+            callback_url,
+            "Callback Url",
+            &mut field_context.callback_url_display_buf,
+        );
         writer.push_fields(callback_url_fields).unwrap();
     }
 }
 pub fn ui_display(payload: &Payload) -> bool {
-    #[cfg(feature = "speculos")]
-    payload.debug_print();
-
     let mut field_writer: FieldsWriter<'_, 7> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);

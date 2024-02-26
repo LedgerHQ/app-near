@@ -1,21 +1,11 @@
-use crate::{
-    io::{Error, ErrorKind, Read, Result},
-    parsing::borsh::BorshDeserialize,
-};
-
-/// Balance is type for storing amounts of tokens.
-pub type Balance = u128;
-
-/// Gas is a type for storing amount of gas.
-pub type Gas = u64;
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 /// Nonce for transactions.
 pub type Nonce = u64;
 
 /// Height of the block.
 pub type BlockHeight = u64;
-
-pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 
 pub mod add_key;
 pub mod create_account;

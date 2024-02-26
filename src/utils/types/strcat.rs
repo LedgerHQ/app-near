@@ -1,4 +1,4 @@
-use crate::io::{Read, Result};
+use borsh::io::{Read, Result};
 use core::str::from_utf8;
 
 pub fn concatenate<'a>(

@@ -1,19 +1,20 @@
 use crate::{
-    parsing::{self, types::ONE_NEAR},
+    parsing::{self},
     utils::types::elipsis_fields::ElipsisFields,
 };
+use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
-    pub float_buffer: dtoa::Buffer,
+    pub amount_buffer: Buffer<30>,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            float_buffer: dtoa::Buffer::new(),
+            amount_buffer: Buffer::new(),
         }
     }
 }
@@ -30,12 +31,14 @@ pub fn format<'b, 'a: 'b>(
         }))
         .unwrap();
 
-    let deposit = (transfer.deposit as f64) / (ONE_NEAR as f64);
-    let printed = field_context.float_buffer.format(deposit);
+    transfer
+        .deposit
+        .display_as_buffer(&mut field_context.amount_buffer);
+
     writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Amount (NEAR)",
-            value: printed,
-        }))
+        .push_fields(ElipsisFields::One([Field {
+            name: "Amount",
+            value: field_context.amount_buffer.as_str(),
+        }]))
         .unwrap();
 }

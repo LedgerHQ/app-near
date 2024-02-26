@@ -24,17 +24,11 @@ pub fn handler(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 
-    #[cfg(feature = "speculos")]
-    path.debug_print();
-
     let pk = crypto::bip32_derive(&path.0)
         .public_key()
         .map_err(|_| AppSW::KeyDeriveFail)?;
 
     let pk = crypto::PublicKeyBe::from_little_endian(pk);
-
-    #[cfg(feature = "speculos")]
-    pk.debug_print()?;
 
     if display && !address::ui_display_pk_base58(&pk)? {
         return Err(AppSW::Deny);

@@ -1,7 +1,7 @@
-use crate::io::{Error, ErrorKind, Read, Result};
-use crate::parsing::borsh::BorshDeserialize;
 use crate::parsing::HashingStream;
 use crate::utils::types::base58_buf::Base58Buf;
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 pub struct DeployContract {
     /// WebAssembly binary (hash)
@@ -31,21 +31,5 @@ impl BorshDeserialize for DeployContract {
         code_sha256.encode(&digest.0).unwrap();
         let r = Self { code_sha256 };
         Ok(r)
-    }
-}
-
-impl DeployContract {
-    #[cfg(feature = "speculos")]
-    pub fn debug_print(&self) {
-        use ledger_device_sdk::testing;
-        use numtoa::NumToA;
-
-        let mut numtoa_buf = [0u8; 40];
-
-        testing::debug_print("debug printing deploy contract  action:\n");
-        testing::debug_print("size of self: \n");
-        testing::debug_print(core::mem::size_of_val(self).numtoa_str(10, &mut numtoa_buf));
-        testing::debug_print("\n");
-        testing::debug_print("debug printing deploy contract  action finish:\n");
     }
 }

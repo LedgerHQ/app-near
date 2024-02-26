@@ -31,7 +31,6 @@ mod utils {
         pub mod base58_buf;
         pub mod capped_string;
         pub mod elipsis_fields;
-        pub mod fmt_buffer;
         pub mod hex_display;
 
         pub mod strcat;
@@ -79,9 +78,7 @@ mod handlers {
     }
 }
 
-mod io;
 pub mod parsing {
-    pub mod borsh;
     pub mod transaction_stream_reader;
     pub mod types {
         pub mod transaction {
@@ -109,7 +106,7 @@ pub mod parsing {
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
-            Action, ONE_NEAR,
+            Action,
         };
         pub use common::message_discriminant::MessageDiscriminant;
         pub use common::tx_public_key::TxPublicKey;

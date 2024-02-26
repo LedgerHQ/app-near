@@ -1,12 +1,13 @@
-use crate::io::ErrorKind;
 use crate::parsing::types::FunctionCallCommon;
 use crate::sign_ui;
 use crate::utils::types::capped_string::CappedString;
 use crate::utils::types::hex_display::HexDisplay;
 use crate::{
-    parsing::{borsh::BorshDeserialize, HashingStream, SingleTxStream},
+    parsing::{HashingStream, SingleTxStream},
     AppSW,
 };
+use borsh::io::ErrorKind;
+use borsh::BorshDeserialize;
 
 use super::ActionParams;
 

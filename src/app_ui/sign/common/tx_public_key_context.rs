@@ -1,16 +1,14 @@
-use crate::{
-    parsing::types::TxPublicKey,
-    utils::types::{base58_buf::Base58Buf, fmt_buffer::FmtBuffer},
-};
+use crate::{parsing::types::TxPublicKey, utils::types::base58_buf::Base58Buf};
+use fmt_buffer::Buffer;
 
 pub struct FieldsContext {
-    pub buffer: FmtBuffer<100>,
+    pub buffer: Buffer<100>,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            buffer: FmtBuffer::new(),
+            buffer: Buffer::new(),
         }
     }
 

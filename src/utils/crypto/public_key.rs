@@ -1,13 +1,11 @@
 use ledger_device_sdk::ecc::{CurvesId, ECPrivateKey, ECPublicKey, Ed25519, Secret};
-#[cfg(feature = "speculos")]
-use ledger_device_sdk::testing;
 use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
 
 use crate::AppSW;
 
 use crate::parsing::types::TxPublicKey;
 use crate::utils::types::base58_buf::Base58Buf;
-use crate::utils::types::fmt_buffer::FmtBuffer;
+use fmt_buffer::Buffer;
 
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
@@ -67,7 +65,7 @@ impl PublicKeyBe {
         PublicKeyBe(out)
     }
 
-    pub fn display_str_base58(&self, buffer: &mut FmtBuffer<60>) -> Result<(), AppSW> {
+    pub fn display_str_base58(&self, buffer: &mut Buffer<60>) -> Result<(), AppSW> {
         let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
         bs58_buf
             .encode(&self.0)
@@ -83,19 +81,5 @@ impl PublicKeyBe {
         hex::encode_to_slice(self.0, buffer).unwrap();
 
         core::str::from_utf8(buffer).unwrap()
-    }
-
-    #[cfg(feature = "speculos")]
-    pub fn debug_print(&self) -> Result<(), AppSW> {
-        testing::debug_print("debug printing pub key:\n");
-
-        let mut out_buf = FmtBuffer::<60>::new();
-
-        self.display_str_base58(&mut out_buf)?;
-
-        testing::debug_print(out_buf.as_str());
-        testing::debug_print("\n");
-        testing::debug_print("debug printing pub key finish:\n\n");
-        Ok(())
     }
 }

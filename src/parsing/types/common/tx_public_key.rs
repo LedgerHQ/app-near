@@ -1,7 +1,5 @@
-use crate::{
-    io::{ErrorKind, Read, Result},
-    parsing::borsh::BorshDeserialize,
-};
+use borsh::io::{ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
 
 pub enum KeyType {
     ED25519 = 0,
@@ -16,7 +14,7 @@ pub enum TxPublicKey {
 }
 
 impl TryFrom<u8> for KeyType {
-    type Error = crate::io::Error;
+    type Error = borsh::io::Error;
 
     fn try_from(value: u8) -> core::result::Result<Self, Self::Error> {
         match value {

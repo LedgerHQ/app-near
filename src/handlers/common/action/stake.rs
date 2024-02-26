@@ -1,8 +1,9 @@
 use crate::sign_ui;
 use crate::{
-    parsing::{borsh::BorshDeserialize, types::Stake, HashingStream, SingleTxStream},
+    parsing::{types::Stake, HashingStream, SingleTxStream},
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::ActionParams;
 
@@ -11,9 +12,6 @@ pub fn handle(
     params: ActionParams,
 ) -> Result<(), AppSW> {
     let stake = Stake::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
-
-    #[cfg(feature = "speculos")]
-    stake.debug_print();
 
     if !sign_ui::action::ui_display_stake(&stake, params) {
         return Err(AppSW::Deny);

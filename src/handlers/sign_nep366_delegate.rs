@@ -1,7 +1,6 @@
 use crate::{
     parsing::{
         self,
-        borsh::BorshDeserialize,
         types::{common::message_discriminant::NEP_366_META_TRANSACTIONS, MessageDiscriminant},
         HashingStream, SingleTxStream,
     },
@@ -9,6 +8,7 @@ use crate::{
     utils::crypto::{self, public_key::NoSecpAllowed, PublicKeyBe},
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::common::{
     action::{handle_action, ActionParams},
@@ -21,9 +21,6 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
-
-    #[cfg(feature = "speculos")]
-    path.debug_print();
 
     let mut stream = HashingStream::new(stream)?;
 

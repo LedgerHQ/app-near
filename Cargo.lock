@@ -15,12 +15,15 @@ dependencies = [
 name = "app-near-rust"
 version = "1.0.0"
 dependencies = [
+ "borsh",
  "bs58",
- "dtoa",
+ "fmt_buffer",
  "hex",
  "include_gif",
  "ledger_device_sdk",
  "ledger_secure_sdk_sys",
+ "near_gas",
+ "near_token",
  "numtoa",
 ]
 
@@ -64,6 +67,10 @@ name = "bitflags"
 version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
+
+[[package]]
+name = "borsh"
+version = "0.1.0"
 
 [[package]]
 name = "bs58"
@@ -113,12 +120,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
-name = "dtoa"
-version = "1.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcbb2bf8e87535c23f7a8a321e364ce21462d0ff10cb6407820e8e96dfff6653"
-
-[[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -133,6 +134,10 @@ dependencies = [
  "libc",
  "windows-sys 0.52.0",
 ]
+
+[[package]]
+name = "fmt_buffer"
+version = "0.1.0"
 
 [[package]]
 name = "gif"
@@ -253,6 +258,24 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
+name = "near_gas"
+version = "0.1.0"
+dependencies = [
+ "borsh",
+ "fmt_buffer",
+ "numtoa",
+]
+
+[[package]]
+name = "near_token"
+version = "0.1.0"
+dependencies = [
+ "borsh",
+ "fmt_buffer",
+ "numtoa",
+]
 
 [[package]]
 name = "nom"

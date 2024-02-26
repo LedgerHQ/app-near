@@ -2,8 +2,9 @@ use crate::{
     app_ui::fields_writer::FieldsWriter,
     handlers::common::action::ActionParams,
     parsing,
-    utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer, hex_display::HexDisplay},
+    utils::types::{capped_string::CappedString, hex_display::HexDisplay},
 };
+use fmt_buffer::Buffer;
 
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
@@ -158,7 +159,7 @@ pub fn ui_display_common<const N: usize>(
     writer: &mut FieldsWriter<'_, N>,
     params: ActionParams,
 ) -> bool {
-    let mut ordinal_fmt_buf = FmtBuffer::<25>::new();
+    let mut ordinal_fmt_buf = Buffer::<25>::new();
     let is_last = ordinal_string(&mut ordinal_fmt_buf, params);
 
     let ordinal_str = ordinal_fmt_buf.as_str();
@@ -189,7 +190,7 @@ pub fn ui_display_common<const N: usize>(
     my_review.show()
 }
 
-fn ordinal_string(fmt_buf: &mut FmtBuffer<25>, params: ActionParams) -> bool {
+fn ordinal_string(fmt_buf: &mut Buffer<25>, params: ActionParams) -> bool {
     let mut num_out = [0u8; 10];
     let header = if params.is_nested_delegate {
         "View subaction "

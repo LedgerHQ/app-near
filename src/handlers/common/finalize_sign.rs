@@ -1,9 +1,9 @@
 use crate::{
-    io::{ErrorKind, Read},
     parsing::{HashingStream, SingleTxStream},
     utils::crypto::{self, PathBip32},
     AppSW,
 };
+use borsh::io::{ErrorKind, Read};
 
 pub struct Signature(pub [u8; 64]);
 

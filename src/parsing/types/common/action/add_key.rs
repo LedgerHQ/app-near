@@ -1,10 +1,10 @@
-use crate::{
-    io::{Error, ErrorKind, Read, Result},
-    parsing::{borsh::BorshDeserialize, types::TxPublicKey},
-    utils::types::{capped_string::CappedString, fmt_buffer::FmtBuffer},
-};
+use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
+use borsh::io::{Error, ErrorKind, Read, Result};
+use borsh::BorshDeserialize;
+use fmt_buffer::Buffer;
+use near_token::NearToken;
 
-use super::{Balance, Nonce};
+use super::Nonce;
 
 pub struct AddKey {
     /// A public key which will be associated with an access_key
@@ -38,7 +38,7 @@ pub struct FunctionCallPermission {
     /// `None` means unlimited allowance.
     /// NOTE: To change or increase the allowance, the old access key needs to be deleted and a new
     /// access key should be created.
-    pub allowance: Option<Balance>,
+    pub allowance: Option<NearToken>,
 
     // This isn't an AccountId because already existing records in testnet genesis have invalid
     // values for this field (see: https://github.com/near/nearcore/pull/4621#issuecomment-892099860)
@@ -51,7 +51,7 @@ pub struct FunctionCallPermission {
     /// function call of one of the given method names.
     /// Empty list means any method name can be used.
     // pub method_names: Vec<String>,
-    pub method_names: FmtBuffer<210>,
+    pub method_names: Buffer<210>,
 }
 
 impl BorshDeserialize for AccessKeyPermission {
@@ -83,35 +83,20 @@ impl BorshDeserialize for AddKey {
     }
 }
 
-impl AddKey {
-    #[cfg(feature = "speculos")]
-    pub fn debug_print(&self) {
-        use ledger_device_sdk::testing;
-        use numtoa::NumToA;
-
-        let mut numtoa_buf = [0u8; 40];
-
-        testing::debug_print("debug printing add key action:\n");
-        testing::debug_print("size of self: \n");
-        testing::debug_print(core::mem::size_of_val(self).numtoa_str(10, &mut numtoa_buf));
-        testing::debug_print("\n");
-        testing::debug_print("debug printing add key action finish:\n");
-    }
-}
-
 impl FunctionCallPermission {
     pub fn new() -> Self {
         Self {
             allowance: None,
             receiver_id: CappedString::new(),
             number_of_method_names: 0,
-            method_names: FmtBuffer::new(),
+            method_names: Buffer::new(),
         }
     }
     // NOTE: using this instead of `BorshDeserialize`
     // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.allowance = BorshDeserialize::deserialize_reader(reader)?;
+        let allowance: Option<u128> = BorshDeserialize::deserialize_reader(reader)?;
+        self.allowance = allowance.map(NearToken::from_yoctonear);
         self.receiver_id.deserialize_reader_in_place(reader)?;
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;
@@ -127,21 +112,5 @@ impl FunctionCallPermission {
             self.method_names.write_str(";");
         }
         Ok(())
-    }
-}
-
-impl FunctionCallPermission {
-    #[cfg(feature = "speculos")]
-    pub fn debug_print(&self) {
-        use ledger_device_sdk::testing;
-        use numtoa::NumToA;
-
-        let mut numtoa_buf = [0u8; 40];
-
-        testing::debug_print("debug printing function call permisiion struct:\n");
-        testing::debug_print("size of self: \n");
-        testing::debug_print(core::mem::size_of_val(self).numtoa_str(10, &mut numtoa_buf));
-        testing::debug_print("\n");
-        testing::debug_print("debug printing function call permisiion struct finish:\n");
     }
 }

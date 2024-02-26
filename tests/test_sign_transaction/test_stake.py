@@ -11,6 +11,7 @@ from ragger.navigator import Navigator
 
 def test_sign_stake(firmware, backend, navigator: Navigator, test_name):
     """
+    1.16 NEAR
     Transaction {
         signer_id: AccountId(
             "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",

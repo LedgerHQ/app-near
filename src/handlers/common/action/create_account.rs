@@ -1,8 +1,9 @@
 use crate::sign_ui;
 use crate::{
-    parsing::{borsh::BorshDeserialize, types::CreateAccount, HashingStream, SingleTxStream},
+    parsing::{types::CreateAccount, HashingStream, SingleTxStream},
     AppSW,
 };
+use borsh::BorshDeserialize;
 
 use super::ActionParams;
 
@@ -12,9 +13,6 @@ pub fn handle(
 ) -> Result<(), AppSW> {
     let create_account =
         CreateAccount::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
-
-    #[cfg(feature = "speculos")]
-    create_account.debug_print();
 
     if !sign_ui::action::ui_display_create_account(&create_account, params) {
         return Err(AppSW::Deny);

@@ -29,14 +29,18 @@ fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 5>,
 ) {
-    let signer_id = prefix
-        .signer_id
-        .ui_fields("Signer Id", &mut field_context.display_buf1);
+    let signer_id = ElipsisFields::from_capped_string(
+        &prefix.signer_id,
+        "Signer Id",
+        &mut field_context.display_buf1,
+    );
     writer.push_fields(signer_id).unwrap();
 
-    let receiver_id = prefix
-        .receiver_id
-        .ui_fields("Receiver Id", &mut field_context.display_buf2);
+    let receiver_id = ElipsisFields::from_capped_string(
+        &prefix.receiver_id,
+        "Receiver Id",
+        &mut field_context.display_buf2,
+    );
     writer.push_fields(receiver_id).unwrap();
 
     let num_actions_str = prefix
@@ -50,9 +54,6 @@ fn format<'b, 'a: 'b>(
         .unwrap();
 }
 pub fn ui_display(prefix: &parsing::types::transaction::prefix::Prefix) -> bool {
-    #[cfg(feature = "speculos")]
-    prefix.debug_print();
-
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
