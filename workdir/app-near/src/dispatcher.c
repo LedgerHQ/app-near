@@ -15,6 +15,7 @@
  *  limitations under the License.
  *****************************************************************************/
 
+#include "os.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -29,11 +30,19 @@
 #include "constants.h"
 #include "app_main.h"
 
+#include "swap.h"
+
 
 // Called by both the U2F and the standard communications channel
 int apdu_dispatcher(const command_t *cmd) {
     if (cmd->cla != CLA) {
         return io_send_sw(SW_CLA_NOT_SUPPORTED);
+    }
+    if (G_called_from_swap) {
+        if ((cmd->ins != INS_GET_PUBLIC_KEY) && (cmd->ins != INS_SIGN)) {
+            PRINTF("Refused INS when in SWAP mode\n");
+            return io_send_sw(SW_SWAP_CHECKING_FAIL);
+        }
     }
 
     switch (cmd->ins) {

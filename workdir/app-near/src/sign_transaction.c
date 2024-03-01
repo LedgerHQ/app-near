@@ -6,6 +6,8 @@
 #include "app_main.h"
 #include "ledger_crypto.h"
 #include "io.h"
+#include "swap.h"
+#include "handle_swap_sign_transaction.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -390,13 +392,57 @@ int handle_sign_transaction(uint8_t p1, uint8_t p2, const uint8_t *input_buffer,
             return io_send_sw(error);
         }
 
-        switch (parse_transaction())
+        int parsed_transaction = parse_transaction();
+
+        if (G_called_from_swap) {
+            if (parsed_transaction != SIGN_FLOW_TRANSFER) {
+                PRINTF("Refused method type when in SWAP mode\n");
+                return io_send_sw(SW_SWAP_CHECKING_FAIL);
+            }
+        }
+
+        switch (parsed_transaction)
         {
         case SIGN_FLOW_GENERIC:
             sign_ux_flow_init();
             break;
         case SIGN_FLOW_TRANSFER:
-            sign_transfer_ux_flow_init();
+            // If we are in swap context, do not redisplay the message data
+            // Instead, ensure they are identical with what was previously displayed
+            if (G_called_from_swap) {
+                if (G_swap_response_ready) {
+                    // Safety against trying to make the app sign multiple TX
+                    // This code should never be triggered as the app is supposed to exit after
+                    // sending the signed transaction
+                    PRINTF("Safety against double signing triggered\n");
+                    swap_finalize_exchange_sign_transaction(false);
+                    os_sched_exit(-1);
+                }
+                // We will quit the app after this transaction, whether it succeeds or fails
+                PRINTF("Swap response is ready, the app will quit after the next send\n");
+                G_swap_response_ready = true;
+                if (swap_check_validity(ui_context.amount, // Amount
+                                        ui_context.line2   // Destination
+                                        )) {
+                    PRINTF("Signing valid swap transaction\n");
+
+                    uint8_t sig_len = set_result_sign();
+
+                    if (sig_len == 0) {
+                        return io_send_sw(SW_SWAP_CHECKING_FAIL);
+                    }
+                    else {
+                        return io_send_response_pointer(G_io_apdu_buffer, sig_len, SW_OK);
+                    }
+                } else {
+                    PRINTF("Refused signing incorrect Swap transaction\n");
+                    return io_send_sw(SW_SWAP_CHECKING_FAIL);
+                }
+                
+            } else {
+                // Regular Flow
+                sign_transfer_ux_flow_init();
+            }
             break;
         case SIGN_FLOW_FUNCTION_CALL:
             sign_function_call_ux_flow_init();
