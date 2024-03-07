@@ -1,5 +1,4 @@
-use ledger_device_sdk::ecc::{CurvesId, ECPrivateKey, ECPublicKey, Ed25519, Secret};
-use ledger_secure_sdk_sys::os_perso_derive_node_with_seed_key;
+use ledger_device_sdk::ecc::ECPublicKey;
 
 use crate::AppSW;
 
@@ -10,30 +9,8 @@ use fmt_buffer::Buffer;
 const PUBLIC_KEY_BIG_ENDIAN_LEN: usize = 32;
 const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
 
-const HDW_ED25519_SLIP10: u32 = 1;
-
 #[derive(PartialEq, Eq)]
 pub struct PublicKeyBe(pub [u8; PUBLIC_KEY_BIG_ENDIAN_LEN]);
-
-pub fn bip32_derive(path: &[u32]) -> ECPrivateKey<32, 'E'> {
-    let mut tmp = Secret::<32>::new();
-    let curve = CurvesId::Ed25519;
-
-    unsafe {
-        os_perso_derive_node_with_seed_key(
-            HDW_ED25519_SLIP10,
-            curve as u8,
-            path.as_ptr(),
-            path.len() as u32,
-            tmp.as_mut().as_mut_ptr(),
-            core::ptr::null_mut(), // chain
-            core::ptr::null_mut(), // seed_key
-            0u32,                  // seed_key_length
-        )
-    };
-
-    Ed25519::from(tmp.as_ref())
-}
 
 pub struct NoSecpAllowed;
 

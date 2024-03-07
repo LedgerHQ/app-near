@@ -1,14 +1,15 @@
 use crate::{
     parsing::{HashingStream, SingleTxStream},
-    utils::crypto::{self, PathBip32},
+    utils::crypto::PathBip32,
     AppSW,
 };
 use borsh::io::{ErrorKind, Read};
+use ledger_device_sdk::ecc::Ed25519;
 
 pub struct Signature(pub [u8; 64]);
 
 pub fn end(
-    stream: &mut HashingStream<SingleTxStream<'_>>,
+    mut stream: HashingStream<SingleTxStream<'_>>,
     path: &PathBip32,
 ) -> Result<Signature, AppSW> {
     // test no redundant bytes left in stream
@@ -21,7 +22,7 @@ pub fn end(
 
     let digest = stream.finalize()?;
 
-    let private_key = crypto::bip32_derive(&path.0);
+    let private_key = Ed25519::derive_from_path_slip10(&path.0);
     let (sig, _len) = private_key.sign(&digest.0).map_err(|_| AppSW::TxSignFail)?;
 
     Ok(Signature(sig))

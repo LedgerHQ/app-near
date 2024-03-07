@@ -75,5 +75,5 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         handle_action(&mut stream, params)?;
     }
 
-    finalize_sign::end(&mut stream, &path)
+    finalize_sign::end(stream, &path)
 }

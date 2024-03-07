@@ -3,14 +3,11 @@ use ledger_device_sdk::{
     io::{Comm, Event},
 };
 
+use ledger_device_sdk::hash::sha2::Sha2_256;
+use ledger_device_sdk::hash::HashInit;
+
 use crate::{AppSW, Instruction, SignMode};
 use borsh::io::{self};
-use ledger_secure_sdk_sys::{
-    cx_hash_final, cx_hash_t, cx_hash_update, cx_sha256_init_no_throw, cx_sha256_t, CX_OK,
-};
-
-#[cfg(feature = "speculos")]
-use ledger_device_sdk::testing;
 
 pub struct SingleTxStream<'a> {
     pub comm: &'a mut Comm,
@@ -35,52 +32,30 @@ pub struct Sha256Digest(pub [u8; 32]);
 
 pub struct HashingStream<R> {
     pub reader: R,
-    sha256_ctx: cx_sha256_t,
+    sha256: Sha2_256,
 }
 
 impl<R> HashingStream<R> {
     pub fn new(reader: R) -> Result<Self, AppSW> {
-        let mut sha256_ctx = Default::default();
-        unsafe {
-            if cx_sha256_init_no_throw(&mut sha256_ctx) != CX_OK {
-                return Err(AppSW::TxHashFail);
-            }
-        }
-        let res = Self { reader, sha256_ctx };
+        let sha256 = Sha2_256::new();
+        let res = Self { reader, sha256 };
         Ok(res)
     }
 
-    pub fn finalize(&mut self) -> Result<Sha256Digest, AppSW> {
+    pub fn finalize(self) -> Result<Sha256Digest, AppSW> {
         let mut array = [0u8; 32];
-        unsafe {
-            if cx_hash_final(
-                &mut self.sha256_ctx.header as *mut cx_hash_t,
-                array.as_mut_ptr(),
-            ) != CX_OK
-            {
-                #[cfg(feature = "speculos")]
-                testing::debug_print("`cx_hash_final` error encountered \n");
-                return Err(AppSW::TxHashFinalizeFail);
-            }
-        }
+
+        self.sha256
+            .finalize(&mut array)
+            .map_err(|_err| AppSW::TxHashFinalizeFail)?;
         Ok(Sha256Digest(array))
     }
 }
 impl<R> HashingStream<R> {
     pub fn feed_slice(&mut self, input: &[u8]) -> io::Result<()> {
-        unsafe {
-            if cx_hash_update(
-                &mut self.sha256_ctx.header as *mut cx_hash_t,
-                input.as_ptr(),
-                input.len(),
-            ) != CX_OK
-            {
-                #[cfg(feature = "speculos")]
-                testing::debug_print("`cx_hash_update` error encountered \n");
-                return Err(io::Error::from(io::ErrorKind::OutOfMemory));
-            }
-        }
-        Ok(())
+        self.sha256
+            .update(input)
+            .map_err(|_err| io::Error::from(io::ErrorKind::OutOfMemory))
     }
 }
 
@@ -92,18 +67,9 @@ impl<R: io::Read> io::Read for HashingStream<R> {
             // update hash on each chunk passing through
             if n > 0 {
                 let data = &buf[0..n];
-                unsafe {
-                    if cx_hash_update(
-                        &mut self.sha256_ctx.header as *mut cx_hash_t,
-                        data.as_ptr(),
-                        data.len(),
-                    ) != CX_OK
-                    {
-                        #[cfg(feature = "speculos")]
-                        testing::debug_print("`cx_hash_update` error encountered \n");
-                        return Err(io::Error::from(io::ErrorKind::OutOfMemory));
-                    }
-                }
+                self.sha256
+                    .update(data)
+                    .map_err(|_err| io::Error::from(io::ErrorKind::OutOfMemory))?;
             }
             return Ok(n);
         }

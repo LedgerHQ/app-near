@@ -35,7 +35,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     let delegate_ac_pub_key_prevalidation = handle_delegate_action(&mut stream)?;
     validate_public_key::validate(delegate_ac_pub_key_prevalidation, &path)?;
 
-    finalize_sign::end(&mut stream, &path)
+    finalize_sign::end(stream, &path)
 }
 
 pub fn handle_delegate_action(
