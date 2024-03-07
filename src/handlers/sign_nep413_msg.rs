@@ -34,5 +34,5 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         return Err(AppSW::Deny);
     }
 
-    finalize_sign::end(&mut stream, &path)
+    finalize_sign::end(stream, &path)
 }

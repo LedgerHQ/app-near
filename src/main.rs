@@ -25,7 +25,7 @@ mod utils {
         pub mod public_key;
 
         pub use path::PathBip32;
-        pub use public_key::{bip32_derive, PublicKeyBe};
+        pub use public_key::PublicKeyBe;
     }
     pub mod types {
         pub mod base58_buf;

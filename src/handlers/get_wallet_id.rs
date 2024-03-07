@@ -1,13 +1,14 @@
 use crate::app_ui::address;
 use crate::utils::crypto;
 use crate::AppSW;
+use ledger_device_sdk::ecc::Ed25519;
 use ledger_device_sdk::io::Comm;
 
 pub fn handler(comm: &mut Comm) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 
-    let pk = crypto::bip32_derive(&path.0)
+    let pk = Ed25519::derive_from_path_slip10(&path.0)
         .public_key()
         .map_err(|_| AppSW::KeyDeriveFail)?;
 

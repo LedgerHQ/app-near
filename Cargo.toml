@@ -5,8 +5,7 @@ authors = ["yhql", "agrojean-ledger", "dj8yf0μl"]
 edition = "2021"
 
 [dependencies]
-ledger_device_sdk = "1.6.0"
-ledger_secure_sdk_sys = "1.2.0"
+ledger_device_sdk = "1.7.1"
 include_gif = "1.0.1"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
 bs58 = { version = "0.5.0", default-features = false }

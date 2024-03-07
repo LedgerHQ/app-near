@@ -1,10 +1,11 @@
+use ledger_device_sdk::ecc::Ed25519;
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE},
     gadgets::{Field, MultiFieldReview},
 };
 
 use crate::{
-    utils::crypto::{self, public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
+    utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
 };
 use fmt_buffer::Buffer;
@@ -14,7 +15,7 @@ pub fn validate(
     path: &PathBip32,
 ) -> Result<(), AppSW> {
     let matching_private_key = {
-        let pk = crypto::bip32_derive(&path.0)
+        let pk = Ed25519::derive_from_path_slip10(&path.0)
             .public_key()
             .map_err(|_| AppSW::KeyDeriveFail)?;
         PublicKeyBe::from_little_endian(pk)

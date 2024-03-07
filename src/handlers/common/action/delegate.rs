@@ -1,5 +1,5 @@
+use ledger_device_sdk::buttons::ButtonEvent;
 use ledger_device_sdk::io::Event;
-use ledger_secure_sdk_sys::buttons::ButtonEvent;
 
 use crate::{
     parsing::{HashingStream, SingleTxStream},
