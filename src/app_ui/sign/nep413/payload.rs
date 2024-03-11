@@ -37,16 +37,16 @@ fn format<'b, 'a: 'b>(
         "Message",
         &mut field_context.msg_display_buf,
     );
-    writer.push_fields(message_fields).unwrap();
+    writer.push_fields(message_fields);
 
     // 3
+    // .unwrap() is ok, as `64 == 32 * 2` holds true
     hex::encode_to_slice(payload.nonce, &mut field_context.nonce_buffer).unwrap();
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Nonce",
-            value: core::str::from_utf8(&field_context.nonce_buffer).unwrap(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Nonce",
+        // .unwrap() is ok, as buffer contains only bytes, encoding hex chars
+        value: core::str::from_utf8(&field_context.nonce_buffer).unwrap(),
+    }));
 
     // 5
     let recipient_fields = ElipsisFields::from_capped_string(
@@ -54,7 +54,7 @@ fn format<'b, 'a: 'b>(
         "Recipient",
         &mut field_context.recipient_display_buf,
     );
-    writer.push_fields(recipient_fields).unwrap();
+    writer.push_fields(recipient_fields);
 
     // 7
     if let Some(callback_url) = payload.callback_url.as_ref() {
@@ -63,7 +63,7 @@ fn format<'b, 'a: 'b>(
             "Callback Url",
             &mut field_context.callback_url_display_buf,
         );
-        writer.push_fields(callback_url_fields).unwrap();
+        writer.push_fields(callback_url_fields);
     }
 }
 pub fn ui_display(payload: &Payload) -> bool {

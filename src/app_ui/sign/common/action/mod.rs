@@ -198,8 +198,10 @@ fn ordinal_string(fmt_buf: &mut Buffer<25>, params: ActionParams) -> bool {
         "View action "
     };
     fmt_buf.write_str(header);
+    // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
     fmt_buf.write_str(params.ordinal_action.numtoa_str(10, &mut num_out));
     fmt_buf.write_str(" / ");
+    // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
     fmt_buf.write_str(params.total_actions.numtoa_str(10, &mut num_out));
 
     params.ordinal_action == params.total_actions

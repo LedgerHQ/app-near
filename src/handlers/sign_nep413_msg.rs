@@ -1,3 +1,4 @@
+use crate::parsing::types::common::message_discriminant::NEP_413_SIGN_MESSAGE;
 use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
 use crate::{
@@ -16,7 +17,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let mut stream = HashingStream::new(stream)?;
 
-    let msg_discriminant = MessageDiscriminant::new_off_chain(413).unwrap();
+    let msg_discriminant = MessageDiscriminant::new(NEP_413_SIGN_MESSAGE);
 
     let prefix_bytes = msg_discriminant.borsh_serialize();
 

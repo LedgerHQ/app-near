@@ -59,6 +59,7 @@ impl NearToken {
             let mut millis_str_buf = [0u8; 10];
 
             result.write_str("0.");
+            // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
             let millis_str = millinear_rounded_up.numtoa_str(10, &mut millis_str_buf);
             let leading_zeros = 3 - millis_str.len();
             for _ in 0..leading_zeros {
@@ -71,8 +72,10 @@ impl NearToken {
                 self.as_yoctonear().saturating_add(10 * ONE_MILLINEAR - 1) / ONE_MILLINEAR / 10;
             let mut str_buf = [0u8; 20];
 
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
             result.write_str((near_rounded_up as u64 / 100).numtoa_str(10, &mut str_buf));
             result.write_str(".");
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
             let hundreds_str = (near_rounded_up as u64 % 100).numtoa_str(10, &mut str_buf);
             let leading_zeros = 2 - hundreds_str.len();
             for _ in 0..leading_zeros {

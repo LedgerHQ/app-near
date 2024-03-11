@@ -16,7 +16,8 @@ impl FieldsContext {
         match public_key {
             TxPublicKey::ED25519(arr) => {
                 let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
-                // NOTE: expecting `tmp_buf` to be always large enough : 1.4 * 32
+                // .unwrap() is ok, as [`bs58::encode::Error::BufferTooSmall`](https://docs.rs/bs58/0.5.0/bs58/encode/enum.Error.html)
+                // is not expected to be encountered on encoding 32 bytes to 50 bytes long buffer
                 bs58_buf.encode(arr).unwrap();
 
                 self.buffer.write_str("ed25519:");
@@ -25,6 +26,8 @@ impl FieldsContext {
             TxPublicKey::SECP256K1(arr) => {
                 let mut bs58_buf: Base58Buf<90> = Base58Buf::new();
                 // expecting `tmp_buf` to be always large enough: 1.4 * 64
+                // .unwrap() is ok, as [`bs58::encode::Error::BufferTooSmall`](https://docs.rs/bs58/0.5.0/bs58/encode/enum.Error.html)
+                // is not expected to be encountered on encoding 64 bytes to 90 bytes long buffer
                 bs58_buf.encode(arr).unwrap();
 
                 self.buffer.write_str("secp256k1:");

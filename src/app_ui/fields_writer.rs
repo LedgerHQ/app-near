@@ -1,3 +1,5 @@
+use core::panic;
+
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::utils::types::elipsis_fields::ElipsisFields;
@@ -6,6 +8,9 @@ pub struct FieldsWriter<'a, const N: usize> {
     buffer: [Field<'a>; N],
     used: usize,
 }
+
+#[cfg(feature = "speculos")]
+use ledger_device_sdk::testing;
 
 #[derive(Debug)]
 pub struct FieldsOverflow;
@@ -22,12 +27,19 @@ impl<'a, const N: usize> FieldsWriter<'a, N> {
             used: 0,
         }
     }
-    pub fn push_fields(&mut self, val: ElipsisFields<'a>) -> Result<(), FieldsOverflow> {
+    /// # Panics
+    ///
+    /// Panics if self.buffer capacity was chosen too small.
+    /// Choosing self.buffer capacity depends on static scenarios (max number of fields)
+    /// can be calculated per scenario)
+    pub fn push_fields(&mut self, val: ElipsisFields<'a>) {
         match val {
             ElipsisFields::One(array) => {
                 for elem in array {
                     if self.used == self.buffer.len() {
-                        return Err(FieldsOverflow);
+                        #[cfg(feature = "speculos")]
+                        testing::debug_print("FieldsWriter.push_fields capacity overflow\n");
+                        panic!("FieldsWriter.push_fields capacity overflow");
                     }
                     self.buffer[self.used] = elem;
                     self.used += 1;
@@ -36,14 +48,15 @@ impl<'a, const N: usize> FieldsWriter<'a, N> {
             ElipsisFields::Two(array) => {
                 for elem in array {
                     if self.used == self.buffer.len() {
-                        return Err(FieldsOverflow);
+                        #[cfg(feature = "speculos")]
+                        testing::debug_print("FieldsWriter.push_fields capacity overflow\n");
+                        panic!("FieldsWriter.push_fields capacity overflow");
                     }
                     self.buffer[self.used] = elem;
                     self.used += 1;
                 }
             }
-        };
-        Ok(())
+        }
     }
 
     pub fn get_fields(&self) -> &[Field<'a>] {

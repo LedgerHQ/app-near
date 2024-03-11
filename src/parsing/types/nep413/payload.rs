@@ -18,6 +18,7 @@ impl Payload {
             callback_url: Some(CappedString::new()),
         }
     }
+    /// must be only called once after `Self::new` to avoid unexpected panics
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         self.message.deserialize_reader_in_place(reader)?;
 
@@ -31,6 +32,8 @@ impl Payload {
         if option_flag == 0 {
             self.callback_url = None;
         } else if option_flag == 1 {
+            // .unwrap() is ok if `self.callback_url` is Some, which holds true
+            // for calling `self.deserialize_reader_in_place` once after `Self::new`
             self.callback_url
                 .as_mut()
                 .unwrap()

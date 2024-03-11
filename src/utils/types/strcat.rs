@@ -17,6 +17,8 @@ pub fn concatenate<'a>(
         offset += s_len;
     }
 
+    // .unwrap() is ok because output is constructed from valid `str`-s
+    // concatenation
     Ok(from_utf8(&output[..offset]).unwrap())
 }
 pub fn read_leftover<R: Read>(leftover: usize, reader: &mut R) -> Result<()> {

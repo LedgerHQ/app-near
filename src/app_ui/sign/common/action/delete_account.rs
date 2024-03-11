@@ -19,17 +19,15 @@ pub fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 3>,
 ) {
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Delete Account",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Delete Account",
+    }));
 
     let beneficiary_id = ElipsisFields::from_capped_string(
         &delete_account.beneficiary_id,
         "Beneficiary",
         &mut field_context.beneficiary_display_buf,
     );
-    writer.push_fields(beneficiary_id).unwrap();
+    writer.push_fields(beneficiary_id);
 }

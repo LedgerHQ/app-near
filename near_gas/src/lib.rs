@@ -79,6 +79,7 @@ impl NearGas {
             let mut millis_str_buf = [0u8; 10];
 
             result.write_str("0.");
+            // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
             let millis_str = gigagas_rounded_up.numtoa_str(10, &mut millis_str_buf);
             let leading_zeros = 3 - millis_str.len();
 
@@ -93,8 +94,10 @@ impl NearGas {
                 self.as_gas().saturating_add(100 * ONE_GIGA_GAS - 1) / ONE_GIGA_GAS / 100;
             let mut str_buf = [0u8; 20];
 
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
             result.write_str((terragas_rounded_up / 10).numtoa_str(10, &mut str_buf));
             result.write_str(".");
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
             result.write_str((terragas_rounded_up % 10).numtoa_str(10, &mut str_buf));
 
             result.write_str(" Tgas");

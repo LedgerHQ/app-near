@@ -36,12 +36,10 @@ pub fn format<'b, 'a: 'b>(
         }
         None => "Unlimited NEAR",
     };
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "FnCall Allowance",
-            value: allowance,
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "FnCall Allowance",
+        value: allowance,
+    }));
 
     let recevier_id = ElipsisFields::from_capped_string(
         &function_call_perm.receiver_id,
@@ -49,16 +47,15 @@ pub fn format<'b, 'a: 'b>(
         &mut field_context.receiver_display_buf,
     );
 
-    writer.push_fields(recevier_id).unwrap();
+    writer.push_fields(recevier_id);
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Total FnCall Methods",
-            value: function_call_perm
-                .number_of_method_names
-                .numtoa_str(10, &mut field_context.num_buf),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Total FnCall Methods",
+        value: function_call_perm
+            .number_of_method_names
+            // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
+            .numtoa_str(10, &mut field_context.num_buf),
+    }));
 
     let methods_names_fields = ElipsisFields::from_fmt_buffer(
         &function_call_perm.method_names,
@@ -66,5 +63,5 @@ pub fn format<'b, 'a: 'b>(
         &mut field_context.method_names_display_buf,
     );
 
-    writer.push_fields(methods_names_fields).unwrap();
+    writer.push_fields(methods_names_fields);
 }

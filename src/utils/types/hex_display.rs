@@ -1,15 +1,28 @@
 use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
 
-use super::strcat::read_leftover;
+use crate::utils::types::strcat::read_leftover;
+
+use super::capped_string::CappedString;
+
+impl<const N: usize> From<CappedString<N>> for HexDisplay<N> {
+    fn from(value: CappedString<N>) -> Self {
+        Self {
+            buffer: value.buffer,
+            used: value.used,
+            truncated: value.truncated,
+            leftover: value.leftover,
+        }
+    }
+}
 
 /// A type with first stores a byte buffer into its internal buffer;
 /// and then reuses it to display string hex representation of buffer/2 bytes
 pub struct HexDisplay<const N: usize> {
-    pub buffer: [u8; N],
-    pub used: usize,
-    pub truncated: bool,
-    pub leftover: usize,
+    buffer: [u8; N],
+    used: usize,
+    truncated: bool,
+    leftover: usize,
 }
 
 impl<const N: usize> HexDisplay<N> {
@@ -22,11 +35,15 @@ impl<const N: usize> HexDisplay<N> {
         }
     }
 
-    #[allow(unused)]
     pub fn truncated(&self) -> bool {
         self.truncated
     }
 
+    pub fn leftover(&self) -> usize {
+        self.leftover
+    }
+
+    /// this method must only be called once
     pub fn reformat(&mut self) {
         let prev_used = self.used;
         let mut new_used = self.used * 2;
@@ -45,12 +62,18 @@ impl<const N: usize> HexDisplay<N> {
         for ind in (0..self.used).rev() {
             let char_range = ind * 2..=ind * 2 + 1;
             tmp_buffer.copy_from_slice(&self.buffer[ind..ind + 1]);
+            // .unwrap() is ok, as `2 == 1 * 2` holds true
             hex::encode_to_slice(tmp_buffer, &mut self.buffer[char_range]).unwrap();
         }
     }
 
+    /// # Panics
+    ///
+    /// this method should be only called after `reformat` is called;
+    /// otherwise it may panic with out of slice bounds access
     pub fn as_str(&self) -> &str {
-        unsafe { core::str::from_utf8_unchecked(&self.buffer[..self.used * 2]) }
+        // .unwrap() is ok, as buffer contains only bytes, encoding hex chars
+        core::str::from_utf8(&self.buffer[..self.used * 2]).unwrap()
     }
 }
 

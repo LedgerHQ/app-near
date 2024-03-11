@@ -5,10 +5,10 @@ use super::strcat::read_leftover;
 
 #[derive(Clone)]
 pub struct CappedString<const N: usize> {
-    pub buffer: [u8; N],
-    pub used: usize,
-    pub truncated: bool,
-    pub leftover: usize,
+    pub(in crate::utils::types) buffer: [u8; N],
+    pub(in crate::utils::types) used: usize,
+    pub(in crate::utils::types) truncated: bool,
+    pub(in crate::utils::types) leftover: usize,
 }
 
 impl<const N: usize> CappedString<N> {
@@ -22,12 +22,19 @@ impl<const N: usize> CappedString<N> {
     }
 
     pub fn as_str(&self) -> &str {
-        unsafe { core::str::from_utf8_unchecked(&self.buffer[..self.used]) }
+        // .unwrap() is ok because it's either based on complete deserialized `str`
+        // based on previous validation by `core::str::from_utf8`,
+        // or `self.used` index is equal to value of [`Utf8Error::valid_up_to()`](https://doc.rust-lang.org/std/str/struct.Utf8Error.html#method.valid_up_to)
+        // or it's equal to 0 after `CappedString::new()` was called
+        core::str::from_utf8(&self.buffer[..self.used]).unwrap()
     }
 
-    #[allow(unused)]
     pub fn truncated(&self) -> bool {
         self.truncated
+    }
+
+    pub fn leftover(&self) -> usize {
+        self.leftover
     }
 }
 

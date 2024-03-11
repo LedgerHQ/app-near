@@ -28,6 +28,8 @@ impl BorshDeserialize for DeployContract {
             .map_err(|_err| Error::from(ErrorKind::Other))?;
 
         let mut code_sha256 = Base58Buf::new();
+        // .unwrap() is ok, as [`bs58::encode::Error::BufferTooSmall`](https://docs.rs/bs58/0.5.0/bs58/encode/enum.Error.html)
+        // is not expected to be encountered on encoding 32 bytes to 50 bytes long buffer
         code_sha256.encode(&digest.0).unwrap();
         let r = Self { code_sha256 };
         Ok(r)

@@ -24,7 +24,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
     let mut stream = HashingStream::new(stream)?;
 
-    let msg_discriminant = MessageDiscriminant::new_on_chain(NEP_366_META_TRANSACTIONS).unwrap();
+    let msg_discriminant = MessageDiscriminant::new(NEP_366_META_TRANSACTIONS);
 
     let prefix_bytes = msg_discriminant.borsh_serialize();
 

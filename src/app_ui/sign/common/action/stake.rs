@@ -30,27 +30,21 @@ pub fn format<'b, 'a: 'b>(
     field_context
         .pub_key_context
         .format_public_key(&stake.public_key);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Stake",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Stake",
+    }));
 
     stake
         .stake
         .display_as_buffer(&mut field_context.stake_buffer);
-    writer
-        .push_fields(ElipsisFields::One([Field {
-            name: "Stake",
-            value: field_context.stake_buffer.as_str(),
-        }]))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Stake",
+        value: field_context.stake_buffer.as_str(),
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Public Key",
-            value: field_context.pub_key_context.buffer.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Public Key",
+        value: field_context.pub_key_context.buffer.as_str(),
+    }));
 }

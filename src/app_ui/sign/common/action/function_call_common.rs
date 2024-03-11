@@ -27,12 +27,10 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, N>,
 ) {
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Function Call",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Function Call",
+    }));
 
     let method_name = ElipsisFields::from_capped_string(
         &func_call_common.method_name,
@@ -40,25 +38,21 @@ pub fn format<'b, 'a: 'b, const N: usize>(
         &mut field_context.method_name_display_buf,
     );
 
-    writer.push_fields(method_name).unwrap();
+    writer.push_fields(method_name);
 
     func_call_common
         .gas
         .display_as_buffer(&mut field_context.gas_buf);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Gas",
-            value: field_context.gas_buf.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Gas",
+        value: field_context.gas_buf.as_str(),
+    }));
 
     func_call_common
         .deposit
         .display_as_buffer(&mut field_context.deposit_buffer);
-    writer
-        .push_fields(ElipsisFields::One([Field {
-            name: "Deposit",
-            value: field_context.deposit_buffer.as_str(),
-        }]))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Deposit",
+        value: field_context.deposit_buffer.as_str(),
+    }));
 }

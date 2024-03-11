@@ -29,34 +29,27 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     field_context
         .pub_key_context
         .format_public_key(&add_key.public_key);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Add Key",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Add Key",
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Public Key",
-            value: field_context.pub_key_context.buffer.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Public Key",
+        value: field_context.pub_key_context.buffer.as_str(),
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Access Key Nonce",
-            value: add_key
-                .access_key
-                .nonce
-                .numtoa_str(10, &mut field_context.num_buf),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Access Key Nonce",
+        value: add_key
+            .access_key
+            .nonce
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
+            .numtoa_str(10, &mut field_context.num_buf),
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Access Permission",
-            value: permission_value,
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Access Permission",
+        value: permission_value,
+    }));
 }

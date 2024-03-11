@@ -21,5 +21,5 @@ pub fn format<'b, 'a: 'b>(
     let args_fields =
         ElipsisFields::from_hex_display(args, "Args Binary", &mut field_context.args_display_buf);
 
-    writer.push_fields(args_fields).unwrap();
+    writer.push_fields(args_fields);
 }

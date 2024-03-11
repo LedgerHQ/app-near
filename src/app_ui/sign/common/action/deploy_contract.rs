@@ -7,17 +7,13 @@ pub fn format<'b>(
     deploy_contract: &'b parsing::types::DeployContract,
     writer: &'_ mut FieldsWriter<'b, 2>,
 ) {
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Deploy Contract",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Deploy Contract",
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Contract SHA256",
-            value: deploy_contract.code_sha256.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Contract SHA256",
+        value: deploy_contract.code_sha256.as_str(),
+    }));
 }

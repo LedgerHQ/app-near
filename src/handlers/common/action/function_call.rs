@@ -34,9 +34,7 @@ pub fn handle(
             let mut args_str: CappedString<200> = CappedString::new();
             match args_str.deserialize_with_bytes_count(stream, args_bytes_count) {
                 Err(err) if err.kind() == ErrorKind::InvalidData => {
-                    let mut args_bin: HexDisplay<200> = unsafe {
-                        core::mem::transmute::<CappedString<200>, HexDisplay<200>>(args_str)
-                    };
+                    let mut args_bin: HexDisplay<200> = args_str.into();
                     args_bin.reformat();
                     ArgsRepr::BinHex(args_bin)
                 }

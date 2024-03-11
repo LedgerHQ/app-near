@@ -1,3 +1,4 @@
+use core::iter::zip;
 use core::mem;
 
 use borsh::io::{Error, ErrorKind, Read, Result};
@@ -16,8 +17,10 @@ impl PathBip32 {
             return Err(Error::from(ErrorKind::InvalidData));
         }
 
-        for (i, chunk) in data.chunks(mem::size_of::<u32>()).enumerate() {
-            result.0[i] = u32::from_be_bytes(chunk.try_into().unwrap());
+        for (path_element, chunk) in zip(result.0.iter_mut(), data.chunks(mem::size_of::<u32>())) {
+            // .unwrap() is ok, as `chunk.len() == 4` holds true
+            // https://doc.rust-lang.org/std/primitive.array.html#impl-TryFrom%3C%26%5BT%5D%3E-for-%5BT;+N%5D
+            *path_element = u32::from_be_bytes(chunk.try_into().unwrap());
         }
 
         Ok(result)

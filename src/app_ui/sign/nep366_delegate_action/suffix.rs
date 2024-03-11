@@ -30,31 +30,27 @@ fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 3>,
 ) {
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Nonce",
-            value: suffix.nonce.numtoa_str(10, &mut field_context.num_buf1),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Nonce",
+        // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
+        value: suffix.nonce.numtoa_str(10, &mut field_context.num_buf1),
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Max Block Height",
-            value: suffix
-                .max_block_height
-                .numtoa_str(10, &mut field_context.num_buf2),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Max Block Height",
+        value: suffix
+            .max_block_height
+            // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
+            .numtoa_str(10, &mut field_context.num_buf2),
+    }));
 
     field_context
         .pub_key_context
         .format_public_key(&suffix.public_key);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Public Key",
-            value: field_context.pub_key_context.buffer.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Public Key",
+        value: field_context.pub_key_context.buffer.as_str(),
+    }));
 }
 
 pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffix) -> bool {

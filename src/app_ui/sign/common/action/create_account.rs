@@ -7,10 +7,8 @@ pub fn format(
     _create_account: &parsing::types::CreateAccount,
     writer: &'_ mut FieldsWriter<'_, 1>,
 ) {
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Create Account",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Create Account",
+    }));
 }

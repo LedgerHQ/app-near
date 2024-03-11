@@ -11,17 +11,13 @@ pub fn format<'b, 'a: 'b>(
     writer: &'_ mut FieldsWriter<'b, 2>,
 ) {
     field_context.format_public_key(&delete_key.public_key);
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Action type",
-            value: "Delete Key",
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Action type",
+        value: "Delete Key",
+    }));
 
-    writer
-        .push_fields(ElipsisFields::one(Field {
-            name: "Public Key",
-            value: field_context.buffer.as_str(),
-        }))
-        .unwrap();
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Public Key",
+        value: field_context.buffer.as_str(),
+    }));
 }
