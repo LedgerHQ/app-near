@@ -92,7 +92,7 @@ impl<'a> ElipsisFields<'a> {
     }
 
     pub fn from_capped_string<const N: usize>(
-        source: &'a CappedString<N>,
+        source: &'a mut CappedString<N>,
         title: &'a str,
         display_buf: &'a mut [u8; 20],
     ) -> Self {

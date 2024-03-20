@@ -41,7 +41,7 @@ fn handle_transaction_prefix(
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::transaction::prefix::ui_display(&tx_prefix) {
+    if !sign_ui::transaction::prefix::ui_display(&mut tx_prefix) {
         return Err(AppSW::Deny);
     }
     let tx_public_key = PublicKeyBe::try_from(tx_prefix.public_key);

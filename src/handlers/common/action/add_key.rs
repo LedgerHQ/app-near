@@ -38,7 +38,7 @@ pub fn handle_function_call(
         .map_err(|_err| AppSW::TxParsingFail)?;
     if !sign_ui::action::ui_display_add_key_functioncall(
         add_key_common,
-        &function_call_perm,
+        &mut function_call_perm,
         params,
     ) {
         return Err(AppSW::Deny);

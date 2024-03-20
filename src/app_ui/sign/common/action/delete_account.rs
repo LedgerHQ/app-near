@@ -15,7 +15,7 @@ impl FieldsContext {
     }
 }
 pub fn format<'b, 'a: 'b>(
-    delete_account: &'a parsing::types::DeleteAccount,
+    delete_account: &'a mut parsing::types::DeleteAccount,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 3>,
 ) {
@@ -25,7 +25,7 @@ pub fn format<'b, 'a: 'b>(
     }));
 
     let beneficiary_id = ElipsisFields::from_capped_string(
-        &delete_account.beneficiary_id,
+        &mut delete_account.beneficiary_id,
         "Beneficiary",
         &mut field_context.beneficiary_display_buf,
     );

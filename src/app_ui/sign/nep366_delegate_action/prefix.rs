@@ -25,19 +25,19 @@ impl FieldsContext {
 }
 
 fn format<'b, 'a: 'b>(
-    prefix: &'b parsing::types::nep366_delegate_action::prefix::Prefix,
+    prefix: &'b mut parsing::types::nep366_delegate_action::prefix::Prefix,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 5>,
 ) {
     let sender_id = ElipsisFields::from_capped_string(
-        &prefix.sender_id,
+        &mut prefix.sender_id,
         "Sender Id",
         &mut field_context.display_buf1,
     );
     writer.push_fields(sender_id);
 
     let receiver_id = ElipsisFields::from_capped_string(
-        &prefix.receiver_id,
+        &mut prefix.receiver_id,
         "Receiver Id",
         &mut field_context.display_buf2,
     );
@@ -52,7 +52,7 @@ fn format<'b, 'a: 'b>(
         value: num_actions_str,
     }));
 }
-pub fn ui_display(prefix: &parsing::types::nep366_delegate_action::prefix::Prefix) -> bool {
+pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::Prefix) -> bool {
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);

@@ -15,7 +15,7 @@ pub fn handle(
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display_delete_account(&delete_account, params) {
+    if !sign_ui::action::ui_display_delete_account(&mut delete_account, params) {
         return Err(AppSW::Deny);
     }
     Ok(())

@@ -62,7 +62,7 @@ fn handle_prefix(stream: &mut HashingStream<SingleTxStream<'_>>) -> Result<u32, 
         .deserialize_reader_in_place(stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::nep366_delegate_action::prefix::ui_display(&delegate_action_prefix) {
+    if !sign_ui::nep366_delegate_action::prefix::ui_display(&mut delegate_action_prefix) {
         return Err(AppSW::Deny);
     }
     Ok(delegate_action_prefix.number_of_actions)

@@ -27,13 +27,13 @@ impl FieldsContext {
 }
 
 fn format<'b, 'a: 'b>(
-    payload: &'b Payload,
+    payload: &'b mut Payload,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 7>,
 ) {
     // 2
     let message_fields = ElipsisFields::from_capped_string(
-        &payload.message,
+        &mut payload.message,
         "Message",
         &mut field_context.msg_display_buf,
     );
@@ -50,14 +50,14 @@ fn format<'b, 'a: 'b>(
 
     // 5
     let recipient_fields = ElipsisFields::from_capped_string(
-        &payload.recipient,
+        &mut payload.recipient,
         "Recipient",
         &mut field_context.recipient_display_buf,
     );
     writer.push_fields(recipient_fields);
 
     // 7
-    if let Some(callback_url) = payload.callback_url.as_ref() {
+    if let Some(callback_url) = payload.callback_url.as_mut() {
         let callback_url_fields = ElipsisFields::from_capped_string(
             callback_url,
             "Callback Url",
@@ -66,7 +66,7 @@ fn format<'b, 'a: 'b>(
         writer.push_fields(callback_url_fields);
     }
 }
-pub fn ui_display(payload: &Payload) -> bool {
+pub fn ui_display(payload: &mut Payload) -> bool {
     let mut field_writer: FieldsWriter<'_, 7> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);

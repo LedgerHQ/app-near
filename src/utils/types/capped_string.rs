@@ -21,7 +21,15 @@ impl<const N: usize> CappedString<N> {
         }
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&mut self) -> &str {
+        // NOTE: this workaround is needed until https://github.com/LedgerHQ/ledger-device-rust-sdk/issues/146
+        // is handled at sdk level
+        for byte in self.buffer[..self.used].iter_mut() {
+            if *byte < 0x20 {
+                // NOTE: this is a square glyph, of DEL display
+                *byte = 0x7f;
+            }
+        }
         // .unwrap() is ok because it's either based on complete deserialized `str`
         // based on previous validation by `core::str::from_utf8`,
         // or `self.used` index is equal to value of [`Utf8Error::valid_up_to()`](https://doc.rust-lang.org/std/str/struct.Utf8Error.html#method.valid_up_to)
