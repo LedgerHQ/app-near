@@ -58,7 +58,7 @@ pub fn format<'b, 'a: 'b>(
     }));
 
     let methods_names_fields = ElipsisFields::from_fmt_buffer(
-        &function_call_perm.method_names,
+        &mut function_call_perm.method_names,
         "Method Names",
         &mut field_context.method_names_display_buf,
     );

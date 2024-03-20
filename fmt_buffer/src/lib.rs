@@ -16,7 +16,14 @@ impl<const N: usize> Buffer<N> {
         }
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&mut self) -> &str {
+        // NOTE: this workaround is needed until https://github.com/LedgerHQ/ledger-device-rust-sdk/issues/146
+        // is handled at sdk level
+        for byte in self.buffer[..self.used].iter_mut() {
+            if *byte < 0x20 {
+                *byte = 0x7f;
+            }
+        }
         debug_assert!(self.used <= self.buffer.len());
         // .unwrap() is ok, as only bytes, comprising a sequence of valid utf8 chars
         // are going to be written to `self.buffer` on `self.write_str` calls
@@ -134,5 +141,16 @@ mod tests {
         buffer.write_str("some more");
         assert_eq!("toooooo long:    400000 - 0x61", buffer.as_str());
         assert_eq!(true, buffer.truncated());
+    }
+
+    #[test]
+    pub fn test_rewrite_undisplayable_chars() {
+        let mut buffer = Buffer::<30>::new();
+
+        buffer.write_str("Prefix: ");
+
+        buffer.write_str("\x0A\x0D");
+        assert_eq!("Prefix: \x7F\x7F", buffer.as_str());
+        assert_eq!(false, buffer.truncated());
     }
 }

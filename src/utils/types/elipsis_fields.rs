@@ -20,7 +20,7 @@ impl<'a> ElipsisFields<'a> {
     }
 
     pub fn from_fmt_buffer<const N: usize>(
-        source: &'a Buffer<N>,
+        source: &'a mut Buffer<N>,
         title: &'a str,
         display_buf: &'a mut [u8; 20],
     ) -> Self {
