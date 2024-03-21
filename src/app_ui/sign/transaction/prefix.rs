@@ -25,19 +25,19 @@ impl FieldsContext {
 }
 
 fn format<'b, 'a: 'b>(
-    prefix: &'b parsing::types::transaction::prefix::Prefix,
+    prefix: &'b mut parsing::types::transaction::prefix::Prefix,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 5>,
 ) {
     let signer_id = ElipsisFields::from_capped_string(
-        &prefix.signer_id,
+        &mut prefix.signer_id,
         "Signer Id",
         &mut field_context.display_buf1,
     );
     writer.push_fields(signer_id);
 
     let receiver_id = ElipsisFields::from_capped_string(
-        &prefix.receiver_id,
+        &mut prefix.receiver_id,
         "Receiver Id",
         &mut field_context.display_buf2,
     );
@@ -52,7 +52,7 @@ fn format<'b, 'a: 'b>(
         value: num_actions_str,
     }));
 }
-pub fn ui_display(prefix: &parsing::types::transaction::prefix::Prefix) -> bool {
+pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> bool {
     let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);

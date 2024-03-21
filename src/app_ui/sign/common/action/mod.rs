@@ -47,7 +47,7 @@ pub fn ui_display_create_account(
 }
 
 pub fn ui_display_delete_account(
-    delete_account: &parsing::types::DeleteAccount,
+    delete_account: &mut parsing::types::DeleteAccount,
     params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 3> = FieldsWriter::new();
@@ -91,7 +91,7 @@ pub fn ui_display_add_key_fullaccess(
 
 pub fn ui_display_add_key_functioncall(
     add_key: &parsing::types::AddKey,
-    function_call_per: &parsing::types::FunctionCallPermission,
+    function_call_per: &mut parsing::types::FunctionCallPermission,
     params: ActionParams,
 ) -> bool {
     let mut common_field_context: add_key_common::FieldsContext =
@@ -123,8 +123,8 @@ pub fn ui_display_deploy_contract(
 }
 
 pub fn ui_display_function_call_str(
-    func_call_common: &parsing::types::FunctionCallCommon,
-    args: &CappedString<200>,
+    func_call_common: &mut parsing::types::FunctionCallCommon,
+    args: &mut CappedString<200>,
     params: ActionParams,
 ) -> bool {
     let mut writer: FieldsWriter<'_, 7> = FieldsWriter::new();
@@ -140,7 +140,7 @@ pub fn ui_display_function_call_str(
 }
 
 pub fn ui_display_function_call_bin(
-    func_call_common: &parsing::types::FunctionCallCommon,
+    func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &HexDisplay<200>,
     params: ActionParams,
 ) -> bool {

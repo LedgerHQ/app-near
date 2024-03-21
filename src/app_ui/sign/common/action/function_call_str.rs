@@ -15,7 +15,7 @@ impl FieldsContext {
     }
 }
 pub fn format<'b, 'a: 'b>(
-    args: &'b CappedString<200>,
+    args: &'b mut CappedString<200>,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 7>,
 ) {

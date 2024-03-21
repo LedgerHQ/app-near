@@ -25,7 +25,7 @@ impl FieldsContext {
 }
 
 pub fn format<'b, 'a: 'b>(
-    function_call_perm: &'a parsing::types::FunctionCallPermission,
+    function_call_perm: &'a mut parsing::types::FunctionCallPermission,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, 10>,
 ) {
@@ -42,7 +42,7 @@ pub fn format<'b, 'a: 'b>(
     }));
 
     let recevier_id = ElipsisFields::from_capped_string(
-        &function_call_perm.receiver_id,
+        &mut function_call_perm.receiver_id,
         "FnCall Receiver",
         &mut field_context.receiver_display_buf,
     );
@@ -58,7 +58,7 @@ pub fn format<'b, 'a: 'b>(
     }));
 
     let methods_names_fields = ElipsisFields::from_fmt_buffer(
-        &function_call_perm.method_names,
+        &mut function_call_perm.method_names,
         "Method Names",
         &mut field_context.method_names_display_buf,
     );

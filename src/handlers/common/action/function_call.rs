@@ -24,7 +24,7 @@ pub fn handle(
     let args_bytes_count: u32 =
         u32::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    let representation = match stream
+    let mut representation = match stream
         .reader
         .peek_u8()
         .map_err(|_err| AppSW::TxParsingFail)?
@@ -57,24 +57,33 @@ pub fn handle(
             return Err(AppSW::TxParsingFail);
         }
     };
-    handle_common(stream, method_name, params, &representation)
+    handle_common(stream, method_name, params, &mut representation)
 }
 fn handle_common(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     method_name: CappedString<50>,
     params: ActionParams,
-    representation: &ArgsRepr,
+    representation: &mut ArgsRepr,
 ) -> Result<(), AppSW> {
-    let func_call_common = FunctionCallCommon::deserialize_with_method_name(stream, method_name)
-        .map_err(|_err| AppSW::TxParsingFail)?;
+    let mut func_call_common =
+        FunctionCallCommon::deserialize_with_method_name(stream, method_name)
+            .map_err(|_err| AppSW::TxParsingFail)?;
     match representation {
         ArgsRepr::BinHex(args_bin) => {
-            if !sign_ui::action::ui_display_function_call_bin(&func_call_common, args_bin, params) {
+            if !sign_ui::action::ui_display_function_call_bin(
+                &mut func_call_common,
+                args_bin,
+                params,
+            ) {
                 return Err(AppSW::Deny);
             }
         }
         ArgsRepr::String(args_str) => {
-            if !sign_ui::action::ui_display_function_call_str(&func_call_common, args_str, params) {
+            if !sign_ui::action::ui_display_function_call_str(
+                &mut func_call_common,
+                args_str,
+                params,
+            ) {
                 return Err(AppSW::Deny);
             }
         }

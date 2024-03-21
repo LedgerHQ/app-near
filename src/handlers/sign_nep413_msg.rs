@@ -31,7 +31,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .deserialize_reader_in_place(&mut stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::nep413::payload::ui_display(&payload) {
+    if !sign_ui::nep413::payload::ui_display(&mut payload) {
         return Err(AppSW::Deny);
     }
 

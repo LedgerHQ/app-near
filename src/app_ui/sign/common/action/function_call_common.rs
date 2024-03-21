@@ -23,7 +23,7 @@ impl FieldsContext {
     }
 }
 pub fn format<'b, 'a: 'b, const N: usize>(
-    func_call_common: &'a parsing::types::FunctionCallCommon,
+    func_call_common: &'a mut parsing::types::FunctionCallCommon,
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, N>,
 ) {
@@ -33,7 +33,7 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     }));
 
     let method_name = ElipsisFields::from_capped_string(
-        &func_call_common.method_name,
+        &mut func_call_common.method_name,
         "Method Name",
         &mut field_context.method_name_display_buf,
     );
