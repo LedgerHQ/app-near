@@ -17,10 +17,16 @@ impl<const N: usize> Buffer<N> {
     }
 
     pub fn as_str(&mut self) -> &str {
-        // NOTE: this workaround is needed until https://github.com/LedgerHQ/ledger-device-rust-sdk/issues/146
-        // is handled at sdk level
         for byte in self.buffer[..self.used].iter_mut() {
+            // NOTE: this workaround is needed until https://github.com/LedgerHQ/ledger-device-rust-sdk/issues/146
+            // is handled at sdk level
             if *byte < 0x20 {
+                *byte = 0x7f;
+            }
+            // NOTE: this workaround is needed until https://github.com/LedgerHQ/ledger-device-rust-sdk/issues/124
+            // is handled at sdk level
+            if *byte > 0x7f {
+                // NOTE: this is a square glyph, of DEL display
                 *byte = 0x7f;
             }
         }
