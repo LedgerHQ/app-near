@@ -2,11 +2,20 @@
 
 ![Rule enforcer](https://github.com/dj8yfo/app-near-rs/actions/workflows/guidelines_enforcer.yml/badge.svg) ![Build and tests](https://github.com/dj8yfo/app-near-rs/actions/workflows/build_and_functional_tests.yml/badge.svg)
 
-This is a Near application written in Rust which can be forked to start a new project for the Ledger Nano S/X/SP devices.
+This is a Near application written in Rust for the Ledger Nano S/X/SP devices.
 
 * Implements standard features (display address, transaction signature...),
 * Has functional tests using [Ragger](https://github.com/LedgerHQ/ragger),
 * Has CI workflows mandatory for app deployment in the Ledger store.
+
+### Development log
+
+Details of the structure of application, features and encountered problems as seen during initial 
+development cycle are present in [issue](https://github.com/dj8yfo/app-near-rs/issues/3). 
+
+### Advantages in comparison with [app-near](https://github.com/LedgerHQ/app-near)
+- unlimited size of transactions
+- normal support of batch transactions, [test](https://github.com/dj8yfo/app-near-rs/blob/develop/tests/test_sign_transaction/test_batch_transaction.py), [screenshots of 2/12 action](https://github.com/dj8yfo/app-near-rs/tree/develop/tests/snapshots/nanos/test_sign_batch_transaction_all_actions/2_0_next_action) ,  none of the details of actions are shown in [`app-near`](https://github.com/LedgerHQ/app-near/tree/develop/workdir/app-near/tests/snapshots/nanos/test_sign_multiple_actions_2_apdu_exchanges)  
 
 ### Links
 
@@ -43,7 +52,7 @@ By using Ledger's own developer tools [Docker image](https://github.com/LedgerHQ
 You can build the Near app with the following command executed in the root directory of the app.
 
 ```bash
-cargo ledger nanox build 
+cargo ledger build nanox 
 ```
 
 This command will build the app for the Nano X, but you can use any supported device (`nanos`, `nanox`, `nanosplus`)
