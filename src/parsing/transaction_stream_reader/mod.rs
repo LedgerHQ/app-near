@@ -42,7 +42,7 @@ impl<R> HashingStream<R> {
         Ok(res)
     }
 
-    pub fn finalize(self) -> Result<Sha256Digest, AppSW> {
+    pub fn finalize(mut self) -> Result<Sha256Digest, AppSW> {
         let mut array = [0u8; 32];
 
         self.sha256
