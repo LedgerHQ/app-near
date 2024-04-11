@@ -8,6 +8,7 @@ This is a Near application written in Rust for the Ledger Nano S/X/SP devices.
 * Has functional tests using [Ragger](https://github.com/LedgerHQ/ragger),
 * Has CI workflows mandatory for app deployment in the Ledger store.
 
+
 ### Development log
 
 Details of the structure of application, features and encountered problems as seen during initial 

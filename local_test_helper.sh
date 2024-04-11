@@ -3,15 +3,10 @@
 function build_all() {
   # docker command to build
   cat <<"EOF" | docker run --rm -i --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath ./):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-    rm -rf build/*
-    cargo ledger build nanos -- -Zunstable-options --out-dir=./build/nanos/bin/
-    mv ./build/nanos/bin/app-near-rust ./build/nanos/bin/app.elf
-
-    cargo ledger build nanosplus -- -Zunstable-options --out-dir=./build/nanos2/bin/
-    mv ./build/nanos2/bin/app-near-rust ./build/nanos2/bin/app.elf
-
-    cargo ledger build nanox -- -Zunstable-options --out-dir=./build/nanox/bin/
-    mv ./build/nanox/bin/app-near-rust ./build/nanox/bin/app.elf
+    rm -rf target
+    cargo ledger build nanos
+    cargo ledger build nanosplus
+    cargo ledger build nanox
     exit
 EOF
 }
