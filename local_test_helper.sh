@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function build_all() {
   # docker command to build
@@ -12,10 +12,6 @@ EOF
 }
 
 function test() {
-  
-  docker run --rm -tdi --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath .):/app" --name app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest 
-  docker exec -it -u 0  app-near-container bash -c ' [ -f ./tests/requirements.txt ] && pip install -r ./tests/requirements.txt'
-
   if [[ -n "$GOLDEN" ]] ;
   then 
     golden_suffix="--golden_run"
@@ -30,7 +26,10 @@ function test() {
     filter=""
   fi
 
-  docker exec -it  app-near-container bash -c "pytest ./tests --tb=short $filter -v --device $1 $golden_suffix"
+  docker run --rm -i --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath .):/app" --name app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest  /bin/bash -s <<EOF
+  [ -f ./tests/requirements.txt ] && pip install -r ./tests/requirements.txt
+  pytest ./tests --tb=short --log-cli-level=$PYTEST_LOG_LEVEL $filter -v --device $1 $golden_suffix
+EOF
 }
 
 function test_all() {
@@ -44,11 +43,12 @@ function test_all() {
   fi
   echo "$filter"
   # docker commands to test with Ragger (for ALL)
-  docker run --rm -tdi --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath .):/app" --name app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest 
-  docker exec -it -u 0  app-near-container bash -c ' [ -f ./tests/requirements.txt ] && pip install -r ./tests/requirements.txt'
-  docker exec -it  app-near-container bash -c "pytest ./tests --tb=short $filter -v --device nanos" || exit
-  docker exec -it  app-near-container bash -c "pytest ./tests --tb=short $filter -v --device nanosp" || exit
-  docker exec -it  app-near-container bash -c "pytest ./tests --tb=short $filter -v --device nanox" || exit
+
+  docker run --rm -i --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath .):/app" --name app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest  /bin/bash -s <<EOF
+  set -e
+  [ -f ./tests/requirements.txt ] && pip install -r ./tests/requirements.txt
+  pytest ./tests --log-cli-level=$PYTEST_LOG_LEVEL --tb=short $filter -v --device all_nano
+EOF
 }
 
 while getopts ":c:t:f:g" opt; do

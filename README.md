@@ -80,7 +80,7 @@ speculos --model nanox target/nanox/release/app-near-rust
 
 ### Testing
 
-See [local_test_helper.sh](./local_test_helper.sh).
+See [local_test_helper.sh](./local_test_helper.sh) and [Justfile](./Justfile)
 
 #### Unit testing
 
