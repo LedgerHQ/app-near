@@ -1,3 +1,5 @@
+import? 'local.just'
+
 cleanup:
 	#!/usr/bin/env bash
 	sudo rm -rf target
@@ -7,6 +9,12 @@ cleanup:
 		echo 'target not cleaned';
 		exit 3;
 	fi
+
+fmt: 
+	cargo fmt --all
+
+unit_tests:
+	RUSTFLAGS='-D warnings' bash local_unit_tests.sh
 
 build_all:
 	#!/usr/bin/env bash

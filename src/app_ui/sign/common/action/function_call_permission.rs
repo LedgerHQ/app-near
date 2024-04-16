@@ -1,33 +1,41 @@
+use crate::app_ui::aliases::U32Buffer;
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
+    app_ui::fields_writer::FieldsWriter,
+    parsing,
+    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
 };
-use fmt_buffer::Buffer;
-
 use ledger_device_sdk::ui::gadgets::Field;
+use near_token::TokenBuffer;
 use numtoa::NumToA;
 
 pub struct FieldsContext {
-    pub num_buf: [u8; 10],
-    pub receiver_display_buf: [u8; 20],
-    pub method_names_display_buf: [u8; 20],
-    pub allowance_buffer: Buffer<30>,
+    pub num_buf: U32Buffer,
+    pub receiver_display_buf: EllipsisBuffer,
+    pub method_names_display_buf: EllipsisBuffer,
+    pub allowance_buffer: TokenBuffer,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            num_buf: [0u8; 10],
-            receiver_display_buf: [0u8; 20],
-            method_names_display_buf: [0u8; 20],
-            allowance_buffer: Buffer::new(),
+            num_buf: U32Buffer::default(),
+            receiver_display_buf: EllipsisBuffer::default(),
+            method_names_display_buf: EllipsisBuffer::default(),
+            allowance_buffer: TokenBuffer::new(),
         }
     }
 }
 
+/// action type (1) + Public Key (1) + Access Key Nonce (1) +
+/// Access Permission (1) + FnCall Allowance (1)  +
+/// FnCall Receiver `ElipsisFields` (1-2) + Total FnCall Methods (1) +
+/// Method Names `ElipsisFields` (1-2)
+const MAX_FIELDS: usize = 10;
+
 pub fn format<'b, 'a: 'b>(
     function_call_perm: &'a mut parsing::types::FunctionCallPermission,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 10>,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     let allowance = match function_call_perm.allowance {
         Some(allowance) => {

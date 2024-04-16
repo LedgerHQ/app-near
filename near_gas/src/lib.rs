@@ -9,6 +9,9 @@ use numtoa::NumToA;
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq)]
 pub struct NearGas(u64);
 
+/// A buffer, large enough to fit all [NearGas] representation values into
+pub type GasBuffer = Buffer<30>;
+
 /// Gas is a type for storing amount of gas.
 type Gas = u64;
 
@@ -68,7 +71,7 @@ impl NearGas {
         self.0
     }
 
-    pub fn display_as_buffer(&self, result: &mut Buffer<30>) {
+    pub fn display_as_buffer(&self, result: &mut GasBuffer) {
         if *self == NearGas::from_gas(0) {
             result.write_str("0 Tgas");
         } else if *self < NearGas::from_ggas(1) {
@@ -115,8 +118,7 @@ impl BorshDeserialize for NearGas {
 
 #[cfg(test)]
 mod test {
-    use crate::NearGas;
-    use fmt_buffer::Buffer;
+    use crate::{GasBuffer, NearGas};
 
     #[test]
     fn test_display() {
@@ -146,7 +148,7 @@ mod test {
                 "1000000.5 Tgas",
             ),
         ] {
-            let mut buffer: Buffer<30> = Buffer::new();
+            let mut buffer: GasBuffer = GasBuffer::new();
             near_gas.display_as_buffer(&mut buffer);
 
             assert_eq!(buffer.as_str(), expected_display);

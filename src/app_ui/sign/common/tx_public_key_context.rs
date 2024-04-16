@@ -2,7 +2,8 @@ use crate::{parsing::types::TxPublicKey, utils::types::base58_buf::Base58Buf};
 use fmt_buffer::Buffer;
 
 pub struct FieldsContext {
-    pub buffer: Buffer<100>,
+    /// large enough buffer to fit `key_type:` prefix and key base 58 representation
+    buffer: Buffer<100>,
 }
 
 impl FieldsContext {
@@ -34,5 +35,9 @@ impl FieldsContext {
                 self.buffer.write_str(bs58_buf.as_str());
             }
         }
+    }
+
+    pub fn as_str(&mut self) -> &str {
+        self.buffer.as_str()
     }
 }

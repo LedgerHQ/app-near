@@ -1,24 +1,25 @@
 use crate::{
-    parsing::{self},
-    utils::types::elipsis_fields::ElipsisFields,
+    parsing,
+    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
 };
-use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::gadgets::Field;
+use near_gas::GasBuffer;
+use near_token::TokenBuffer;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
-    pub method_name_display_buf: [u8; 20],
-    pub gas_buf: Buffer<30>,
-    pub deposit_buffer: Buffer<30>,
+    pub method_name_display_buf: EllipsisBuffer,
+    pub gas_buf: GasBuffer,
+    pub deposit_buffer: TokenBuffer,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            method_name_display_buf: [0u8; 20],
-            gas_buf: Buffer::new(),
-            deposit_buffer: Buffer::new(),
+            method_name_display_buf: EllipsisBuffer::default(),
+            gas_buf: GasBuffer::new(),
+            deposit_buffer: TokenBuffer::new(),
         }
     }
 }

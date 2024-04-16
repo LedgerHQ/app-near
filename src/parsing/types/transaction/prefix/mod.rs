@@ -1,14 +1,16 @@
-use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
+use crate::app_ui::aliases::CappedAccountId;
+use crate::parsing::types::TxPublicKey;
 use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
 
 pub struct Prefix {
-    pub signer_id: CappedString<64>,
-    pub receiver_id: CappedString<64>,
+    pub signer_id: CappedAccountId,
+    pub receiver_id: CappedAccountId,
     pub public_key: TxPublicKey,
     pub number_of_actions: u32,
 }
 
+/// hash, which is `sha2::Sha256`
 pub struct CryptoHash(pub [u8; 32]);
 
 impl BorshDeserialize for CryptoHash {
@@ -20,8 +22,8 @@ impl BorshDeserialize for CryptoHash {
 impl Prefix {
     pub fn new() -> Self {
         Self {
-            signer_id: CappedString::new(),
-            receiver_id: CappedString::new(),
+            signer_id: CappedAccountId::new(),
+            receiver_id: CappedAccountId::new(),
             public_key: TxPublicKey::ED25519([0u8; 32]),
             number_of_actions: 0,
         }

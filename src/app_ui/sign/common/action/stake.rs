@@ -3,29 +3,31 @@ use crate::{
     sign_ui::common::tx_public_key_context,
     utils::types::elipsis_fields::ElipsisFields,
 };
-use fmt_buffer::Buffer;
 use ledger_device_sdk::ui::gadgets::Field;
+use near_token::TokenBuffer;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
-    pub stake_buffer: Buffer<30>,
+    pub stake_buffer: TokenBuffer,
     pub pub_key_context: tx_public_key_context::FieldsContext,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            stake_buffer: Buffer::new(),
+            stake_buffer: TokenBuffer::new(),
             pub_key_context: tx_public_key_context::FieldsContext::new(),
         }
     }
 }
+/// action type (1) + Stake (1) + Public Key (1)
+const MAX_FIELDS: usize = 3;
 
 pub fn format<'b, 'a: 'b>(
     stake: &parsing::types::Stake,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 3>,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     field_context
         .pub_key_context
@@ -45,6 +47,6 @@ pub fn format<'b, 'a: 'b>(
 
     writer.push_fields(ElipsisFields::one(Field {
         name: "Public Key",
-        value: field_context.pub_key_context.buffer.as_str(),
+        value: field_context.pub_key_context.as_str(),
     }));
 }

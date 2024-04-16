@@ -3,8 +3,13 @@ use crate::utils::types::base58_buf::Base58Buf;
 use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
 
+/// arbitrary chunk size, which is set to around 40% of apdu buffer size
+/// in order to not consume much stack space on `nanos`
+const CHUNK_SIZE: usize = 100;
+
 pub struct DeployContract {
     /// WebAssembly binary (hash)
+    /// 50 bytes is enough to store base58 of a sha256 hash
     pub code_sha256: Base58Buf<50>,
 }
 
@@ -12,10 +17,10 @@ impl BorshDeserialize for DeployContract {
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let bytes_count: u32 = u32::deserialize_reader(reader)?;
 
-        let mut buf: [u8; 100] = [0u8; 100];
+        let mut buf: [u8; CHUNK_SIZE] = [0u8; CHUNK_SIZE];
 
-        let chunks = bytes_count / 100;
-        let remainder = bytes_count % 100;
+        let chunks = bytes_count / (CHUNK_SIZE as u32);
+        let remainder = bytes_count % (CHUNK_SIZE as u32);
 
         let mut stream =
             HashingStream::new(reader).map_err(|_err| Error::from(ErrorKind::Other))?;

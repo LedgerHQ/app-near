@@ -1,23 +1,29 @@
-use crate::{parsing, utils::types::elipsis_fields::ElipsisFields};
+use crate::{
+    parsing,
+    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
+};
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
+/// action type (1) + Beneficiary `EllipsisFields` (1-2)
+const MAX_FIELDS: usize = 3;
+
 pub struct FieldsContext {
-    pub beneficiary_display_buf: [u8; 20],
+    pub beneficiary_display_buf: EllipsisBuffer,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            beneficiary_display_buf: [0u8; 20],
+            beneficiary_display_buf: EllipsisBuffer::default(),
         }
     }
 }
 pub fn format<'b, 'a: 'b>(
     delete_account: &'a mut parsing::types::DeleteAccount,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 3>,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     writer.push_fields(ElipsisFields::one(Field {
         name: "Action type",

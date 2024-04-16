@@ -1,7 +1,7 @@
+use crate::app_ui::aliases::{CappedAccountId, MethodNamesBuffer};
 use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
 use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
-use fmt_buffer::Buffer;
 use near_token::NearToken;
 
 use super::Nonce;
@@ -44,14 +44,14 @@ pub struct FunctionCallPermission {
     // values for this field (see: https://github.com/near/nearcore/pull/4621#issuecomment-892099860)
     // we accommodate those by using a string, allowing us to read and parse genesis.
     /// The access key only allows transactions with the given receiver's account id.
-    pub receiver_id: CappedString<64>,
+    pub receiver_id: CappedAccountId,
 
     pub number_of_method_names: u32,
     /// A list of method names that can be used. The access key only allows transactions with the
     /// function call of one of the given method names.
     /// Empty list means any method name can be used.
     // pub method_names: Vec<String>,
-    pub method_names: Buffer<210>,
+    pub method_names: MethodNamesBuffer,
 }
 
 impl BorshDeserialize for AccessKeyPermission {
@@ -83,13 +83,19 @@ impl BorshDeserialize for AddKey {
     }
 }
 
+/// buffer to store each individual `method_name` in `method_names` of
+/// https://docs.rs/near-primitives/0.21.2/near_primitives/account/struct.FunctionCallPermission.html .
+/// If a `method_name` is longer than this buffer during parsing, it's
+/// truncated and will be displayed with ellipsis `is_too_long_method_name_suffix_truncated...`
+type PerMethodBuffer = CappedString<40>;
+
 impl FunctionCallPermission {
     pub fn new() -> Self {
         Self {
             allowance: None,
-            receiver_id: CappedString::new(),
+            receiver_id: CappedAccountId::new(),
             number_of_method_names: 0,
-            method_names: Buffer::new(),
+            method_names: MethodNamesBuffer::new(),
         }
     }
     // NOTE: using this instead of `BorshDeserialize`
@@ -101,7 +107,7 @@ impl FunctionCallPermission {
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;
 
-        let mut per_method_buffer: CappedString<40> = CappedString::new();
+        let mut per_method_buffer: PerMethodBuffer = PerMethodBuffer::new();
         for _i in 0..(self.number_of_method_names as usize) {
             per_method_buffer.deserialize_reader_in_place(reader)?;
 
