@@ -25,6 +25,14 @@ pull_dev_images:
 	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
 	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
 
+run_builder:
+	# docker command to build
+	docker run --rm -ti --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath ./):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+run_builder_with_local_sdk:
+	# docker command to build with local sdk folder (relative path via volume)
+	docker run --rm -ti --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath ./):/app" -v "$(realpath ../ledger-device-rust-sdk):/sdk" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
 run_speculos_nanos:
 	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
 	-v "$(realpath ./):/app" -it --name  \
