@@ -33,9 +33,7 @@ impl Prefix {
         let pk: TxPublicKey = BorshDeserialize::deserialize_reader(reader)?;
 
         self.public_key = pk;
-        let nonce: u64 = BorshDeserialize::deserialize_reader(reader)?;
-        #[allow(dropping_copy_types)]
-        drop(nonce);
+        let _nonce: u64 = BorshDeserialize::deserialize_reader(reader)?;
         self.receiver_id.deserialize_reader_in_place(reader)?;
 
         let _crypto_hash: CryptoHash = BorshDeserialize::deserialize_reader(reader)?;
