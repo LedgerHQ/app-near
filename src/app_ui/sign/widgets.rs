@@ -20,6 +20,8 @@ use ledger_device_sdk::ui::gadgets::clear_screen;
 use ledger_device_sdk::ui::layout::{Layout, Location, StringPlace};
 use ledger_device_sdk::ui::screen_util::screen_update;
 
+/// the constants and their special meaning were copied from
+/// [ledger_device_sdk::ui::gadgets::display_pending_review]
 pub fn display_receiving() {
     clear_screen();
 

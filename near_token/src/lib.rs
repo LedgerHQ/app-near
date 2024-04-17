@@ -11,6 +11,9 @@ type Balance = u128;
 const ONE_MILLINEAR: u128 = 10_u128.pow(21);
 use numtoa::NumToA;
 
+/// A buffer, large enough to fit all [NearToken] representation values into
+pub type TokenBuffer = Buffer<30>;
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct NearToken(pub Balance);
 
@@ -45,7 +48,7 @@ impl NearToken {
         self.0
     }
 
-    pub fn display_as_buffer(&self, result: &mut Buffer<30>) {
+    pub fn display_as_buffer(&self, result: &mut TokenBuffer) {
         if *self == NearToken::from_yoctonear(0) {
             result.write_str("0 NEAR");
         } else if *self == NearToken::from_yoctonear(1) {
@@ -96,8 +99,9 @@ impl BorshDeserialize for NearToken {
 }
 #[cfg(test)]
 mod tests {
+    use crate::TokenBuffer;
+
     use super::NearToken;
-    use fmt_buffer::Buffer;
 
     #[test]
     fn test_display() {
@@ -107,7 +111,7 @@ mod tests {
             (0, "0 NEAR"),
             (1, "1 yoctoNEAR"),
         ] {
-            let mut buffer: Buffer<30> = Buffer::new();
+            let mut buffer: TokenBuffer = TokenBuffer::new();
 
             let token = NearToken::from_yoctonear(integer);
 
@@ -127,7 +131,7 @@ mod tests {
             (1100, "1.10 NEAR"),
             (1000 * 1_000_000, "1000000.00 NEAR"),
         ] {
-            let mut buffer: Buffer<30> = Buffer::new();
+            let mut buffer: TokenBuffer = TokenBuffer::new();
 
             let token = NearToken::from_millinear(integer_millis);
 

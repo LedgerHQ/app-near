@@ -1,3 +1,4 @@
+use crate::app_ui::aliases::U64Buffer;
 use crate::{
     app_ui::fields_writer::FieldsWriter, parsing, sign_ui::common::tx_public_key_context,
     utils::types::elipsis_fields::ElipsisFields,
@@ -7,14 +8,14 @@ use ledger_device_sdk::ui::gadgets::Field;
 use numtoa::NumToA;
 
 pub struct FieldsContext {
-    pub num_buf: [u8; 20],
+    pub num_buf: U64Buffer,
     pub pub_key_context: tx_public_key_context::FieldsContext,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            num_buf: [0u8; 20],
+            num_buf: U64Buffer::default(),
             pub_key_context: tx_public_key_context::FieldsContext::new(),
         }
     }
@@ -36,7 +37,7 @@ pub fn format<'b, 'a: 'b, const N: usize>(
 
     writer.push_fields(ElipsisFields::one(Field {
         name: "Public Key",
-        value: field_context.pub_key_context.buffer.as_str(),
+        value: field_context.pub_key_context.as_str(),
     }));
 
     writer.push_fields(ElipsisFields::one(Field {

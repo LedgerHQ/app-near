@@ -3,9 +3,11 @@ use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;
 
+/// action type (1)
+const MAX_FIELDS: usize = 1;
 pub fn format(
     _create_account: &parsing::types::CreateAccount,
-    writer: &'_ mut FieldsWriter<'_, 1>,
+    writer: &'_ mut FieldsWriter<'_, MAX_FIELDS>,
 ) {
     writer.push_fields(ElipsisFields::one(Field {
         name: "Action type",

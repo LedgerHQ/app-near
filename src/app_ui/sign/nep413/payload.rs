@@ -4,34 +4,43 @@ use ledger_device_sdk::ui::{
 };
 
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing::types::nep413::payload::Payload,
-    utils::types::elipsis_fields::ElipsisFields,
+    app_ui::fields_writer::FieldsWriter,
+    parsing::types::nep413::payload::Payload,
+    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
 };
 
+/// length, twice as long as [crate::parsing::types::nep413::payload::NonceBuffer],
+/// sufficient to store its representation as hexadecimal string.
+/// NOTE: arrays only implement [Default] up to 32 in size
+const NONCE_HEX_LENGTH: usize = 64;
+
 struct FieldsContext {
-    msg_display_buf: [u8; 20],
-    nonce_buffer: [u8; 64],
-    recipient_display_buf: [u8; 20],
-    callback_url_display_buf: [u8; 20],
+    msg_display_buf: EllipsisBuffer,
+    nonce_buffer: [u8; NONCE_HEX_LENGTH],
+    recipient_display_buf: EllipsisBuffer,
+    callback_url_display_buf: EllipsisBuffer,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            msg_display_buf: [0u8; 20],
-            nonce_buffer: [0u8; 64],
-            recipient_display_buf: [0u8; 20],
-            callback_url_display_buf: [0u8; 20],
+            msg_display_buf: EllipsisBuffer::default(),
+            nonce_buffer: [0u8; NONCE_HEX_LENGTH],
+            recipient_display_buf: EllipsisBuffer::default(),
+            callback_url_display_buf: EllipsisBuffer::default(),
         }
     }
 }
 
+/// Message `ElipsisFields` (1-2) + Nonce (1) +
+/// Recipient `ElipsisFields` (1-2) + Callback Url (1-2)
+const MAX_FIELDS: usize = 7;
+
 fn format<'b, 'a: 'b>(
     payload: &'b mut Payload,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 7>,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
-    // 2
     let message_fields = ElipsisFields::from_capped_string(
         &mut payload.message,
         "Message",
@@ -39,7 +48,6 @@ fn format<'b, 'a: 'b>(
     );
     writer.push_fields(message_fields);
 
-    // 3
     // .unwrap() is ok, as `64 == 32 * 2` holds true
     hex::encode_to_slice(payload.nonce, &mut field_context.nonce_buffer).unwrap();
     writer.push_fields(ElipsisFields::one(Field {
@@ -48,7 +56,6 @@ fn format<'b, 'a: 'b>(
         value: core::str::from_utf8(&field_context.nonce_buffer).unwrap(),
     }));
 
-    // 5
     let recipient_fields = ElipsisFields::from_capped_string(
         &mut payload.recipient,
         "Recipient",
@@ -56,7 +63,6 @@ fn format<'b, 'a: 'b>(
     );
     writer.push_fields(recipient_fields);
 
-    // 7
     if let Some(callback_url) = payload.callback_url.as_mut() {
         let callback_url_fields = ElipsisFields::from_capped_string(
             callback_url,
@@ -67,7 +73,7 @@ fn format<'b, 'a: 'b>(
     }
 }
 pub fn ui_display(payload: &mut Payload) -> bool {
-    let mut field_writer: FieldsWriter<'_, 7> = FieldsWriter::new();
+    let mut field_writer = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);
 

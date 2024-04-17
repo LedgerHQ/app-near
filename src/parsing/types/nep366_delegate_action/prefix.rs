@@ -1,20 +1,20 @@
-use crate::utils::types::capped_string::CappedString;
+use crate::app_ui::aliases::CappedAccountId;
 use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
 
 pub struct Prefix {
     /// Signer of the delegated actions
-    pub sender_id: CappedString<64>,
+    pub sender_id: CappedAccountId,
     /// Receiver of the delegated actions.
-    pub receiver_id: CappedString<64>,
+    pub receiver_id: CappedAccountId,
     pub number_of_actions: u32,
 }
 
 impl Prefix {
     pub fn new() -> Self {
         Self {
-            sender_id: CappedString::new(),
-            receiver_id: CappedString::new(),
+            sender_id: CappedAccountId::new(),
+            receiver_id: CappedAccountId::new(),
             number_of_actions: 0,
         }
     }

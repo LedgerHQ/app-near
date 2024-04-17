@@ -1,6 +1,8 @@
 use ledger_device_sdk::ui::gadgets::Field;
 use numtoa::NumToA;
 
+use crate::app_ui::aliases::U32Buffer;
+
 use super::{
     capped_string::CappedString,
     hex_display::HexDisplay,
@@ -8,6 +10,10 @@ use super::{
 };
 
 use fmt_buffer::Buffer;
+
+/// A buffer, large enough to contain string with number of leftover bytes: `... N bytes`
+/// where N is u32
+pub type EllipsisBuffer = [u8; 20];
 
 pub enum ElipsisFields<'a> {
     One([Field<'a>; 1]),
@@ -22,10 +28,10 @@ impl<'a> ElipsisFields<'a> {
     pub fn from_fmt_buffer<const N: usize>(
         source: &'a mut Buffer<N>,
         title: &'a str,
-        display_buf: &'a mut [u8; 20],
+        display_buf: &'a mut EllipsisBuffer,
     ) -> Self {
         if source.truncated() {
-            let mut numtoa_buf = [0u8; 10];
+            let mut numtoa_buf = U32Buffer::default();
 
             let elipsis_descr = strcat::concatenate(
                 &[
@@ -48,20 +54,20 @@ impl<'a> ElipsisFields<'a> {
                 },
             ])
         } else {
-            return ElipsisFields::One([Field {
+            ElipsisFields::One([Field {
                 name: title,
                 value: source.as_str(),
-            }]);
+            }])
         }
     }
 
     pub fn from_hex_display<const N: usize>(
         source: &'a HexDisplay<N>,
         title: &'a str,
-        display_buf: &'a mut [u8; 20],
+        display_buf: &'a mut EllipsisBuffer,
     ) -> Self {
         if source.truncated() {
-            let mut numtoa_buf = [0u8; 10];
+            let mut numtoa_buf = U32Buffer::default();
 
             let elipsis_descr = concatenate(
                 &[
@@ -84,20 +90,20 @@ impl<'a> ElipsisFields<'a> {
                 },
             ])
         } else {
-            return ElipsisFields::One([Field {
+            ElipsisFields::One([Field {
                 name: title,
                 value: source.as_str(),
-            }]);
+            }])
         }
     }
 
     pub fn from_capped_string<const N: usize>(
         source: &'a mut CappedString<N>,
         title: &'a str,
-        display_buf: &'a mut [u8; 20],
+        display_buf: &'a mut EllipsisBuffer,
     ) -> Self {
         if source.truncated() {
-            let mut numtoa_buf = [0u8; 10];
+            let mut numtoa_buf = U32Buffer::default();
 
             let elipsis_descr = strcat::concatenate(
                 &[
@@ -120,10 +126,10 @@ impl<'a> ElipsisFields<'a> {
                 },
             ])
         } else {
-            return ElipsisFields::One([Field {
+            ElipsisFields::One([Field {
                 name: title,
                 value: source.as_str(),
-            }]);
+            }])
         }
     }
 }

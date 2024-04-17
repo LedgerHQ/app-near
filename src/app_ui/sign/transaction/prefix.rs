@@ -5,29 +5,34 @@ use ledger_device_sdk::ui::{
 use numtoa::NumToA;
 
 use crate::{
-    app_ui::fields_writer::FieldsWriter, parsing, utils::types::elipsis_fields::ElipsisFields,
+    app_ui::{aliases::U32Buffer, fields_writer::FieldsWriter},
+    parsing,
+    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
 };
 
 struct FieldsContext {
-    display_buf1: [u8; 20],
-    display_buf2: [u8; 20],
-    numtoa_buf: [u8; 10],
+    display_buf1: EllipsisBuffer,
+    display_buf2: EllipsisBuffer,
+    numtoa_buf: U32Buffer,
 }
 
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            display_buf1: [0u8; 20],
-            display_buf2: [0u8; 20],
-            numtoa_buf: [0u8; 10],
+            display_buf1: EllipsisBuffer::default(),
+            display_buf2: EllipsisBuffer::default(),
+            numtoa_buf: U32Buffer::default(),
         }
     }
 }
 
+/// Signer Id (1-2) + Receiver Id (1-2) + Total actions (1)
+const MAX_FIELDS: usize = 5;
+
 fn format<'b, 'a: 'b>(
     prefix: &'b mut parsing::types::transaction::prefix::Prefix,
     field_context: &'a mut FieldsContext,
-    writer: &'_ mut FieldsWriter<'b, 5>,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     let signer_id = ElipsisFields::from_capped_string(
         &mut prefix.signer_id,
@@ -53,7 +58,7 @@ fn format<'b, 'a: 'b>(
     }));
 }
 pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> bool {
-    let mut field_writer: FieldsWriter<'_, 5> = FieldsWriter::new();
+    let mut field_writer = FieldsWriter::new();
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
