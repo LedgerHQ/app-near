@@ -3,3 +3,5 @@
 .DS_Store
 *.o
 workdir/nanos-secure-sdk
+ledger
+

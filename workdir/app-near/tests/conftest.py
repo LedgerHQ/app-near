@@ -1,173 +1,19 @@
-import json
-import logging
-import os
-import re
-import socket
-import subprocess
-import time
-from pathlib import Path
-from typing import Union
+from ragger.conftest import configuration
 
-import pytest
-from ledgercomm import Transport
-from speculos.client import SpeculosClient
+###########################
+### CONFIGURATION START ###
+###########################
 
-from utils import DEFAULT_SETTINGS
+# You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
+# Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
+configuration.OPTIONAL.BACKEND_SCOPE = "function"
+configuration.OPTIONAL.APP_DIR = "./workdir/app-near"
 
-logging.basicConfig(level=logging.INFO)
-# root of the repository
-repo_root_path: Path = Path(__file__).parent.parent
-ASSIGNMENT_RE = re.compile(
-    r'^\s*([a-zA-Z_]\w*)\s*=\s*(.*)$', re.MULTILINE)
+#########################
+### CONFIGURATION END ###
+#########################
 
 
-def pytest_addoption(parser):
-    parser.addoption("--hid",
-                     action="store_true")
-    parser.addoption("--headless", action="store_true")
-    parser.addoption("--model", action="store", default="nanos")
-    parser.addoption("--sdk", action="store", default="2.1")
 
-
-def get_app_version() -> str:
-    makefile_path = repo_root_path / "Makefile"
-    if not makefile_path.is_file():
-        raise FileNotFoundError(f"Can't find file: '{makefile_path}'")
-
-    makefile: str = makefile_path.read_text()
-    assignments = dict(ASSIGNMENT_RE.findall(makefile))
-    return f"{assignments['APPVERSION_M']}." \
-           f"{assignments['APPVERSION_N']}." \
-           f"{assignments['APPVERSION_P']}"
-
-
-@pytest.fixture(scope="module")
-def app_version() -> str:
-    return get_app_version()
-
-
-@pytest.fixture
-def sdk(pytestconfig):
-    return pytestconfig.getoption("sdk")
-
-
-@pytest.fixture
-def hid(pytestconfig):
-    return pytestconfig.getoption("hid")
-
-
-@pytest.fixture
-def device(request, hid):
-    # If running on real hardware, nothing to do here
-    if hid:
-        yield
-        return
-
-    # Gets the speculos executable from the SPECULOS environment variable,
-    # or hopes that "speculos.py" is in the $PATH if not set
-    speculos_executable = os.environ.get("SPECULOS", "speculos.py")
-
-    base_args = [
-        speculos_executable, "./NEAR-bin/app.elf",
-        "--sdk", "2.0",
-        "--display", "headless"
-    ]
-
-    # Look for the automation_file attribute in the test function, if present
-    try:
-        automation_args = ["--automation", f"file:{request.function.automation_file}"]
-    except AttributeError:
-        automation_args = []
-
-    speculos_proc = subprocess.Popen([*base_args, *automation_args])
-
-    # Attempts to connect to speculos to make sure that it's ready when the test starts
-    connected = False
-    for _ in range(100):
-        try:
-            socket.create_connection(("127.0.0.1", 9999), timeout=1.0)
-            connected = True
-            break
-        except ConnectionRefusedError:
-            time.sleep(0.1)
-
-    if not connected:
-        raise RuntimeError("Unable to connect to speculos.")
-
-    yield
-
-    speculos_proc.terminate()
-    speculos_proc.wait()
-
-
-@pytest.fixture
-def settings(request) -> dict:
-    try:
-        return request.function.test_settings
-    except AttributeError:
-        return DEFAULT_SETTINGS.copy()
-
-
-@pytest.fixture
-def transport(device, hid):
-    transport = (Transport(interface="hid", debug=True)
-                 if hid else Transport(interface="tcp",
-                                       server="127.0.0.1",
-                                       port=9999,
-                                       debug=True))
-    yield transport
-    transport.close()
-
-
-@pytest.fixture(scope='session', autouse=True)
-def root_directory(request):
-    return Path(str(request.config.rootdir))
-
-
-@pytest.fixture
-def headless(pytestconfig):
-    return pytestconfig.getoption("headless")
-
-
-@pytest.fixture
-def enable_slow_tests(pytestconfig):
-    return pytestconfig.getoption("enableslowtests")
-
-
-@pytest.fixture
-def model(pytestconfig):
-    return pytestconfig.getoption("model")
-
-
-@pytest.fixture
-def comm(settings, root_directory, hid, headless, model, sdk, app_version: str) \
-        -> Union[Transport, SpeculosClient]:
-    if hid:
-        client = Transport("hid")
-    else:
-        # We set the app's name before running speculos in order to emulate the expected
-        # behavior of the SDK's GET_VERSION default APDU.
-
-        if not os.getenv("SPECULOS_APPNAME"):
-            os.environ['SPECULOS_APPNAME'] = f'app:{app_version}'
-
-        app_binary = os.getenv("BINARY", str(
-            repo_root_path.joinpath("NEAR-bin/app.elf")))
-
-        client = SpeculosClient(
-            app_binary,
-            ['--model', model, '--sdk', sdk, '--seed', f'{settings["mnemonic"]}']
-            + ["--display", "qt" if not headless else "headless"]
-        )
-        client.start()
-
-        if settings["automation_file"]:
-            automation_filename = root_directory.joinpath(
-                settings["automation_file"])
-            with open(automation_filename) as automation_file:
-                rules = json.load(automation_file)
-            client.set_automation_rules(rules)
-
-    yield client
-
-    client.stop()
+# Pull all features from the base ragger conftest using the overridden configuration
+pytest_plugins = ("ragger.conftest.base_conftest", )

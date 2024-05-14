@@ -1,5 +1,4 @@
-#ifndef __OS_SHIM_H__
-#define __OS_SHIM_H__
+#pragma once
 
 #ifdef OS_IO_SEPROXYHAL
     #include <os.h>
@@ -17,4 +16,3 @@
 #endif // UNITTEST
 #endif
 
-#endif /* __OS_SHIM_H__ */
