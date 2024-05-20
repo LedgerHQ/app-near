@@ -1,4 +1,4 @@
-# Ledger Rust Near Application
+# Ledger NEAR Application
 
 ![Rule enforcer](https://github.com/dj8yfo/app-near-rs/actions/workflows/guidelines_enforcer.yml/badge.svg) ![Build and tests](https://github.com/dj8yfo/app-near-rs/actions/workflows/build_and_functional_tests.yml/badge.svg)
 
