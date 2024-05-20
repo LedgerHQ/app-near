@@ -27,13 +27,13 @@ path = ["44'/397'"]
 name = "NEAR"
 
 [package.metadata.ledger.nanos]
-icon = "crab.gif"
+icon = "icons/app_near_16px.gif"
 
 [package.metadata.ledger.nanox]
-icon = "crab_14x14.gif"
+icon = "icons/app_near_14px.gif"
 
 [package.metadata.ledger.nanosplus]
-icon = "crab_14x14.gif"
+icon = "icons/app_near_14px.gif"
 
 [features]
 default = []
