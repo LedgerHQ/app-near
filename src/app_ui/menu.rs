@@ -37,7 +37,12 @@ fn ui_about_menu(comm: &mut Comm) -> Event<Instruction> {
 }
 
 pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
-    const APP_ICON: Glyph = Glyph::from_include(include_gif!("crab.gif"));
+    #[cfg(target_os = "nanos")]
+    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_16px.gif"));
+    #[cfg(target_os = "nanosplus")]
+    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
+    #[cfg(target_os = "nanox")]
+    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
     let pages = [
         // The from trait allows to create different styles of pages
         // without having to use the new() function.
