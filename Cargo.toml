@@ -1,6 +1,6 @@
 [package]
 name = "app-near-rust"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["yhql", "agrojean-ledger", "dj8yf0μl"]
 edition = "2021"
 
@@ -24,7 +24,7 @@ lto = true
 curve = ["ed25519"]
 flags = "0"
 path = ["44'/397'"]
-name = "Rust Near"
+name = "NEAR"
 
 [package.metadata.ledger.nanos]
 icon = "crab.gif"

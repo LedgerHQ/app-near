@@ -24,7 +24,7 @@ use crate::Instruction;
 
 fn ui_about_menu(comm: &mut Comm) -> Event<Instruction> {
     let pages = [
-        &Page::from((["Rust Near", "(c) 2023 Ledger"], true)),
+        &Page::from((["NEAR", "(c) 2024 Ledger"], true)),
         &Page::from(("Back", &BACK)),
     ];
     loop {
