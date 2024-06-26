@@ -17,11 +17,18 @@
 
 use include_gif::include_gif;
 use ledger_device_sdk::io::{Comm, Event};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::bitmaps::{Glyph, BACK, CERTIFICATE, DASHBOARD_X};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::{EventOrPageIndex, MultiPageMenu, Page};
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{NbglGlyph, NbglHomeAndSettings};
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use crate::settings::Settings;
 
 use crate::Instruction;
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 fn ui_about_menu(comm: &mut Comm) -> Event<Instruction> {
     let pages = [
         &Page::from((["NEAR", "(c) 2024 Ledger"], true)),
@@ -36,12 +43,15 @@ fn ui_about_menu(comm: &mut Comm) -> Event<Instruction> {
     }
 }
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
     #[cfg(target_os = "nanos")]
     const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_16px.gif"));
     #[cfg(target_os = "nanosplus")]
     const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
     #[cfg(target_os = "nanox")]
+    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
+    #[cfg(target_os = "stax")]
     const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
     let pages = [
         // The from trait allows to create different styles of pages
@@ -59,4 +69,23 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
             EventOrPageIndex::Index(_) => (),
         }
     }
+}
+
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
+    // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+
+    let settings_strings = [["Display Memo", "Allow display of transaction memo."]];
+    let mut settings: Settings = Default::default();
+    // Display the home screen.
+    NbglHomeAndSettings::new()
+        .glyph(&FERRIS)
+        .settings(settings.get_mut_ref(), &settings_strings)
+        .infos(
+            "Boilerplate",
+            env!("CARGO_PKG_VERSION"),
+            env!("CARGO_PKG_AUTHORS"),
+        )
+        .show()
 }

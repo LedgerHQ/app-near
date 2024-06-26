@@ -36,6 +36,9 @@ mod utils {
         pub mod strcat;
     }
 }
+
+mod settings;
+
 mod app_ui {
     pub mod address;
     pub mod aliases;
@@ -125,6 +128,7 @@ use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 use ledger_device_sdk::testing;
 use parsing::SingleTxStream;
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
 // CLA (APDU class byte) for all APDUs.

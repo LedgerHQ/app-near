@@ -18,8 +18,15 @@
 use crate::utils::crypto;
 use crate::AppSW;
 use fmt_buffer::Buffer;
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+
 
 pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = Buffer::<60>::new();
@@ -30,17 +37,37 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
         value: out_buf.as_str(),
     }];
 
-    let my_review = MultiFieldReview::new(
-        &my_field,
-        &["Confirm Address"],
-        Some(&EYE),
-        "Approve",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            &my_field,
+            &["Confirm Address"],
+            Some(&EYE),
+            "Approve",
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+        Ok(my_review.show())
+    }
 
-    Ok(my_review.show())
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+
+        Ok(review.show(&my_field))
+    }
 }
 
 pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
@@ -51,15 +78,34 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
         value: public_key.display_str_hex(&mut out_buf),
     }];
 
-    let my_review = MultiFieldReview::new(
-        &my_field,
-        &["Confirm Address"],
-        Some(&EYE),
-        "Approve",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            &my_field,
+            &["Confirm Address"],
+            Some(&EYE),
+            "Approve",
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+        Ok(my_review.show())
+    }
 
-    Ok(my_review.show())
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+            Ok(review.show(&my_field))
+    }
 }

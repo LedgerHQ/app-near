@@ -1,4 +1,8 @@
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::Field;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::Field;
+
 use numtoa::NumToA;
 
 use crate::app_ui::aliases::U32Buffer;

@@ -16,10 +16,13 @@ pub fn handle(
     stream.reader.comm.reply(AppSW::TxParsingFail);
     sign_ui::widgets::delegate_error_screen();
     loop {
+        #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
         if let Event::Button(ButtonEvent::BothButtonsRelease) =
             stream.reader.comm.next_event::<Instruction>()
         {
             return Err(AppSW::TxParsingFail);
         };
+    }
     }
 }

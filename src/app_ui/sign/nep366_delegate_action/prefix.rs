@@ -1,7 +1,12 @@
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::{Field, MultiFieldReview},
 };
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
 use numtoa::NumToA;
 
 use crate::{
@@ -63,15 +68,36 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
-    let my_review = MultiFieldReview::new(
-        field_writer.get_fields(),
-        &["View NEP366 prefix"],
-        Some(&EYE),
-        "Proceed to subactions",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            field_writer.get_fields(),
+            &["View NEP366 prefix"],
+            Some(&EYE),
+            "Proceed to subactions",
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+    
+        my_review.show()
+    }
+    
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
 
-    my_review.show()
+
+        review.show(field_writer.get_fields())
+    }
 }

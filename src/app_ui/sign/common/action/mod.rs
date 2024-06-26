@@ -2,10 +2,16 @@ use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::MultiFieldReview,
 };
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{NbglReview, NbglGlyph};
+
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
 use numtoa::NumToA;
 
 use super::tx_public_key_context;
@@ -177,17 +183,39 @@ pub fn ui_display_common<const N: usize>(
     } else {
         "Sign"
     };
-    let my_review = MultiFieldReview::new(
-        writer.get_fields(),
-        &binding,
-        Some(&EYE),
-        if is_last { last_msg } else { next_msg },
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
 
-    my_review.show()
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            writer.get_fields(),
+            &binding,
+            Some(&EYE),
+            if is_last { last_msg } else { next_msg },
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+    
+        my_review.show()
+    }
+    
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+        review.show(writer.get_fields())
+    }
 }
 
 /// a buffer, large enough to fit description string and

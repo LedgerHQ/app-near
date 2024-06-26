@@ -1,0 +1,18 @@
+{
+  "apiLevel": "15",
+  "binary": "target/stax/release/app.hex",
+  "dataSize": 6144,
+  "derivationPath": {
+    "curves": [
+      "ed25519"
+    ],
+    "paths": [
+      "44'/397'"
+    ]
+  },
+  "flags": "0x200",
+  "icon": "icons/app_near_14px.gif",
+  "name": "NEAR",
+  "targetId": "0x33200004",
+  "version": "2.0.0"
+}

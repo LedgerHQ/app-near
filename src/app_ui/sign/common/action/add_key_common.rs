@@ -4,7 +4,11 @@ use crate::{
     utils::types::elipsis_fields::ElipsisFields,
 };
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::Field;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::Field;
+
 use numtoa::NumToA;
 
 pub struct FieldsContext {

@@ -14,42 +14,46 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
-use ledger_device_sdk::ui::bitmaps::WARNING;
+ #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+ use ledger_device_sdk::ui::bitmaps::WARNING;
 
+ #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::clear_screen;
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::layout::{Layout, Location, StringPlace};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::screen_util::screen_update;
 
 /// the constants and their special meaning were copied from
 /// [ledger_device_sdk::ui::gadgets::display_pending_review]
 pub fn display_receiving() {
-    clear_screen();
+    // clear_screen();
 
-    // Add icon and text to match the C SDK equivalent.
-    if cfg!(target_os = "nanos") {
-        "Receiving".place(Location::Custom(2), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(14), Layout::Centered, true);
-    } else {
-        WARNING.draw(57, 10);
-        "Receiving".place(Location::Custom(28), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(42), Layout::Centered, true);
-    }
+    // // Add icon and text to match the C SDK equivalent.
+    // if cfg!(target_os = "nanos") {
+    //     "Receiving".place(Location::Custom(2), Layout::Centered, true);
+    //     "Transaction...".place(Location::Custom(14), Layout::Centered, true);
+    // } else {
+    //     WARNING.draw(57, 10);
+    //     "Receiving".place(Location::Custom(28), Layout::Centered, true);
+    //     "Transaction...".place(Location::Custom(42), Layout::Centered, true);
+    // }
 
-    screen_update();
+    // screen_update();
 }
 
 pub fn delegate_error_screen() {
-    clear_screen();
+    // clear_screen();
 
-    // Add icon and text to match the C SDK equivalent.
-    if cfg!(target_os = "nanos") {
-        "Sign delegate action".place(Location::Custom(2), Layout::Centered, true);
-        "not supported...".place(Location::Custom(14), Layout::Centered, true);
-    } else {
-        WARNING.draw(57, 10);
-        "Sign delegate action".place(Location::Custom(28), Layout::Centered, true);
-        "not supported...".place(Location::Custom(42), Layout::Centered, true);
-    }
+    // // Add icon and text to match the C SDK equivalent.
+    // if cfg!(target_os = "nanos") {
+    //     "Sign delegate action".place(Location::Custom(2), Layout::Centered, true);
+    //     "not supported...".place(Location::Custom(14), Layout::Centered, true);
+    // } else {
+    //     WARNING.draw(57, 10);
+    //     "Sign delegate action".place(Location::Custom(28), Layout::Centered, true);
+    //     "not supported...".place(Location::Custom(42), Layout::Centered, true);
+    // }
 
-    screen_update();
+    // screen_update();
 }

@@ -101,6 +101,7 @@ impl<'a> SingleTxStream<'a> {
     fn get_next_chunk(&mut self) -> io::Result<&[u8]> {
         let is_last_chunk = loop {
             match self.comm.next_event() {
+                #[cfg(not(any(target_os = "stax", target_os = "flex")))]
                 Event::Button(ButtonEvent::BothButtonsRelease) => {
                     return Err(io::Error::from(io::ErrorKind::Interrupted))
                 }

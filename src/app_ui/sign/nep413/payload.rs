@@ -1,8 +1,12 @@
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::{Field, MultiFieldReview},
 };
-
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
 use crate::{
     app_ui::fields_writer::FieldsWriter,
     parsing::types::nep413::payload::Payload,
@@ -77,15 +81,37 @@ pub fn ui_display(payload: &mut Payload) -> bool {
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);
 
-    let my_review = MultiFieldReview::new(
-        field_writer.get_fields(),
-        &["View NEP413 msg sign"],
-        Some(&EYE),
-        "Sign",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    
 
-    my_review.show()
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            field_writer.get_fields(),
+            &["View NEP413 msg sign"],
+            Some(&EYE),
+            "Sign",
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+    
+        my_review.show()
+    }
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+        review.show(field_writer.get_fields())
+    }
 }

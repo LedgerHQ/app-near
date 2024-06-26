@@ -7,6 +7,7 @@ function build_all() {
     cargo ledger build nanos
     cargo ledger build nanosplus
     cargo ledger build nanox
+    cargo ledger build stax
     exit
 EOF
 }

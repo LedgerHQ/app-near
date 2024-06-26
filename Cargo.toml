@@ -35,6 +35,9 @@ icon = "icons/app_near_14px.gif"
 [package.metadata.ledger.nanosplus]
 icon = "icons/app_near_14px.gif"
 
+[package.metadata.ledger.stax]
+icon = "icons/app_near_14px.gif"
+
 [features]
 default = []
 speculos = ["ledger_device_sdk/speculos"]
