@@ -54,7 +54,7 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_16px.gif", NBGL));
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         // Create NBGL review. Maximum number of fields and string buffer length can be customised
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
@@ -95,7 +95,7 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_16px.gif", NBGL));
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         // Create NBGL review. Maximum number of fields and string buffer length can be customised
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
