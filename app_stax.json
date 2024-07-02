@@ -11,7 +11,7 @@
     ]
   },
   "flags": "0x200",
-  "icon": "icons/app_near_14px.gif",
+  "icon": "icons/app_near_16px.gif",
   "name": "NEAR",
   "targetId": "0x33200004",
   "version": "2.0.0"

@@ -52,7 +52,7 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
     #[cfg(target_os = "nanox")]
     const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
     #[cfg(target_os = "stax")]
-    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
+    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_16px.gif"));
     let pages = [
         // The from trait allows to create different styles of pages
         // without having to use the new() function.
@@ -74,7 +74,7 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
     // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
-    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_14px.gif", NBGL));
+    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_16px.gif", NBGL));
 
     let settings_strings = [["Display Memo", "Allow display of transaction memo."]];
     let mut settings: Settings = Default::default();
@@ -83,7 +83,7 @@ pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
         .glyph(&FERRIS)
         .settings(settings.get_mut_ref(), &settings_strings)
         .infos(
-            "Boilerplate",
+            "Near",
             env!("CARGO_PKG_VERSION"),
             env!("CARGO_PKG_AUTHORS"),
         )

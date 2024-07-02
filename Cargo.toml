@@ -36,7 +36,7 @@ icon = "icons/app_near_14px.gif"
 icon = "icons/app_near_14px.gif"
 
 [package.metadata.ledger.stax]
-icon = "icons/app_near_14px.gif"
+icon = "icons/app_near_16px.gif"
 
 [features]
 default = []
