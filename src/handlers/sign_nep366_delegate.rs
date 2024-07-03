@@ -18,6 +18,7 @@ use super::common::{
 pub type SuffixResult = Result<PublicKeyBe, NoSecpAllowed>;
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     sign_ui::widgets::display_receiving();
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
@@ -44,6 +45,7 @@ pub fn handle_delegate_action(
     let num_of_actions = handle_prefix(stream)?;
 
     for i in 0..num_of_actions {
+        #[cfg(not(any(target_os = "stax", target_os = "flex")))]
         sign_ui::widgets::display_receiving();
         let params = ActionParams {
             ordinal_action: i + 1,

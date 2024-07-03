@@ -53,6 +53,7 @@ fn handle_transaction_prefix(
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     sign_ui::widgets::display_receiving();
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
@@ -66,6 +67,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     validate_public_key::validate(tx_public_key_prevalidation, &path)?;
 
     for i in 0..number_of_actions {
+        #[cfg(not(any(target_os = "stax", target_os = "flex")))]
         sign_ui::widgets::display_receiving();
         let params = ActionParams {
             ordinal_action: i + 1,

@@ -14,6 +14,7 @@ pub fn handle(
     _params: ActionParams,
 ) -> Result<(), AppSW> {
     stream.reader.comm.reply(AppSW::TxParsingFail);
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     sign_ui::widgets::delegate_error_screen();
     loop {
         #[cfg(not(any(target_os = "stax", target_os = "flex")))]
