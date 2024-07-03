@@ -238,11 +238,29 @@ impl TryFrom<ApduHeader> for Instruction {
     }
 }
 
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::init_comm;
+
+#[cfg(feature = "pending_review_screen")]
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+use ledger_device_sdk::ui::gadgets::display_pending_review;
+
+
+
 #[no_mangle]
 extern "C" fn sample_main() {
     #[cfg(feature = "speculos")]
     testing::debug_print("enter `sample_main` fn\n\n");
-    let mut comm = Comm::new();
+    let mut comm = Comm::new().set_expected_cla(0xe0);
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    init_comm(&mut comm);
+
+        // Developer mode / pending review popup
+    // must be cleared with user interaction
+    #[cfg(feature = "pending_review_screen")]
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    display_pending_review(&mut comm);
 
     loop {
         // Wait for either a specific button push to exit the app
@@ -257,14 +275,22 @@ extern "C" fn sample_main() {
 }
 
 fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
+    // let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
+    // let x = ui_display_tx()?;
+    // Ok(())
     match ins {
         Instruction::GetVersion => get_version::handler(comm),
         Instruction::GetWalletID => get_wallet_id::handler(comm),
-        Instruction::GetPubkey { display } => get_public_key::handler(comm, display),
+        Instruction::GetPubkey { display } => {
+            get_public_key::handler(comm, display);
+            Ok(())
+        }
         Instruction::SignTx {
             is_last_chunk,
             sign_mode,
         } => {
+            // let x = ui_display_tx()?;
+            // Ok(())
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             let signature = match sign_mode {
                 SignMode::Transaction => sign_tx::handler(stream)?,
@@ -273,6 +299,53 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
             };
             comm.append(&signature.0);
             Ok(())
+        }
+    }
+}
+
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+pub fn ui_display_tx() -> Result<bool, AppSW> {
+
+    // Define transaction review fields
+    let my_fields = [
+        Field {
+            name: "Amount",
+            value: "500",
+        },
+        Field {
+            name: "Destination",
+            value: "my_destination",
+        },
+        Field {
+            name: "Memo",
+            value: "exmem",
+        },
+    ];
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+        // If first setting switch is disabled do not display the transaction memo
+        let settings: settings::Settings = Default::default();
+        if settings.get_element(0) == 0 {
+            Ok(review.show(&my_fields[0..2]))
+        } else {
+            Ok(review.show(&my_fields))
         }
     }
 }
