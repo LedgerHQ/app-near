@@ -251,6 +251,10 @@ use ledger_device_sdk::ui::gadgets::display_pending_review;
 extern "C" fn sample_main() {
     #[cfg(feature = "speculos")]
     testing::debug_print("enter `sample_main` fn\n\n");
+
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    let mut comm = Comm::new();
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
     let mut comm = Comm::new().set_expected_cla(0xe0);
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
@@ -258,9 +262,9 @@ extern "C" fn sample_main() {
 
         // Developer mode / pending review popup
     // must be cleared with user interaction
-    #[cfg(feature = "pending_review_screen")]
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-    display_pending_review(&mut comm);
+    // #[cfg(feature = "pending_review_screen")]
+    // #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    // display_pending_review(&mut comm);
 
     loop {
         // Wait for either a specific button push to exit the app
