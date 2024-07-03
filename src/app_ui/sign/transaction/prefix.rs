@@ -67,13 +67,16 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
+    let msg_before = "View header";
+    let msg_after = "Continue to actions";
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
-            &["View header"],
+            &[msg_before],
             Some(&EYE),
-            "Continue to actions",
+            msg_after,
             Some(&VALIDATE_14),
             "Reject",
             Some(&CROSSMARK),
@@ -89,9 +92,9 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                msg_before,
                 "",
-                "Sign transaction\nto send CRAB",
+                msg_after,
             )
             .glyph(&FERRIS);
 

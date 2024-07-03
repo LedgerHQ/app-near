@@ -186,13 +186,15 @@ pub fn ui_display_common<const N: usize>(
         "Sign"
     };
 
+    let msg = if is_last { last_msg } else { next_msg };
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             writer.get_fields(),
             &binding,
             Some(&EYE),
-            if is_last { last_msg } else { next_msg },
+            msg,
             Some(&VALIDATE_14),
             "Reject",
             Some(&CROSSMARK),
@@ -210,9 +212,9 @@ pub fn ui_display_common<const N: usize>(
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                &ordinal_str,
                 "",
-                "Sign transaction\nto send CRAB",
+                &msg,
             )
             .glyph(&FERRIS);
 
