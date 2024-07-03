@@ -8,10 +8,12 @@ use ledger_device_sdk::ui::{
     gadgets::MultiFieldReview,
 };
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{NbglReview, NbglGlyph};
+use ledger_device_sdk::nbgl::{Field, NbglReview, NbglGlyph};
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
+use crate::AppSW;
+use crate::settings;
 use numtoa::NumToA;
 
 use super::tx_public_key_context;
@@ -27,6 +29,51 @@ mod function_call_permission;
 mod function_call_str;
 mod stake;
 mod transfer;
+
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+pub fn ui_display_my_tx() -> Result<(), AppSW> {
+    // Define transaction review fields
+    let my_fields = [
+        Field {
+            name: "Amount",
+            value: "500",
+        },
+        Field {
+            name: "Destination",
+            value: "my_destination",
+        },
+        Field {
+            name: "Memo",
+            value: "exmem",
+        },
+    ];
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
+        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        // Create NBGL review. Maximum number of fields and string buffer length can be customised
+        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        let mut review: NbglReview = NbglReview::new()
+            .titles(
+                "Review transaction\nto send CRAB",
+                "",
+                "Sign transaction\nto send CRAB",
+            )
+            .glyph(&FERRIS);
+
+        // If first setting switch is disabled do not display the transaction memo
+        let settings: settings::Settings = Default::default();
+        if settings.get_element(0) == 0 {
+            review.show(&my_fields[0..2]);
+        } else {
+            review.show(&my_fields);
+        }
+        Ok(())
+    }
+}
+
+
 
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();

@@ -13,8 +13,10 @@ pub fn handle(
 ) -> Result<(), AppSW> {
     let transfer = Transfer::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display_transfer(&transfer, params) {
-        return Err(AppSW::Deny);
-    }
-    Ok(())
+    sign_ui::action::ui_display_my_tx()
+
+    // if !sign_ui::action::ui_display_transfer(&transfer, params) {
+    //     return Err(AppSW::Deny);
+    // }
+    // Ok(())
 }

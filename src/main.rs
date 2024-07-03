@@ -194,6 +194,13 @@ pub enum SignMode {
     NEP366DelegateAction,
 }
 
+/// APDU parsing logic.
+///
+/// Parses CLA, INS, P1 and P2 bytes to build an [`Ins`]. P1 and P2 are translated to strongly
+/// typed variables depending on the APDU instruction code. Invalid CLA, INS, P1 or P2 values
+/// result in errors with a status word, which are automatically sent to the host by the SDK.
+///
+/// This design allows a clear separation of the APDU parsing logic and commands handling.
 impl TryFrom<ApduHeader> for Instruction {
     type Error = AppSW;
 
@@ -252,12 +259,6 @@ extern "C" fn sample_main() {
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     init_comm(&mut comm);
 
-    // Developer mode / pending review popup
-    // must be cleared with user interaction
-    #[cfg(feature = "pending_review_screen")]
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-    display_pending_review(&mut comm);
-
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
@@ -272,62 +273,22 @@ extern "C" fn sample_main() {
 
 fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
-    let x = ui_display_tx()?;
-    Ok(())
-    // match ins {
-    //     Instruction::GetAppName => {
-    //         comm.append(env!("CARGO_PKG_NAME").as_bytes());
-    //         Ok(())
-    //     }
-    //     Instruction::GetVersion => handler_get_version(comm),
-    //     Instruction::GetPubkey { display } => handler_get_public_key(comm, display),
-    //     Instruction::SignTx { chunk, more } => handler_sign_tx(comm, chunk, more, ctx),
-    // }
-}
-
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
-
-pub fn ui_display_tx() -> Result<bool, AppSW> {
-
-    // Define transaction review fields
-    let my_fields = [
-        Field {
-            name: "Amount",
-            value: "500",
-        },
-        Field {
-            name: "Destination",
-            value: "my_destination",
-        },
-        Field {
-            name: "Memo",
-            value: "exmem",
-        },
-    ];
-
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
-    {
-        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                "Review transaction\nto send CRAB",
-                "",
-                "Sign transaction\nto send CRAB",
-            )
-            .glyph(&FERRIS);
-
-        // If first setting switch is disabled do not display the transaction memo
-        let settings: settings::Settings = Default::default();
-        if settings.get_element(0) == 0 {
-            Ok(review.show(&my_fields[0..2]))
-        } else {
-            Ok(review.show(&my_fields))
+    match ins {
+        Instruction::GetVersion => get_version::handler(comm),
+        Instruction::GetWalletID => get_wallet_id::handler(comm),
+        Instruction::GetPubkey { display } => get_public_key::handler(comm, display),
+        Instruction::SignTx {
+            is_last_chunk,
+            sign_mode,
+        } => {
+            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
+            let signature = match sign_mode {
+                SignMode::Transaction => sign_tx::handler(stream)?,
+                SignMode::NEP413Message => sign_nep413_msg::handler(stream)?,
+                SignMode::NEP366DelegateAction => sign_nep366_delegate::handler(stream)?,
+            };
+            comm.append(&signature.0);
+            Ok(())
         }
     }
 }
