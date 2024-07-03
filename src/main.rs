@@ -194,13 +194,6 @@ pub enum SignMode {
     NEP366DelegateAction,
 }
 
-/// APDU parsing logic.
-///
-/// Parses CLA, INS, P1 and P2 bytes to build an [`Ins`]. P1 and P2 are translated to strongly
-/// typed variables depending on the APDU instruction code. Invalid CLA, INS, P1 or P2 values
-/// result in errors with a status word, which are automatically sent to the host by the SDK.
-///
-/// This design allows a clear separation of the APDU parsing logic and commands handling.
 impl TryFrom<ApduHeader> for Instruction {
     type Error = AppSW;
 
@@ -252,7 +245,7 @@ extern "C" fn sample_main() {
     // Create the communication manager, and configure it to accept only APDU from the 0xe0 class.
     // If any APDU with a wrong class value is received, comm will respond automatically with
     // BadCla status word.
-    let mut comm = Comm::new().set_expected_cla(0xe0);
+    let mut comm = Comm::new();
 
     // Initialize reference to Comm instance for NBGL
     // API calls.
