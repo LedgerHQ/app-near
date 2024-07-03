@@ -8,8 +8,6 @@ from application_client.client import (
 )
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
-import json
-from enum import IntEnum
 
 
 def test_sign_transfer(firmware, backend, navigator: Navigator, test_name):

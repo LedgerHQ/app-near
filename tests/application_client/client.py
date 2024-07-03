@@ -35,27 +35,6 @@ class AsyncAPDU:
     navigable_conditions: NavigableConditions
     expected_response: RAPDU
 
-from enum import IntEnum
-
-class P1(IntEnum):
-    # Parameter 1 for first APDU number.
-    P1_START = 0x00
-    # Parameter 1 for maximum APDU number.
-    P1_MAX   = 0x03
-    # Parameter 1 for screen confirmation for GET_PUBLIC_KEY.
-    P1_CONFIRM = 0x01
-
-class P2(IntEnum):
-    # Parameter 2 for last APDU to receive.
-    P2_LAST = 0x00
-    # Parameter 2 for more APDU to receive.
-    P2_MORE = 0x80
-
-class InsType(IntEnum):
-    GET_VERSION    = 0x03
-    GET_APP_NAME   = 0x04
-    GET_PUBLIC_KEY = 0x05
-    SIGN_TX        = 0x06
 
 @dataclass
 class Nearbackend:
@@ -91,32 +70,6 @@ class Nearbackend:
             else:
                 raise TypeError("bytes or AsyncAPDU expected")
         return FINISH_STUB_APDU
-    
-    @contextmanager
-    def sign_tx(self, path: str, transaction: bytes) -> Generator[None, None, None]:
-        self.backend.exchange(cla=CLA,
-                              ins=InsType.SIGN_TX,
-                              p1=P1.P1_START,
-                              p2=P2.P2_MORE,
-                              data=pack_derivation_path(path))
-        messages = split_message(transaction, MAX_APDU_LEN)
-        idx: int = P1.P1_START + 1
-
-        for msg in messages[:-1]:
-            self.backend.exchange(cla=CLA,
-                                  ins=InsType.SIGN_TX,
-                                  p1=idx,
-                                  p2=P2.P2_MORE,
-                                  data=msg)
-            idx += 1
-
-        with self.backend.exchange_async(cla=CLA,
-                                         ins=InsType.SIGN_TX,
-                                         p1=idx,
-                                         p2=P2.P2_LAST,
-                                         data=messages[-1]) as response:
-            yield response
-
 
 def condition_folder_name(event_index: int, additional_index: bool, condition_index: int):
     if additional_index:
