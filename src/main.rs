@@ -245,7 +245,10 @@ use ledger_device_sdk::nbgl::init_comm;
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::display_pending_review;
 
-
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 #[no_mangle]
 extern "C" fn sample_main() {

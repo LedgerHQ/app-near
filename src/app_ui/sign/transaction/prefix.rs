@@ -6,7 +6,10 @@ use ledger_device_sdk::ui::{
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+};
 use numtoa::NumToA;
 
 use crate::{
@@ -90,17 +93,31 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                msg_before,
-                "",
-                msg_after,
-            )
-            .glyph(&FERRIS);
 
-
-        review.show(field_writer.get_fields())
+        let centered_info = CenteredInfo::new(
+            "Sample centered info",
+            "",
+            "",
+            Some(&FERRIS),
+            true,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+    
+        let info_button = InfoButton::new(
+            msg_after,
+            Some(&FERRIS),
+            "Confirm",
+            TuneIndex::Success,
+        );
+    
+        let tag_values_list = TagValueList::new(&field_writer.get_fields(), 2, false, false);
+        
+        let mut review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list))
+            .add_content(NbglPageContent::InfoButton(info_button));
+    
+        review.show("Reject Example", "Example Confirmed", "Example Rejected")
     }
 }
