@@ -70,11 +70,13 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
     let msg_before = "View header";
     let msg_after = "Continue to actions";
 
+    let binding = [msg_before];
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
-            &[msg_before],
+            &binding,
             Some(&EYE),
             msg_after,
             Some(&VALIDATE_14),

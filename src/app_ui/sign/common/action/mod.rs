@@ -12,8 +12,6 @@ use ledger_device_sdk::nbgl::{Field, NbglReview, NbglGlyph};
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
-use crate::AppSW;
-use crate::settings;
 use numtoa::NumToA;
 
 use super::tx_public_key_context;
