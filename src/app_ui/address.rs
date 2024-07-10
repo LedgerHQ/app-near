@@ -25,7 +25,7 @@ use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglAddressReview};
 
 
 pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
@@ -57,25 +57,19 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         // Create NBGL review. Maximum number of fields and string buffer length can be customised
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                "Review address",
-                "",
-                "Confirm address",
-            )
-            .glyph(&FERRIS);
+        let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&FERRIS).verify_str("Confirm Public Key");
 
-
-        Ok(review.show(&my_field))
+        Ok(review.show(out_buf.as_str()))
     }
 }
 
 pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = [0u8; 64];
+    let pbkey_str = public_key.display_str_hex(&mut out_buf);
 
     let my_field = [Field {
         name: "Wallet ID",
-        value: public_key.display_str_hex(&mut out_buf),
+        value: &pbkey_str,
     }];
 
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
@@ -98,14 +92,8 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         // Create NBGL review. Maximum number of fields and string buffer length can be customised
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                "Review address",
-                "",
-                "Confirm address",
-            )
-            .glyph(&FERRIS);
+        let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&FERRIS).verify_str("Confirm Wallet ID");
 
-            Ok(review.show(&my_field))
+        Ok(review.show(pbkey_str))
     }
 }
