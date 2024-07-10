@@ -95,11 +95,11 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(
-            "Sample centered info",
+            msg_before,
             "",
             "",
             Some(&FERRIS),
-            true,
+            false,
             CenteredInfoStyle::LargeCaseBoldInfo,
             0,
         );
@@ -107,7 +107,7 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
         let info_button = InfoButton::new(
             msg_after,
             Some(&FERRIS),
-            "Confirm",
+            "Confirm header",
             TuneIndex::Success,
         );
     
@@ -118,6 +118,6 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
     
-        review.show("Reject Example", "Example Confirmed", "Example Rejected")
+        review.show("Reject transaction", "Header Confirmed", "Transaction rejected")
     }
 }
