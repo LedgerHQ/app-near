@@ -106,9 +106,9 @@ pub fn ui_display(payload: &mut Payload) -> bool {
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                "Review NEP413 msg sign",
                 "",
-                "Sign transaction\nto send CRAB",
+                "Sign message",
             )
             .glyph(&FERRIS);
 

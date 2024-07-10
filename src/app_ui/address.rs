@@ -59,9 +59,9 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                "Review address",
                 "",
-                "Sign transaction\nto send CRAB",
+                "Confirm address",
             )
             .glyph(&FERRIS);
 
@@ -100,9 +100,9 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                "Review address",
                 "",
-                "Sign transaction\nto send CRAB",
+                "Confirm address",
             )
             .glyph(&FERRIS);
 

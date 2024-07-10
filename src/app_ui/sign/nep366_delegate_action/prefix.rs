@@ -6,7 +6,10 @@ use ledger_device_sdk::ui::{
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+};
 use numtoa::NumToA;
 
 use crate::{
@@ -68,13 +71,18 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
+    let msg_before = "View NEP366 prefix";
+    let msg_after = "Proceed to subactions";
+
+    let binding = [msg_before];
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
-            &["View NEP366 prefix"],
+            &binding,
             Some(&EYE),
-            "Proceed to subactions",
+            msg_after,
             Some(&VALIDATE_14),
             "Reject",
             Some(&CROSSMARK),
@@ -82,22 +90,36 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
     
         my_review.show()
     }
-    
+
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                "Review transaction\nto send CRAB",
-                "",
-                "Sign transaction\nto send CRAB",
-            )
-            .glyph(&FERRIS);
 
-
-        review.show(field_writer.get_fields())
+        let centered_info = CenteredInfo::new(
+            msg_before,
+            "",
+            "",
+            Some(&FERRIS),
+            false,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+    
+        let info_button = InfoButton::new(
+            msg_after,
+            Some(&FERRIS),
+            "Confirm NEP366 prefix",
+            TuneIndex::Success,
+        );
+    
+        let tag_values_list = TagValueList::new(&field_writer.get_fields(), 2, false, false);
+        
+        let mut review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list))
+            .add_content(NbglPageContent::InfoButton(info_button));
+    
+        review.show("Reject transaction", "NEP366 prefix confirmed", "Transaction rejected")
     }
 }

@@ -92,9 +92,9 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction\nto send CRAB",
+                "Review transaction",
                 "",
-                "Sign transaction\nto send CRAB",
+                "Sign transaction",
             )
             .glyph(&FERRIS);
 
