@@ -108,7 +108,7 @@ def generic_test_sign(
                     else:
                         navigator.navigate_until_text_and_compare(
                             NavInsID.USE_CASE_REVIEW_TAP,
-                            [NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM],
+                            [NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM, NavInsID.USE_CASE_REVIEW_CONFIRM],
                             condition,
                             ROOT_SCREENSHOT_PATH,
                             condition_folder,

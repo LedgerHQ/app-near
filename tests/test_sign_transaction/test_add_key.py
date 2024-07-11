@@ -9,7 +9,7 @@ from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
 
-def test_sign_add_key_fullaccess(firmware, backend, navigator: Navigator, test_name):
+def test_sign_add_key_fullaccess(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -64,10 +64,10 @@ def test_sign_add_key_fullaccess(firmware, backend, navigator: Navigator, test_n
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
 
-def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test_name):
+def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -145,4 +145,4 @@ def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)

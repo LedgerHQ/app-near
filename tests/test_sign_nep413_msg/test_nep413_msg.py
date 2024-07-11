@@ -10,7 +10,7 @@ from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
 
-def test_sign_nep413_msg(firmware, backend, navigator: Navigator, test_name):
+def test_sign_nep413_msg(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     NEP413Payload {
         message: "Makes it possible to authenticate users without having to add new ac\
@@ -84,4 +84,4 @@ n storage of the users' accounts.",
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)

@@ -52,7 +52,7 @@ def test_sign_wrong_pubkey_transfer(firmware, backend, navigator: Navigator, sce
 
 
 def test_sign_wrong_pubkey_delegate_action_transfer(
-    firmware, backend, navigator: Navigator, test_name
+    firmware, backend, navigator: Navigator, scenario_navigator, test_name
 ):
     """
     DelegateAction {
@@ -92,4 +92,4 @@ def test_sign_wrong_pubkey_delegate_action_transfer(
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)

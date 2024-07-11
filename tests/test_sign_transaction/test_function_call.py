@@ -9,7 +9,7 @@ from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
 
-def test_sign_function_call_string(firmware, backend, navigator: Navigator, test_name):
+def test_sign_function_call_string(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Args String:
     {"previous_vesting_schedule_with_salt":{"vesting_schedule":{"start_timestamp":"1577\
@@ -84,9 +84,9 @@ MDAwMDAwMDAwMDAiLCJlbmRfdGltZXN0YW1wIjoiMTcwNDE1MDAwMDAwMDAwMDAwMCJ9LCJzYWx0Ijoi
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
-def test_sign_function_call_string_with_newline(firmware, backend, navigator: Navigator, test_name):
+def test_sign_function_call_string_with_newline(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Args String:
     "{\"test_key\": \"value\nhidden part of value 1 2 3 4 5 6 7 8 9\"}"
@@ -143,7 +143,7 @@ def test_sign_function_call_string_with_newline(firmware, backend, navigator: Na
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
 def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: Navigator, test_name):
     r"""
@@ -202,9 +202,9 @@ def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: 
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
-def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, navigator: Navigator, test_name):
+def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     r"""
     Args String:
     "{\"test_utf8_key\": \"2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©3ଔ4🝙2©\"}"
@@ -264,10 +264,10 @@ def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, naviga
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
 
-def test_sign_function_call_binary_hexdump(firmware, backend, navigator: Navigator, test_name):
+def test_sign_function_call_binary_hexdump(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Args Binary: bytes.fromhex("204f6e206f6c646572207465726d696e616c732c2074686520756e\
 64657273636f726520636f646520697320646973706c617965642061732061206c6566740a2020202020202\
@@ -349,11 +349,11 @@ BvbiBvbGQgdGVsZXR5cGVzLgo=,
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
 
 def test_sign_function_call_binary_hexdump_after_utf8_error(
-    firmware, backend, navigator: Navigator, test_name
+    firmware, backend, navigator: Navigator, scenario_navigator, test_name
 ):
     """
     Args Binary: bytes.fromhex("7b000102030405060708090a0b0c0d0e0f101112131415161718191\
@@ -423,4 +423,4 @@ Dx8vP09fb3+Pn6+/z9/g==,
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)

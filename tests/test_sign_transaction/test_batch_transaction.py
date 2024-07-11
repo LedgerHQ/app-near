@@ -11,7 +11,7 @@ from ragger.navigator import Navigator
 import pytest
 
 
-def test_sign_batch_transaction_all_actions(firmware, backend, navigator: Navigator, test_name):
+def test_sign_batch_transaction_all_actions(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -226,4 +226,4 @@ def test_sign_batch_transaction_all_actions(firmware, backend, navigator: Naviga
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
