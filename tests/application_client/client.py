@@ -94,14 +94,15 @@ def generic_test_sign(
                     condition_folder = Path(test_name) / (
                         str_index + "_" + condition.lower().replace(" ", "_").replace("!", "_bang")
                     )
-                    # navigator.navigate_until_text_and_compare(
-                    #     NavInsID.RIGHT_CLICK,
-                    #     [NavInsID.BOTH_CLICK],
-                    #     condition,
-                    #     ROOT_SCREENSHOT_PATH,
-                    #     condition_folder,
-                    #     screen_change_after_last_instruction=False,
-                    # )
+                    if firmware.device.startswith("nano"):
+                        navigator.navigate_until_text_and_compare(
+                            NavInsID.RIGHT_CLICK,
+                            [NavInsID.BOTH_CLICK],
+                            condition,
+                            ROOT_SCREENSHOT_PATH,
+                            condition_folder,
+                            screen_change_after_last_instruction=False,
+                        )
             elif isinstance(chunk_event, RAPDU):
                 response = client.get_async_response()
 
