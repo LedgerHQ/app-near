@@ -53,11 +53,9 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&FERRIS).verify_str("Confirm Public Key");
+       
+       let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&FERRIS).verify_str("Confirm Public Key");
 
         Ok(review.show(out_buf.as_str()))
     }
@@ -88,10 +86,8 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
+        
         let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&FERRIS).verify_str("Confirm Wallet ID");
 
         Ok(review.show(pbkey_str))

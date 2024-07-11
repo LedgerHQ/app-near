@@ -91,7 +91,6 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
     }
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(

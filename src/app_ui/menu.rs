@@ -71,12 +71,11 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
-    // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
     const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
     let settings_strings = [["Display Memo", "Allow display of transaction memo."]];
     let mut settings: Settings = Default::default();
-    // Display the home screen.
+
     NbglHomeAndSettings::new()
         .glyph(&FERRIS)
         .settings(settings.get_mut_ref(), &settings_strings)
