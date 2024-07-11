@@ -7,7 +7,10 @@ use ledger_device_sdk::ui::{
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+};
 use crate::{
     utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
@@ -83,15 +86,20 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
         },
     ];
 
+    let msg_before = "Pub Key Mismatch";
+    let msg_after = "Error!";
+
+    let binding = [msg_before];
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             &my_fields,
-            &["Pub Key Mismatch"],
+            &binding,
             Some(&EYE),
-            "Error!",
+            msg_after,
             Some(&CROSSMARK),
-            "Error!",
+            msg_after,
             Some(&CROSSMARK),
         );
     
@@ -101,17 +109,31 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                "Review transaction\nto send CRAB",
-                "",
-                "Sign transaction\nto send CRAB",
-            )
-            .glyph(&FERRIS);
 
-
-        Ok(review.show(&my_fields))
+        let centered_info = CenteredInfo::new(
+            msg_before,
+            "",
+            "",
+            Some(&FERRIS),
+            false,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+    
+        let info_button = InfoButton::new(
+            msg_after,
+            Some(&FERRIS),
+            "Confirm",
+            TuneIndex::Success,
+        );
+    
+        let tag_values_list = TagValueList::new(&my_fields, 2, false, false);
+        
+        let mut review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list))
+            .add_content(NbglPageContent::InfoButton(info_button));
+    
+        Ok(review.show("Reject transaction", "Confirmed", "Transaction rejected"))
     }
 }
