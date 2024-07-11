@@ -68,12 +68,14 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
     let mut field_context: FieldsContext = FieldsContext::new();
     format(suffix, &mut field_context, &mut field_writer);
 
+    let msg_before = "View NEP366 suffix";
+    let binding = [msg_before];
     
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
-            &["View NEP366 suffix"],
+            &binding,
             Some(&EYE),
             "Sign",
             Some(&VALIDATE_14),
@@ -92,7 +94,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
         // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
         let mut review: NbglReview = NbglReview::new()
             .titles(
-                "Review transaction",
+                msg_before,
                 "",
                 "Sign transaction",
             )
@@ -100,5 +102,4 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
 
         review.show(field_writer.get_fields())
     }
-    
 }

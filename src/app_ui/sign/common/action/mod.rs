@@ -8,7 +8,10 @@ use ledger_device_sdk::ui::{
     gadgets::MultiFieldReview,
 };
 #[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglReview, NbglGlyph};
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+};
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
@@ -168,9 +171,9 @@ pub fn ui_display_common<const N: usize>(
     let mut ordinal_fmt_buf = OrdinalStringBuffer::new();
     let is_last = ordinal_string(&mut ordinal_fmt_buf, params);
 
-    let ordinal_str = ordinal_fmt_buf.as_str();
+    let msg_before = ordinal_fmt_buf.as_str();
 
-    let binding = [ordinal_str];
+    let binding = [msg_before];
 
     let next_msg = if params.is_nested_delegate {
         "Next Subaction"
@@ -184,7 +187,7 @@ pub fn ui_display_common<const N: usize>(
         "Sign"
     };
 
-    let msg = if is_last { last_msg } else { next_msg };
+    let msg_after = if is_last { last_msg } else { next_msg };
 
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
@@ -192,7 +195,7 @@ pub fn ui_display_common<const N: usize>(
             writer.get_fields(),
             &binding,
             Some(&EYE),
-            msg,
+            msg_after,
             Some(&VALIDATE_14),
             "Reject",
             Some(&CROSSMARK),
@@ -206,17 +209,47 @@ pub fn ui_display_common<const N: usize>(
     {
         // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
         const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        // Create NBGL review. Maximum number of fields and string buffer length can be customised
-        // with constant generic parameters of NbglReview. Default values are 32 and 1024 respectively.
-        let mut review: NbglReview = NbglReview::new()
-            .titles(
-                &ordinal_str,
-                "",
-                &msg,
-            )
-            .glyph(&FERRIS);
 
-        review.show(writer.get_fields())
+        let centered_info = CenteredInfo::new(
+            msg_before,
+            "",
+            "",
+            Some(&FERRIS),
+            false,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+        let tag_values_list = TagValueList::new(&writer.get_fields(), 2, false, false);
+
+        let info_button = InfoButton::new(
+            msg_after,
+            Some(&FERRIS),
+            "Confirm action",
+            TuneIndex::Success,
+        );
+
+        let info_longpress = InfoLongPress::new(
+            msg_after,
+            Some(&FERRIS),
+            "Hold to sign",
+            TuneIndex::Error,
+        );
+        
+        let mut review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list));
+
+        let last_screen: &str;
+
+        if is_last && !params.is_nested_delegate {
+            review = review.add_content(NbglPageContent::InfoLongPress(info_longpress));
+            last_screen = "Transaction signed";
+        } else {
+            review = review.add_content(NbglPageContent::InfoButton(info_button));
+            last_screen = "Action confirmed";
+        }
+    
+        review.show("Reject transaction", last_screen, "Transaction rejected")
     }
 }
 
