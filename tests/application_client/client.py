@@ -81,6 +81,7 @@ def generic_test_sign(
     client: Nearbackend,
     chunks: List[Union[bytes, AsyncAPDU]],
     navigator: Navigator,
+    scenario_navigator,
     test_name,
     firmware,
 ):
@@ -99,6 +100,15 @@ def generic_test_sign(
                         navigator.navigate_until_text_and_compare(
                             NavInsID.RIGHT_CLICK,
                             [NavInsID.BOTH_CLICK],
+                            condition,
+                            ROOT_SCREENSHOT_PATH,
+                            condition_folder,
+                            screen_change_after_last_instruction=False,
+                        )
+                    else:
+                        navigator.navigate_until_text_and_compare(
+                            NavInsID.USE_CASE_REVIEW_TAP,
+                            [NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM],
                             condition,
                             ROOT_SCREENSHOT_PATH,
                             condition_folder,
