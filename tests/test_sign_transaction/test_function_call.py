@@ -145,7 +145,7 @@ def test_sign_function_call_string_with_newline(firmware, backend, navigator: Na
     ]
     generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
 
-def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: Navigator, test_name):
+def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
     r"""
     Args String:
     "{\" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u{7f}\"}"
