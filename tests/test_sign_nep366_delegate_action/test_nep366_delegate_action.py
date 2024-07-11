@@ -51,7 +51,7 @@ def test_sign_delegate_action_simple(firmware, backend, navigator: Navigator, te
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, test_name):
@@ -305,4 +305,4 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

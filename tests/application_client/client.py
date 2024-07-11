@@ -82,6 +82,7 @@ def generic_test_sign(
     chunks: List[Union[bytes, AsyncAPDU]],
     navigator: Navigator,
     test_name,
+    firmware,
 ):
     numbered_chunks = enumerate(client.sign_message_chunks(chunks))
 
