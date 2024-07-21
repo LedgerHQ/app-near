@@ -128,14 +128,7 @@ use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 use ledger_device_sdk::testing;
 use parsing::SingleTxStream;
 
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
-
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
-}
 
 // CLA (APDU class byte) for all APDUs.
 const CLA: u8 = 0x80;
@@ -253,13 +246,8 @@ use ledger_device_sdk::ui::gadgets::display_pending_review;
 
 #[no_mangle]
 extern "C" fn sample_main() {
-    // Create the communication manager, and configure it to accept only APDU from the 0xe0 class.
-    // If any APDU with a wrong class value is received, comm will respond automatically with
-    // BadCla status word.
     let mut comm = Comm::new();
 
-    // Initialize reference to Comm instance for NBGL
-    // API calls.
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     init_comm(&mut comm);
 

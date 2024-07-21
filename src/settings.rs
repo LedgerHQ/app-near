@@ -30,7 +30,6 @@ impl Settings {
     }
 
     #[allow(unused)]
-    // Not used in this boilerplate, but can be used to set a value in the settings
     pub fn set_element(&self, index: usize, value: u8) {
         let mut updated_data: [u8; SETTINGS_SIZE] = unsafe { *DATA.get_mut().get_ref() };
         updated_data[index] = value;
