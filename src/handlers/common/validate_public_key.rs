@@ -1,21 +1,21 @@
-use ledger_device_sdk::ecc::Ed25519;
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
-use ledger_device_sdk::ui::{
-    bitmaps::{CROSSMARK, EYE},
-    gadgets::{Field, MultiFieldReview},
-};
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, Field, InfoButton,
-    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueList, TuneIndex
-};
 use crate::{
     utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
 };
 use fmt_buffer::Buffer;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+use ledger_device_sdk::ecc::Ed25519;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, NbglGenericReview, NbglGlyph,
+    NbglPageContent, TagValueList, TuneIndex,
+};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+use ledger_device_sdk::ui::{
+    bitmaps::{CROSSMARK, EYE},
+    gadgets::{Field, MultiFieldReview},
+};
 
 pub fn validate(
     tx_public_key: Result<PublicKeyBe, NoSecpAllowed>,
@@ -90,7 +90,7 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     let msg_after = "Error!";
 
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-    {    
+    {
         let binding = [msg_before];
 
         let my_review = MultiFieldReview::new(
@@ -102,12 +102,13 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
             msg_after,
             Some(&CROSSMARK),
         );
-    
+
         Ok(my_review.show())
     }
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,
@@ -118,21 +119,17 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
             CenteredInfoStyle::LargeCaseBoldInfo,
             0,
         );
-    
-        let info_button = InfoButton::new(
-            msg_after,
-            Some(&NEAR_LOGO),
-            "Confirm",
-            TuneIndex::Success,
-        );
-    
+
+        let info_button =
+            InfoButton::new(msg_after, Some(&NEAR_LOGO), "Confirm", TuneIndex::Success);
+
         let tag_values_list = TagValueList::new(&my_fields, 2, false, false);
-        
+
         let mut review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
-    
+
         Ok(review.show("Reject\nTransaction", "Confirmed", "Transaction rejected"))
     }
 }

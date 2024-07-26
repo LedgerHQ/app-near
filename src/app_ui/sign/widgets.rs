@@ -14,10 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
- #[cfg(not(any(target_os = "stax", target_os = "flex")))]
- use ledger_device_sdk::ui::bitmaps::WARNING;
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+use ledger_device_sdk::ui::bitmaps::WARNING;
 
- #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::clear_screen;
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::layout::{Layout, Location, StringPlace};

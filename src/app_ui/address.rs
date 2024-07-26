@@ -18,15 +18,14 @@
 use crate::utils::crypto;
 use crate::AppSW;
 use fmt_buffer::Buffer;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{NbglAddressReview, NbglGlyph};
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{NbglGlyph, NbglAddressReview};
-
 
 pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = Buffer::<60>::new();
@@ -53,9 +52,12 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-       
-       let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&NEAR_LOGO).verify_str("Confirm Public Key");
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+
+        let mut review: NbglAddressReview = NbglAddressReview::new()
+            .glyph(&NEAR_LOGO)
+            .verify_str("Confirm Public Key");
 
         Ok(review.show(out_buf.as_str()))
     }
@@ -85,9 +87,12 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        
-        let mut review: NbglAddressReview = NbglAddressReview::new().glyph(&NEAR_LOGO).verify_str("Confirm Wallet ID");
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+
+        let mut review: NbglAddressReview = NbglAddressReview::new()
+            .glyph(&NEAR_LOGO)
+            .verify_str("Confirm Wallet ID");
 
         Ok(review.show(pbkey_str))
     }

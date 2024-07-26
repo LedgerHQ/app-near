@@ -1,12 +1,12 @@
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::{Field, MultiFieldReview},
 };
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
 use numtoa::NumToA;
 
 use crate::{
@@ -69,7 +69,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
     format(suffix, &mut field_context, &mut field_writer);
 
     let msg_before = "View NEP366 suffix";
-    
+
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         let binding = [msg_before];
@@ -83,20 +83,17 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
             "Reject",
             Some(&CROSSMARK),
         );
-    
+
         my_review.show()
     }
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+
         let mut review: NbglReview = NbglReview::new()
-            .titles(
-                msg_before,
-                "",
-                "Sign transaction",
-            )
+            .titles(msg_before, "", "Sign transaction")
             .glyph(&NEAR_LOGO);
 
         review.show(field_writer.get_fields())

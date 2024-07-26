@@ -1,8 +1,8 @@
+use crate::sign_ui;
 use crate::{
     parsing::{HashingStream, SingleTxStream},
     AppSW,
 };
-use crate::sign_ui;
 
 use super::ActionParams;
 

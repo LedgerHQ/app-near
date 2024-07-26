@@ -1,6 +1,6 @@
-use ledger_device_sdk::io::{Comm, Event};
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::buttons::ButtonEvent;
+use ledger_device_sdk::io::{Comm, Event};
 
 use ledger_device_sdk::hash::sha2::Sha2_256;
 use ledger_device_sdk::hash::HashInit;
@@ -101,7 +101,7 @@ impl<'a> SingleTxStream<'a> {
         let is_last_chunk = loop {
             {
                 match self.comm.next_event() {
-                    #[cfg(not(any(target_os = "stax", target_os = "flex")))] 
+                    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
                     Event::Button(ButtonEvent::BothButtonsRelease) => {
                         return Err(io::Error::from(io::ErrorKind::Interrupted))
                     }

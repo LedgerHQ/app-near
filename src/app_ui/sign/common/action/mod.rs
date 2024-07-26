@@ -2,28 +2,25 @@ use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+use crate::Instruction;
+use ledger_device_sdk::io::Comm;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress,
-    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueList, TuneIndex
+    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglGenericReview, NbglGlyph,
+    NbglPageContent, TagValueList, TuneIndex,
 };
 #[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::{
+    buttons::ButtonEvent,
+    io::Event,
     ui::{
-        bitmaps::{WARNING, CROSSMARK, EYE, VALIDATE_14},
-        gadgets::{
-            clear_screen, 
-            MultiFieldReview
-        },
+        bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING},
+        gadgets::{clear_screen, MultiFieldReview},
         layout::{Layout, Location, StringPlace},
         screen_util::screen_update,
     },
-    io::Event,
-    buttons::ButtonEvent,
 };
-use ledger_device_sdk::io::Comm;
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
-use crate::Instruction;
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use include_gif::include_gif;
@@ -205,7 +202,8 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
     }
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let info_button = InfoButton::new(
             "Delegate action is not supported",
@@ -213,11 +211,15 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
             "Reject Transaction",
             TuneIndex::Success,
         );
-        
-        let mut review: NbglGenericReview = NbglGenericReview::new()
-            .add_content(NbglPageContent::InfoButton(info_button));
 
-        review.show("Reject\nTransaction", "Transaction Rejected", "Transaction rejected");
+        let mut review: NbglGenericReview =
+            NbglGenericReview::new().add_content(NbglPageContent::InfoButton(info_button));
+
+        review.show(
+            "Reject\nTransaction",
+            "Transaction Rejected",
+            "Transaction rejected",
+        );
     }
 }
 
@@ -257,14 +259,14 @@ pub fn ui_display_common<const N: usize>(
             "Reject",
             Some(&CROSSMARK),
         );
-    
+
         my_review.show()
     }
-    
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,
@@ -290,7 +292,7 @@ pub fn ui_display_common<const N: usize>(
             "Hold to sign",
             TuneIndex::Error,
         );
-        
+
         let mut review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))
             .add_content(NbglPageContent::TagValueList(tag_values_list));
@@ -304,7 +306,7 @@ pub fn ui_display_common<const N: usize>(
             review = review.add_content(NbglPageContent::InfoButton(info_button));
             last_screen = "Action confirmed";
         }
-    
+
         review.show("Reject\nTransaction", last_screen, "Transaction rejected")
     }
 }
