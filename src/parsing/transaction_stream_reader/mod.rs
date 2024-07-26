@@ -99,26 +99,24 @@ impl<'a> SingleTxStream<'a> {
 
     fn get_next_chunk(&mut self) -> io::Result<&[u8]> {
         let is_last_chunk = loop {
-            {
-                match self.comm.next_event() {
-                    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-                    Event::Button(ButtonEvent::BothButtonsRelease) => {
-                        return Err(io::Error::from(io::ErrorKind::Interrupted))
-                    }
-                    Event::Command(Instruction::GetVersion)
-                    | Event::Command(Instruction::GetPubkey { .. }) => {
-                        return Err(io::Error::from(io::ErrorKind::InvalidData))
-                    }
-                    Event::Command(Instruction::SignTx {
-                        is_last_chunk,
-                        sign_mode,
-                    }) if sign_mode == self.sign_mode => break is_last_chunk,
-                    Event::Command(Instruction::SignTx { .. }) => {
-                        return Err(io::Error::from(io::ErrorKind::InvalidData))
-                    }
-                    _ => (),
-                };
-            }
+            match self.comm.next_event() {
+                #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+                Event::Button(ButtonEvent::BothButtonsRelease) => {
+                    return Err(io::Error::from(io::ErrorKind::Interrupted))
+                }
+                Event::Command(Instruction::GetVersion)
+                | Event::Command(Instruction::GetPubkey { .. }) => {
+                    return Err(io::Error::from(io::ErrorKind::InvalidData))
+                }
+                Event::Command(Instruction::SignTx {
+                    is_last_chunk,
+                    sign_mode,
+                }) if sign_mode == self.sign_mode => break is_last_chunk,
+                Event::Command(Instruction::SignTx { .. }) => {
+                    return Err(io::Error::from(io::ErrorKind::InvalidData))
+                }
+                _ => (),
+            };
         };
 
         self.is_last_chunk = is_last_chunk;
