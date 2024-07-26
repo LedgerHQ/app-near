@@ -8,8 +8,8 @@ use ledger_device_sdk::ui::{
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
-    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueList, TuneIndex
 };
 use crate::{
     utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
@@ -89,10 +89,10 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     let msg_before = "Pub Key Mismatch";
     let msg_after = "Error!";
 
-    let binding = [msg_before];
-
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-    {
+    {    
+        let binding = [msg_before];
+
         let my_review = MultiFieldReview::new(
             &my_fields,
             &binding,
@@ -107,13 +107,13 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     }
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,
             "",
             "",
-            Some(&FERRIS),
+            Some(&NEAR_LOGO),
             false,
             CenteredInfoStyle::LargeCaseBoldInfo,
             0,
@@ -121,7 +121,7 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     
         let info_button = InfoButton::new(
             msg_after,
-            Some(&FERRIS),
+            Some(&NEAR_LOGO),
             "Confirm",
             TuneIndex::Success,
         );
@@ -133,6 +133,6 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
     
-        Ok(review.show("Reject transaction", "Confirmed", "Transaction rejected"))
+        Ok(review.show("Reject\nTransaction", "Confirmed", "Transaction rejected"))
     }
 }

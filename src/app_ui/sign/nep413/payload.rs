@@ -100,7 +100,7 @@ pub fn ui_display(payload: &mut Payload) -> bool {
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         
         let mut review: NbglReview = NbglReview::new()
             .titles(
@@ -108,7 +108,7 @@ pub fn ui_display(payload: &mut Payload) -> bool {
                 "",
                 "Sign message",
             )
-            .glyph(&FERRIS);
+            .glyph(&NEAR_LOGO);
 
         review.show(field_writer.get_fields())
     }

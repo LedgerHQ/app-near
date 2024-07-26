@@ -7,8 +7,8 @@ use ledger_device_sdk::ui::{
 use include_gif::include_gif;
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, Field, InfoButton, InfoLongPress, InfosList,
-    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueConfirm, TagValueList, TuneIndex, NbglReview
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton,
+    NbglGenericReview, NbglGlyph, NbglPageContent, TagValueList, TuneIndex
 };
 use numtoa::NumToA;
 
@@ -74,10 +74,10 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
     let msg_before = "View NEP366 prefix";
     let msg_after = "Proceed to subactions";
 
-    let binding = [msg_before];
-
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
+        let binding = [msg_before];
+
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
             &binding,
@@ -93,13 +93,13 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,
             "",
             "",
-            Some(&FERRIS),
+            Some(&NEAR_LOGO),
             false,
             CenteredInfoStyle::LargeCaseBoldInfo,
             0,
@@ -107,7 +107,7 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
     
         let info_button = InfoButton::new(
             msg_after,
-            Some(&FERRIS),
+            Some(&NEAR_LOGO),
             "Confirm NEP366 prefix",
             TuneIndex::Success,
         );
@@ -119,6 +119,6 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
     
-        review.show("Reject transaction", "NEP366 prefix confirmed", "Transaction rejected")
+        review.show("Reject\nTransaction", "NEP366 prefix confirmed", "Transaction rejected")
     }
 }

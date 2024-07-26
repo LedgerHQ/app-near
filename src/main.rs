@@ -264,7 +264,7 @@ extern "C" fn sample_main() {
 }
 
 fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
-    let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
+    comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     match ins {
         Instruction::GetVersion => get_version::handler(comm),
         Instruction::GetWalletID => get_wallet_id::handler(comm),

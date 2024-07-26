@@ -69,10 +69,11 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
     format(suffix, &mut field_context, &mut field_writer);
 
     let msg_before = "View NEP366 suffix";
-    let binding = [msg_before];
     
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
+        let binding = [msg_before];
+
         let my_review = MultiFieldReview::new(
             field_writer.get_fields(),
             &binding,
@@ -88,7 +89,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     {
-        const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
         
         let mut review: NbglReview = NbglReview::new()
             .titles(
@@ -96,7 +97,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
                 "",
                 "Sign transaction",
             )
-            .glyph(&FERRIS);
+            .glyph(&NEAR_LOGO);
 
         review.show(field_writer.get_fields())
     }

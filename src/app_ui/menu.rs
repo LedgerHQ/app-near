@@ -23,8 +23,6 @@ use ledger_device_sdk::ui::bitmaps::{Glyph, BACK, CERTIFICATE, DASHBOARD_X};
 use ledger_device_sdk::ui::gadgets::{EventOrPageIndex, MultiPageMenu, Page};
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::{NbglGlyph, NbglHomeAndSettings};
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use crate::settings::Settings;
 
 use crate::Instruction;
 
@@ -71,16 +69,12 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
 
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
-    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-
-    let settings_strings = [["Display Memo", "Allow display of transaction memo."]];
-    let mut settings: Settings = Default::default();
+    const NEAR_LOGO: NbglGlyph = NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
     NbglHomeAndSettings::new()
-        .glyph(&FERRIS)
-        .settings(settings.get_mut_ref(), &settings_strings)
+        .glyph(&NEAR_LOGO)
         .infos(
-            "Near",
+            "NEAR",
             env!("CARGO_PKG_VERSION"),
             env!("CARGO_PKG_AUTHORS"),
         )
