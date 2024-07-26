@@ -37,8 +37,6 @@ mod utils {
     }
 }
 
-mod settings;
-
 mod app_ui {
     pub mod address;
     pub mod aliases;
