@@ -39,5 +39,6 @@ icon = "icons/app_near_14px.gif"
 icon = "icons/app_near_32px.gif"
 
 [features]
-default = []
+default = ["pending_review_screen"]
+pending_review_screen = []
 speculos = ["ledger_device_sdk/speculos"]

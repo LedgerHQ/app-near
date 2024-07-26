@@ -249,6 +249,12 @@ extern "C" fn sample_main() {
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     init_comm(&mut comm);
 
+    // Developer mode / pending review popup
+    // must be cleared with user interaction
+    #[cfg(feature = "pending_review_screen")]
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    display_pending_review(&mut comm);
+
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
