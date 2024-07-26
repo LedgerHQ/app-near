@@ -1,7 +1,7 @@
 {
-  "apiLevel": "15",
+  "apiLevel": "21",
   "binary": "target/stax/release/app.hex",
-  "dataSize": 11776,
+  "dataSize": 13312,
   "derivationPath": {
     "curves": [
       "ed25519"
