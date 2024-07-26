@@ -177,7 +177,7 @@ pub fn ui_display_function_call_bin(
     ui_display_common(&mut writer, params)
 }
 
-pub fn ui_display_delegate_error(comm: &mut Comm) {
+pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
     #[cfg(not(any(target_os = "stax", target_os = "flex")))]
     {
         clear_screen();
