@@ -9,7 +9,7 @@ from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
 
-def test_sign_delete_account_short(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
+def test_sign_delete_account_short(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -50,10 +50,10 @@ def test_sign_delete_account_short(firmware, backend, navigator: Navigator, scen
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
-def test_sign_delete_account_long(firmware, backend, navigator: Navigator, scenario_navigator, test_name):
+def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_name):
     """
     Transaction {
         signer_id: AccountId(
@@ -106,4 +106,4 @@ def test_sign_delete_account_long(firmware, backend, navigator: Navigator, scena
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, scenario_navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

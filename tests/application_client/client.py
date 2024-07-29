@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator, Optional, List, Union
 from ragger.navigator import NavInsID, Navigator
-from ragger.bip import pack_derivation_path
 
 from ragger.backend.interface import RAPDU, BackendInterface
 from common import ROOT_SCREENSHOT_PATH
@@ -81,7 +80,6 @@ def generic_test_sign(
     client: Nearbackend,
     chunks: List[Union[bytes, AsyncAPDU]],
     navigator: Navigator,
-    scenario_navigator,
     test_name,
     firmware,
 ):
@@ -108,7 +106,10 @@ def generic_test_sign(
                     else:
                         navigator.navigate_until_text_and_compare(
                             NavInsID.USE_CASE_REVIEW_TAP,
-                            [NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM, NavInsID.USE_CASE_REVIEW_CONFIRM],
+                            [
+                                NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM, 
+                                NavInsID.USE_CASE_REVIEW_CONFIRM
+                            ],
                             condition,
                             ROOT_SCREENSHOT_PATH,
                             condition_folder,

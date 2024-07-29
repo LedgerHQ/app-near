@@ -3,7 +3,7 @@ from ragger.navigator import NavInsID, Navigator
 from common import ROOT_SCREENSHOT_PATH, DERIV_PATH_DATA, DEFAULT_KEY
 
 
-def test_get_public_key_and_confirm_screen(backend, scenario_navigator, firmware, navigator, test_name):
+def test_get_public_key_and_confirm_screen(backend, firmware, navigator, scenario_navigator, test_name):
     client = Nearbackend(backend)
 
     # Send the get pub key instruction.
