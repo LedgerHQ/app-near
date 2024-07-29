@@ -1,3 +1,4 @@
+---
 name: Build and run functional tests using ragger through reusable workflow
 
 # This workflow will build the app and then run functional tests using the Ragger framework upon Speculos emulation.

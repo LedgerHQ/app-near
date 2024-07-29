@@ -1,3 +1,4 @@
+---
 name: Run coding style check
 
 # This workflow will run linting checks to ensure a level of code quality among all Ledger applications.

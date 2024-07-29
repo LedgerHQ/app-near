@@ -1,3 +1,4 @@
+---
 name: Checks on the Python tests
 
 # This workflow performs some checks on the Python client used by the Boilerplate tests
