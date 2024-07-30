@@ -111,7 +111,7 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
             TuneIndex::Success,
         );
 
-        let tag_values_list = TagValueList::new(&field_writer.get_fields(), 2, false, false);
+        let tag_values_list = TagValueList::new(field_writer.get_fields(), 2, false, false);
 
         let mut review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))

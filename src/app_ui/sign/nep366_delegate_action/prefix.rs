@@ -113,7 +113,7 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
             TuneIndex::Success,
         );
 
-        let tag_values_list = TagValueList::new(&field_writer.get_fields(), 2, false, false);
+        let tag_values_list = TagValueList::new(field_writer.get_fields(), 2, false, false);
 
         let mut review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))

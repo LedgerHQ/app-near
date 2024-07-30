@@ -277,7 +277,7 @@ pub fn ui_display_common<const N: usize>(
             CenteredInfoStyle::LargeCaseBoldInfo,
             0,
         );
-        let tag_values_list = TagValueList::new(&writer.get_fields(), 2, false, false);
+        let tag_values_list = TagValueList::new(writer.get_fields(), 2, false, false);
 
         let info_button = InfoButton::new(
             msg_after,
