@@ -238,22 +238,12 @@ impl TryFrom<ApduHeader> for Instruction {
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::init_comm;
 
-#[cfg(feature = "pending_review_screen")]
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
-use ledger_device_sdk::ui::gadgets::display_pending_review;
-
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = Comm::new();
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
     init_comm(&mut comm);
-
-    // Developer mode / pending review popup
-    // must be cleared with user interaction
-    #[cfg(feature = "pending_review_screen")]
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
-    display_pending_review(&mut comm);
 
     loop {
         // Wait for either a specific button push to exit the app
