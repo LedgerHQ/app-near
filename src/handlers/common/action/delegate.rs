@@ -11,6 +11,6 @@ pub fn handle(
     _params: ActionParams,
 ) -> Result<(), AppSW> {
     stream.reader.comm.reply(AppSW::TxParsingFail);
-    sign_ui::action::ui_display_delegate_error(&mut stream.reader.comm);
+    sign_ui::action::ui_display_delegate_error(stream.reader.comm);
     Err(AppSW::TxParsingFail)
 }

@@ -71,7 +71,7 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     {
         let my_field = [Field {
             name: "Wallet ID",
-            value: &pbkey_str,
+            value: pbkey_str,
         }];
         let my_review = MultiFieldReview::new(
             &my_field,
