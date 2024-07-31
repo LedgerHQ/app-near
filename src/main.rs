@@ -36,6 +36,7 @@ mod utils {
         pub mod strcat;
     }
 }
+
 mod app_ui {
     pub mod address;
     pub mod aliases;
@@ -234,11 +235,15 @@ impl TryFrom<ApduHeader> for Instruction {
     }
 }
 
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::init_comm;
+
 #[no_mangle]
 extern "C" fn sample_main() {
-    #[cfg(feature = "speculos")]
-    testing::debug_print("enter `sample_main` fn\n\n");
     let mut comm = Comm::new();
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    init_comm(&mut comm);
 
     loop {
         // Wait for either a specific button push to exit the app

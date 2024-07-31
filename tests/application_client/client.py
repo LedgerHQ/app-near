@@ -70,7 +70,6 @@ class Nearbackend:
                 raise TypeError("bytes or AsyncAPDU expected")
         return FINISH_STUB_APDU
 
-
 def condition_folder_name(event_index: int, additional_index: bool, condition_index: int):
     if additional_index:
         return str(event_index) + "_" + str(condition_index)
@@ -82,6 +81,7 @@ def generic_test_sign(
     chunks: List[Union[bytes, AsyncAPDU]],
     navigator: Navigator,
     test_name,
+    firmware,
 ):
     numbered_chunks = enumerate(client.sign_message_chunks(chunks))
 
@@ -94,14 +94,27 @@ def generic_test_sign(
                     condition_folder = Path(test_name) / (
                         str_index + "_" + condition.lower().replace(" ", "_").replace("!", "_bang")
                     )
-                    navigator.navigate_until_text_and_compare(
-                        NavInsID.RIGHT_CLICK,
-                        [NavInsID.BOTH_CLICK],
-                        condition,
-                        ROOT_SCREENSHOT_PATH,
-                        condition_folder,
-                        screen_change_after_last_instruction=False,
-                    )
+                    if firmware.device.startswith("nano"):
+                        navigator.navigate_until_text_and_compare(
+                            NavInsID.RIGHT_CLICK,
+                            [NavInsID.BOTH_CLICK],
+                            condition,
+                            ROOT_SCREENSHOT_PATH,
+                            condition_folder,
+                            screen_change_after_last_instruction=False,
+                        )
+                    else:
+                        navigator.navigate_until_text_and_compare(
+                            NavInsID.USE_CASE_REVIEW_TAP,
+                            [
+                                NavInsID.USE_CASE_ADDRESS_CONFIRMATION_CONFIRM,
+                                NavInsID.USE_CASE_REVIEW_CONFIRM
+                            ],
+                            condition,
+                            ROOT_SCREENSHOT_PATH,
+                            condition_folder,
+                            screen_change_after_last_instruction=False,
+                        )
             elif isinstance(chunk_event, RAPDU):
                 response = client.get_async_response()
 

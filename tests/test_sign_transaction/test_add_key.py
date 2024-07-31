@@ -64,7 +64,7 @@ def test_sign_add_key_fullaccess(firmware, backend, navigator: Navigator, test_n
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test_name):
@@ -145,4 +145,4 @@ def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

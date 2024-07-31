@@ -1,7 +1,7 @@
 [package]
 name = "near"
-version = "2.0.0"
-authors = ["yhql", "agrojean-ledger", "dj8yf0μl"]
+version = "2.1.0"
+authors = ["dj8yf0μl", "polyprogrammist"]
 edition = "2021"
 
 [dependencies]
@@ -34,6 +34,9 @@ icon = "icons/app_near_14px.gif"
 
 [package.metadata.ledger.nanosplus]
 icon = "icons/app_near_14px.gif"
+
+[package.metadata.ledger.stax]
+icon = "icons/app_near_32px.gif"
 
 [features]
 default = []

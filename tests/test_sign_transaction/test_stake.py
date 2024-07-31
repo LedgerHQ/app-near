@@ -62,4 +62,4 @@ def test_sign_stake(firmware, backend, navigator: Navigator, test_name):
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

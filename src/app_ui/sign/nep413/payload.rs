@@ -1,12 +1,16 @@
-use ledger_device_sdk::ui::{
-    bitmaps::{CROSSMARK, EYE, VALIDATE_14},
-    gadgets::{Field, MultiFieldReview},
-};
-
 use crate::{
     app_ui::fields_writer::FieldsWriter,
     parsing::types::nep413::payload::Payload,
     utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
+};
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+use ledger_device_sdk::ui::{
+    bitmaps::{CROSSMARK, EYE, VALIDATE_14},
+    gadgets::{Field, MultiFieldReview},
 };
 
 /// length, twice as long as [crate::parsing::types::nep413::payload::NonceBuffer],
@@ -77,15 +81,30 @@ pub fn ui_display(payload: &mut Payload) -> bool {
     let mut field_context: FieldsContext = FieldsContext::new();
     format(payload, &mut field_context, &mut field_writer);
 
-    let my_review = MultiFieldReview::new(
-        field_writer.get_fields(),
-        &["View NEP413 msg sign"],
-        Some(&EYE),
-        "Sign",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let my_review = MultiFieldReview::new(
+            field_writer.get_fields(),
+            &["View NEP413 msg sign"],
+            Some(&EYE),
+            "Sign",
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
 
-    my_review.show()
+        my_review.show()
+    }
+
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+
+        let mut review: NbglReview = NbglReview::new()
+            .titles("Review NEP413 msg sign", "", "Sign message")
+            .glyph(&NEAR_LOGO);
+
+        review.show(field_writer.get_fields())
+    }
 }

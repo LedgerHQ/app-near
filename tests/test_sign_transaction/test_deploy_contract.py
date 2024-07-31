@@ -112,4 +112,4 @@ KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio=,
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

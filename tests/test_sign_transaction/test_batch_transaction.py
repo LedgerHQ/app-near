@@ -226,4 +226,4 @@ def test_sign_batch_transaction_all_actions(firmware, backend, navigator: Naviga
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

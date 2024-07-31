@@ -48,7 +48,7 @@ def test_sign_wrong_pubkey_transfer(firmware, backend, navigator: Navigator, tes
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_wrong_pubkey_delegate_action_transfer(
@@ -92,4 +92,4 @@ def test_sign_wrong_pubkey_delegate_action_transfer(
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

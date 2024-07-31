@@ -50,7 +50,7 @@ def test_sign_delete_account_short(firmware, backend, navigator: Navigator, test
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_name):
@@ -106,4 +106,4 @@ def test_sign_delete_account_long(firmware, backend, navigator: Navigator, test_
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
