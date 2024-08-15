@@ -8,20 +8,21 @@ function build_all() {
     cargo ledger build nanosplus
     cargo ledger build nanox
     cargo ledger build stax
+    cargo ledger build flex
     exit
 EOF
 }
 
 function test() {
   if [[ -n "$GOLDEN" ]] ;
-  then 
+  then
     golden_suffix="--golden_run"
   else
     golden_suffix=""
   fi
 
   if [[ -n "$2" ]] ;
-  then 
+  then
     filter="-k $2"
   else
     filter=""
@@ -35,9 +36,9 @@ EOF
 
 function test_all() {
   echo $1
-  
+
   if [[ -n "$1" ]] ;
-  then 
+  then
     filter="-k $1"
   else
     filter=""

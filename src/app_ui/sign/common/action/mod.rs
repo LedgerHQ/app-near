@@ -208,18 +208,14 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
         let info_button = InfoButton::new(
             "Delegate action is not supported",
             Some(&NEAR_LOGO),
-            "Reject Transaction",
+            "Reject",
             TuneIndex::Success,
         );
 
         let mut review: NbglGenericReview =
             NbglGenericReview::new().add_content(NbglPageContent::InfoButton(info_button));
 
-        review.show(
-            "Reject\nTransaction",
-            "Transaction Rejected",
-            "Transaction rejected",
-        );
+        review.show("Reject", "Transaction Rejected", "Transaction Rejected");
     }
 }
 
@@ -307,7 +303,7 @@ pub fn ui_display_common<const N: usize>(
             last_screen = "Action confirmed";
         }
 
-        review.show("Reject\nTransaction", last_screen, "Transaction rejected")
+        review.show("Reject", last_screen, "Transaction rejected")
     }
 }
 

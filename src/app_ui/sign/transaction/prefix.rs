@@ -118,10 +118,6 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
 
-        review.show(
-            "Reject\nTransaction",
-            "Header confirmed",
-            "Transaction rejected",
-        )
+        review.show("Reject", "Header confirmed", "Transaction rejected")
     }
 }
