@@ -34,7 +34,7 @@ function test() {
 EOF
 }
 
-function test_all() {
+function test_all_nano() {
   echo $1
 
   if [[ -n "$1" ]] ;
@@ -53,6 +53,24 @@ function test_all() {
 EOF
 }
 
+function test_all() {
+  echo $1
+  
+  if [[ -n "$1" ]] ;
+  then 
+    filter="-k $1"
+  else
+    filter=""
+  fi
+  echo "$filter"
+  # docker commands to test with Ragger (for ALL)
+
+  docker run --rm -i --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath .):/app" --name app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest  /bin/bash -s <<EOF
+  set -e
+  [ -f ./tests/requirements.txt ] && pip install -r ./tests/requirements.txt
+  pytest ./tests --log-cli-level=$PYTEST_LOG_LEVEL --tb=short $filter -v --device all
+EOF
+}
 while getopts ":c:t:f:g" opt; do
   case $opt in
     c) command="$OPTARG"
