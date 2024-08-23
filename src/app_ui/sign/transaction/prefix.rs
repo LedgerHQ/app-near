@@ -1,3 +1,11 @@
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use include_gif::include_gif;
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+use ledger_device_sdk::nbgl::{
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, NbglGenericReview, NbglGlyph,
+    NbglPageContent, TagValueList, TuneIndex,
+};
+#[cfg(not(any(target_os = "stax", target_os = "flex")))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::{Field, MultiFieldReview},
@@ -62,15 +70,54 @@ pub fn ui_display(prefix: &mut parsing::types::transaction::prefix::Prefix) -> b
     let mut field_context: FieldsContext = FieldsContext::new();
     format(prefix, &mut field_context, &mut field_writer);
 
-    let my_review = MultiFieldReview::new(
-        field_writer.get_fields(),
-        &["View header"],
-        Some(&EYE),
-        "Continue to actions",
-        Some(&VALIDATE_14),
-        "Reject",
-        Some(&CROSSMARK),
-    );
+    let msg_before = "View header";
+    let msg_after = "Continue to actions";
 
-    my_review.show()
+    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    {
+        let binding = [msg_before];
+
+        let my_review = MultiFieldReview::new(
+            field_writer.get_fields(),
+            &binding,
+            Some(&EYE),
+            msg_after,
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+
+        my_review.show()
+    }
+    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    {
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+
+        let centered_info = CenteredInfo::new(
+            msg_before,
+            "",
+            "",
+            Some(&NEAR_LOGO),
+            false,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+
+        let info_button = InfoButton::new(
+            msg_after,
+            Some(&NEAR_LOGO),
+            "Confirm header",
+            TuneIndex::Success,
+        );
+
+        let tag_values_list = TagValueList::new(field_writer.get_fields(), 2, false, false);
+
+        let mut review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list))
+            .add_content(NbglPageContent::InfoButton(info_button));
+
+        review.show("Reject", "Header confirmed", "Transaction rejected")
+    }
 }

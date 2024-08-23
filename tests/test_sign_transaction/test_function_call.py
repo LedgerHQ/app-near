@@ -84,7 +84,7 @@ MDAwMDAwMDAwMDAiLCJlbmRfdGltZXN0YW1wIjoiMTcwNDE1MDAwMDAwMDAwMDAwMCJ9LCJzYWx0Ijoi
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 def test_sign_function_call_string_with_newline(firmware, backend, navigator: Navigator, test_name):
     """
@@ -143,7 +143,7 @@ def test_sign_function_call_string_with_newline(firmware, backend, navigator: Na
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: Navigator, test_name):
     r"""
@@ -202,7 +202,7 @@ def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: 
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, navigator: Navigator, test_name):
     r"""
@@ -264,7 +264,7 @@ def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, naviga
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_function_call_binary_hexdump(firmware, backend, navigator: Navigator, test_name):
@@ -349,7 +349,7 @@ BvbiBvbGQgdGVsZXR5cGVzLgo=,
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_function_call_binary_hexdump_after_utf8_error(
@@ -423,4 +423,4 @@ Dx8vP09fb3+Pn6+/z9/g==,
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

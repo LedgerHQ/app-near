@@ -84,4 +84,4 @@ n storage of the users' accounts.",
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

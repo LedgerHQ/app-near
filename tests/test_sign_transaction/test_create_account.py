@@ -46,4 +46,4 @@ def test_sign_create_account(firmware, backend, navigator: Navigator, test_name)
             ),
         )
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

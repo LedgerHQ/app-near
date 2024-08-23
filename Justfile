@@ -58,3 +58,9 @@ run_speculos_nanox:
 	-v "$(realpath ./):/app" -it --name  \
 	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
 	bash -c '/usr/bin/python3 -m speculos --model nanox --api-port 5000 --apdu-port 5001 --display headless /app/target/nanox/release/app-near-rust'
+
+run_speculos_stax:
+	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
+	-v "$(realpath ./):/app" -it --name  \
+	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
+	bash -c '/usr/bin/python3 -m speculos --model stax --api-port 5000 --apdu-port 5001 --display headless /app/target/stax/release/app-near-rust'

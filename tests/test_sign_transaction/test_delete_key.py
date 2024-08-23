@@ -58,7 +58,7 @@ def test_sign_delete_key_ed25519(firmware, backend, navigator: Navigator, test_n
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_delete_key_secp256k1(firmware, backend, navigator: Navigator, test_name):
@@ -112,4 +112,4 @@ def test_sign_delete_key_secp256k1(firmware, backend, navigator: Navigator, test
             ),
         ),
     ]
-    generic_test_sign(client, chunks, navigator, test_name)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
