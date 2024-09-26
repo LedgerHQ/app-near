@@ -130,6 +130,6 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
 
-        Ok(review.show("Reject", "Confirmed", "Transaction rejected"))
+        Ok(review.show("Reject"))
     }
 }

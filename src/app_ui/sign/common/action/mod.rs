@@ -215,7 +215,7 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
         let mut review: NbglGenericReview =
             NbglGenericReview::new().add_content(NbglPageContent::InfoButton(info_button));
 
-        review.show("Reject", "Transaction Rejected", "Transaction Rejected");
+        review.show("Reject");
     }
 }
 
@@ -303,7 +303,7 @@ pub fn ui_display_common<const N: usize>(
             last_screen = "Action confirmed";
         }
 
-        review.show("Reject", last_screen, "Transaction rejected")
+        review.show("Reject")
     }
 }
 

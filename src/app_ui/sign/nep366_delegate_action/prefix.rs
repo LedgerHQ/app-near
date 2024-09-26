@@ -120,6 +120,6 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));
 
-        review.show("Reject", "NEP366 prefix confirmed", "Transaction rejected")
+        review.show("Reject")
     }
 }
