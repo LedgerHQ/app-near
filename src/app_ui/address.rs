@@ -60,7 +60,7 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
             .verify_str("Confirm Public Key");
 
         let res = review.show(out_buf.as_str());
-        let mut status = NbglReviewStatus::new();
+        let status = NbglReviewStatus::new();
         match res {
             true => {
                 status.status_type(StatusType::Address).show(true);
@@ -105,6 +105,16 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
             .glyph(&NEAR_LOGO)
             .verify_str("Confirm Wallet ID");
 
-        Ok(review.show(pbkey_str))
+        let res = review.show(pbkey_str);
+        let status = NbglReviewStatus::new();
+        match res {
+            true => {
+                status.status_type(StatusType::Address).show(true);
+            }
+            false => {
+                status.status_type(StatusType::Address).show(false);
+            }
+        }
+        Ok(res)
     }
 }
