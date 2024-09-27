@@ -121,7 +121,7 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
             .add_content(NbglPageContent::InfoButton(info_button));
 
         let res = review.show("Reject");
-        let mut status: NbglStatus = NbglStatus::new();
+        let status: NbglStatus = NbglStatus::new();
         match res {
             true => {
                 status.text("NEP366 prefix confirmed").show(true);

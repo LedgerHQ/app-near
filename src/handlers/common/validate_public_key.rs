@@ -131,7 +131,7 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
             .add_content(NbglPageContent::InfoButton(info_button));
 
         let res = review.show("Reject");
-        let mut status: NbglStatus = NbglStatus::new();
+        let status: NbglStatus = NbglStatus::new();
         match res {
             true => {
                 status.text("Confirmed").show(true);
