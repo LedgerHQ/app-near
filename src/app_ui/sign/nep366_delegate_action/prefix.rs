@@ -115,7 +115,7 @@ pub fn ui_display(prefix: &mut parsing::types::nep366_delegate_action::prefix::P
 
         let tag_values_list = TagValueList::new(field_writer.get_fields(), 2, false, false);
 
-        let mut review: NbglGenericReview = NbglGenericReview::new()
+        let review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));

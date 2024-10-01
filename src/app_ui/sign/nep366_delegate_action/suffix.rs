@@ -92,7 +92,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
-        let mut review: NbglReview = NbglReview::new()
+        let review: NbglReview = NbglReview::new()
             .titles(msg_before, "", "Sign transaction")
             .glyph(&NEAR_LOGO);
 

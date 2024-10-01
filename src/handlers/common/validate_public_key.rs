@@ -125,7 +125,7 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
 
         let tag_values_list = TagValueList::new(&my_fields, 2, false, false);
 
-        let mut review: NbglGenericReview = NbglGenericReview::new()
+        let review: NbglGenericReview = NbglGenericReview::new()
             .add_content(NbglPageContent::CenteredInfo(centered_info))
             .add_content(NbglPageContent::TagValueList(tag_values_list))
             .add_content(NbglPageContent::InfoButton(info_button));

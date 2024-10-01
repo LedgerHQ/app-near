@@ -101,7 +101,7 @@ pub fn ui_display(payload: &mut Payload) -> bool {
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
-        let mut review: NbglReview = NbglReview::new()
+        let review: NbglReview = NbglReview::new()
             .titles("Review NEP413 msg sign", "", "Sign message")
             .glyph(&NEAR_LOGO);
 
