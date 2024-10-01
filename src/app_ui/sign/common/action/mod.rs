@@ -212,7 +212,7 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
             TuneIndex::Success,
         );
 
-        let mut review: NbglGenericReview =
+        let review: NbglGenericReview =
             NbglGenericReview::new().add_content(NbglPageContent::InfoButton(info_button));
 
         let res = review.show("Reject");

@@ -55,7 +55,7 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
-        let mut review: NbglAddressReview = NbglAddressReview::new()
+        let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
             .verify_str("Confirm Public Key");
 
@@ -101,7 +101,7 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
 
-        let mut review: NbglAddressReview = NbglAddressReview::new()
+        let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
             .verify_str("Confirm Wallet ID");
 
