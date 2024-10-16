@@ -216,15 +216,8 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
             NbglGenericReview::new().add_content(NbglPageContent::InfoButton(info_button));
 
         let res = review.show("Reject");
-        let status: NbglStatus = NbglStatus::new();
-        match res {
-            true => {
-                status.text("Transaction rejected").show(true);
-            }
-            false => {
-                status.text("Transaction rejected").show(false);
-            }
-        }
+
+        NbglStatus::new().text("Transaction rejected").show(res);
     }
 }
 
