@@ -107,7 +107,7 @@ pub fn ui_display(payload: &mut Payload) -> bool {
 
         let res = review.show(field_writer.get_fields());
 
-        NbgReviewStatus::new()
+        NbglReviewStatus::new()
             .status_type(StatusType::Message)
             .show(res);
 
