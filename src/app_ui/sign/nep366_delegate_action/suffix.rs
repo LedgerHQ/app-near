@@ -97,15 +97,11 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
             .glyph(&NEAR_LOGO);
 
         let res = review.show(field_writer.get_fields());
-        let status = NbglReviewStatus::new();
-        match res {
-            true => {
-                status.status_type(StatusType::Transaction).show(true);
-            }
-            false => {
-                status.status_type(StatusType::Transaction).show(false);
-            }
-        }
+
+        NbglReviewStatus::new()
+            .status_type(StatusType::Transaction)
+            .show(res);
+
         res
     }
 }

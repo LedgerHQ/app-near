@@ -106,15 +106,11 @@ pub fn ui_display(payload: &mut Payload) -> bool {
             .glyph(&NEAR_LOGO);
 
         let res = review.show(field_writer.get_fields());
-        let status = NbglReviewStatus::new();
-        match res {
-            true => {
-                status.status_type(StatusType::Message).show(true);
-            }
-            false => {
-                status.status_type(StatusType::Message).show(false);
-            }
-        }
+
+        NbgReviewStatus::new()
+            .status_type(StatusType::Message)
+            .show(res);
+
         res
     }
 }
