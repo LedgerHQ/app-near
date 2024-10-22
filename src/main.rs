@@ -239,7 +239,43 @@ impl TryFrom<ApduHeader> for Instruction {
 use ledger_device_sdk::nbgl::init_comm;
 
 #[no_mangle]
-extern "C" fn sample_main() {
+extern "C" fn sample_main(arg0: u32) {
+    if arg0 != 0 {
+        ledger_device_sdk::testing::debug_print("call app as a lib\n");
+
+        let cmd = ledger_device_sdk::libcall::get_command(arg0);
+
+        match cmd {
+            ledger_device_sdk::libcall::LibCallCommand::CheckAddress => {
+                let _params = ledger_device_sdk::libcall::get_check_address_params(arg0);
+                // let check_address_params = parsing::types::base58_buf::Base58Buf::from_slice(
+                //     params.ref_address,
+                //     params.ref_address.len(),
+                // );
+                // let path = utils::crypto::path::PathBip32::from_bytes(&params.dpath);
+                // let check_address_params = parsing::CheckAddressParams {
+                //     path,
+                //     check_address_params,
+                // };
+                // let result = handlers::common::validate_public_key::handler(check_address_params);
+                // ledger_secure_sdk_sys::os_lib_end();
+                // if result {
+                //     ledger_secure_sdk_sys::exit_app(0);
+                // } else {
+                //     ledger_secure_sdk_sys::exit_app(1);
+                // }
+            }
+            _ => {
+                ledger_device_sdk::testing::debug_print("Unknown command\n");
+            }
+        }
+        unsafe {
+            ledger_secure_sdk_sys::os_lib_end();
+        }
+    }
+
+    ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
+
     let mut comm = Comm::new();
 
     #[cfg(any(target_os = "stax", target_os = "flex"))]
