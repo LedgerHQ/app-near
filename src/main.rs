@@ -245,7 +245,6 @@ use ledger_device_sdk::nbgl::init_comm;
 extern "C" fn sample_main(arg0: u32) {
     if arg0 != 0 {
         use crate::utils::types::base58_buf::Base58Buf;
-        use fmt_buffer::Buffer;
         use near_token::{NearToken, TokenBuffer};
 
         ledger_device_sdk::testing::debug_print("call app as a lib\n");
@@ -253,8 +252,8 @@ extern "C" fn sample_main(arg0: u32) {
         let cmd = ledger_device_sdk::libcall::get_command(arg0);
 
         match cmd {
-            ledger_device_sdk::libcall::LibCallCommand::CheckAddress => {
-                let mut params = ledger_device_sdk::libcall::get_check_address_params(arg0);
+            ledger_device_sdk::libcall::LibCallCommand::SwapCheckAddress => {
+                let params = ledger_device_sdk::libcall::swap::get_check_address_params(arg0);
 
                 let path =
                     match utils::crypto::PathBip32::parse(&params.dpath[..params.dpath_len * 4]) {
@@ -313,8 +312,8 @@ extern "C" fn sample_main(arg0: u32) {
                     }
                 }
             }
-            ledger_device_sdk::libcall::LibCallCommand::GetPrintableAmount => {
-                let params = ledger_device_sdk::libcall::get_printable_amount_params(arg0);
+            ledger_device_sdk::libcall::LibCallCommand::SwapGetPrintableAmount => {
+                let params = ledger_device_sdk::libcall::swap::get_printable_amount_params(arg0);
 
                 let amount = u128::from_be_bytes(params.amount);
                 let near_token = NearToken::from_yoctonear(amount);
