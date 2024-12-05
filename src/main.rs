@@ -121,9 +121,12 @@ use app_ui::menu::ui_menu_main;
 use handlers::{
     get_public_key, get_version, get_wallet_id, sign_nep366_delegate, sign_nep413_msg, sign_tx,
 };
-use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
+use ledger_device_sdk::{
+    io::{ApduHeader, Comm, Event, Reply, StatusWords},
+    testing::debug_print,
+};
 use parsing::SingleTxStream;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
@@ -241,29 +244,92 @@ use ledger_device_sdk::nbgl::init_comm;
 #[no_mangle]
 extern "C" fn sample_main(arg0: u32) {
     if arg0 != 0 {
+        use crate::utils::types::base58_buf::Base58Buf;
+        use fmt_buffer::Buffer;
+        use near_token::{NearToken, TokenBuffer};
+
         ledger_device_sdk::testing::debug_print("call app as a lib\n");
 
         let cmd = ledger_device_sdk::libcall::get_command(arg0);
 
         match cmd {
             ledger_device_sdk::libcall::LibCallCommand::CheckAddress => {
-                let _params = ledger_device_sdk::libcall::get_check_address_params(arg0);
-                // let check_address_params = parsing::types::base58_buf::Base58Buf::from_slice(
-                //     params.ref_address,
-                //     params.ref_address.len(),
-                // );
-                // let path = utils::crypto::path::PathBip32::from_bytes(&params.dpath);
-                // let check_address_params = parsing::CheckAddressParams {
-                //     path,
-                //     check_address_params,
-                // };
-                // let result = handlers::common::validate_public_key::handler(check_address_params);
-                // ledger_secure_sdk_sys::os_lib_end();
-                // if result {
-                //     ledger_secure_sdk_sys::exit_app(0);
-                // } else {
-                //     ledger_secure_sdk_sys::exit_app(1);
-                // }
+                let mut params = ledger_device_sdk::libcall::get_check_address_params(arg0);
+
+                let path =
+                    match utils::crypto::PathBip32::parse(&params.dpath[..params.dpath_len * 4]) {
+                        Ok(path) => path,
+                        Err(_) => {
+                            debug_print("Derivation path failure\n");
+                            unsafe {
+                                *(params.result) = 0i32;
+                                ledger_secure_sdk_sys::os_lib_end();
+                            }
+                        }
+                    };
+
+                let pk = match ledger_device_sdk::ecc::Ed25519::derive_from_path_slip10(&path.0)
+                    .public_key()
+                {
+                    Ok(pk) => pk,
+                    Err(_) => {
+                        debug_print("Public key derivation failure\n");
+                        unsafe {
+                            *(params.result) = 0i32;
+                            ledger_secure_sdk_sys::os_lib_end();
+                        }
+                    }
+                };
+
+                let pk = utils::crypto::PublicKeyBe::from_little_endian(pk);
+
+                let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
+                match bs58_buf.encode(&pk.0) {
+                    Ok(_) => {
+                        debug_print("PK base58 encoding ok\n");
+                    }
+                    Err(_) => {
+                        debug_print("PK base58 encoding failure\n");
+                        unsafe {
+                            *(params.result) = 0i32;
+                            ledger_secure_sdk_sys::os_lib_end();
+                        }
+                    }
+                }
+
+                if bs58_buf.as_str().eq(core::str::from_utf8(
+                    &params.ref_address[..params.ref_address_len],
+                )
+                .unwrap())
+                {
+                    unsafe {
+                        debug_print("set result OK\n");
+                        *(params.result) = 1i32;
+                    }
+                } else {
+                    unsafe {
+                        debug_print("set result KO\n");
+                        *(params.result) = 0i32;
+                    }
+                }
+            }
+            ledger_device_sdk::libcall::LibCallCommand::GetPrintableAmount => {
+                let params = ledger_device_sdk::libcall::get_printable_amount_params(arg0);
+
+                let amount = u128::from_be_bytes(params.amount);
+                let near_token = NearToken::from_yoctonear(amount);
+                let mut near_token_buffer = TokenBuffer::new();
+                near_token.display_as_buffer(&mut near_token_buffer);
+
+                let s = near_token_buffer.as_str();
+
+                unsafe {
+                    debug_print("set amount_str\n");
+                    for (i, c) in s.chars().enumerate() {
+                        *(params.amount_str.add(i)) = c as i8;
+                    }
+                    *(params.amount_str.add(s.len())) = '\0' as i8;
+                }
             }
             _ => {
                 ledger_device_sdk::testing::debug_print("Unknown command\n");

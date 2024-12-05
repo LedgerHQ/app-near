@@ -5,8 +5,8 @@ authors = ["dj8yf0μl", "polyprogrammist"]
 edition = "2021"
 
 [dependencies]
-ledger_device_sdk = "1.17.4"
-ledger_secure_sdk_sys = { version = "1.5.1", features = ["heap"]}
+ledger_device_sdk = "1.18.4"
+ledger_secure_sdk_sys = { version = "1.5.3", features = ["heap"]}
 include_gif = "1.2.0"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
 bs58 = { version = "0.5.0", default-features = false }
