@@ -330,8 +330,23 @@ extern "C" fn sample_main(arg0: u32) {
                     *(params.amount_str.add(s.len())) = '\0' as i8;
                 }
             }
-            _ => {
-                ledger_device_sdk::testing::debug_print("Unknown command\n");
+            ledger_device_sdk::libcall::LibCallCommand::SwapSignTransaction => {
+                let params = ledger_device_sdk::libcall::swap::sign_tx_params(arg0);
+
+                {
+                    let mut comm = Comm::new().set_expected_cla(CLA);
+
+                    debug_print("Wait for APDU\n");
+
+                    // Wait for an APDU command
+                    //let ins = comm.next_command();
+                    //let _ = handle_apdu(&mut comm, ins);
+                }
+
+                unsafe {
+                    debug_print("set result OK\n");
+                    *(params.result) = 1u8;
+                }
             }
         }
         unsafe {
