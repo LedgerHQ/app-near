@@ -44,6 +44,7 @@ icon = "icons/app_near_40px.gif"
 
 [features]
 default = []
+debug = ["ledger_device_sdk/debug"]
 speculos = ["ledger_device_sdk/speculos"]
 
 [patch.crates-io]
