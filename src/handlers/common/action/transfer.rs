@@ -13,6 +13,8 @@ pub fn handle(
 ) -> Result<(), AppSW> {
     let transfer = Transfer::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
+    ledger_device_sdk::testing::debug_print("displaying transfer info\n");
+
     if !sign_ui::action::ui_display_transfer(&transfer, params) {
         return Err(AppSW::Deny);
     }

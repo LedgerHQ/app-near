@@ -125,6 +125,7 @@ use handlers::{
 use ledger_device_sdk::testing;
 use ledger_device_sdk::{
     io::{ApduHeader, Comm, Event, Reply, StatusWords},
+    libcall::swap::CreateTxParams,
     testing::debug_print,
 };
 use parsing::SingleTxStream;
@@ -304,11 +305,13 @@ extern "C" fn sample_main(arg0: u32) {
                     unsafe {
                         debug_print("set result OK\n");
                         *(params.result) = 1i32;
+                        ledger_secure_sdk_sys::os_lib_end();
                     }
                 } else {
                     unsafe {
                         debug_print("set result KO\n");
                         *(params.result) = 0i32;
+                        ledger_secure_sdk_sys::os_lib_end();
                     }
                 }
             }
@@ -328,6 +331,7 @@ extern "C" fn sample_main(arg0: u32) {
                         *(params.amount_str.add(i)) = c as i8;
                     }
                     *(params.amount_str.add(s.len())) = '\0' as i8;
+                    ledger_secure_sdk_sys::os_lib_end();
                 }
             }
             ledger_device_sdk::libcall::LibCallCommand::SwapSignTransaction => {
@@ -339,19 +343,36 @@ extern "C" fn sample_main(arg0: u32) {
                     debug_print("Wait for APDU\n");
 
                     // Wait for an APDU command
-                    //let ins = comm.next_command();
-                    //let _ = handle_apdu(&mut comm, ins);
-                }
+                    let ins: Instruction = comm.next_command();
 
-                unsafe {
-                    debug_print("set result OK\n");
-                    *(params.result) = 1u8;
+                    debug_print("APDU received\n");
+
+                    match handle_swap_apdu(&mut comm, ins, &params) {
+                        Ok(sig) => {
+                            debug_print("send back signature APDU\n");
+                            comm.append(&sig);
+                            comm.swap_reply_ok();
+                            unsafe {
+                                debug_print("set result OK\n");
+                                *(params.result) = 1u8;
+                                ledger_secure_sdk_sys::os_lib_end();
+                            }
+                        }
+                        Err(sw) => {
+                            comm.swap_reply(sw);
+                            unsafe {
+                                debug_print("set result KO\n");
+                                *(params.result) = 0u8;
+                                ledger_secure_sdk_sys::os_lib_end();
+                            }
+                        }
+                    }
                 }
             }
         }
-        unsafe {
-            ledger_secure_sdk_sys::os_lib_end();
-        }
+        // unsafe {
+        //     ledger_secure_sdk_sys::os_lib_end();
+        // }
     }
 
     ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
@@ -382,6 +403,7 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
             is_last_chunk,
             sign_mode,
         } => {
+            ledger_device_sdk::testing::debug_print("handle_apdu => Sign Tx\n");
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             let signature = match sign_mode {
                 SignMode::Transaction => sign_tx::handler(stream)?,
@@ -391,5 +413,32 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
             comm.append(&signature.0);
             Ok(())
         }
+    }
+}
+
+fn handle_swap_apdu(
+    comm: &mut Comm,
+    ins: Instruction,
+    tx_params: &CreateTxParams,
+) -> Result<[u8; 64], AppSW> {
+    match ins {
+        Instruction::SignTx {
+            is_last_chunk,
+            sign_mode,
+        } => {
+            ledger_device_sdk::testing::debug_print("handle_swap_apdu => Sign Tx\n");
+            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
+            match sign_mode {
+                SignMode::Transaction => {
+                    let signature = sign_tx::handler_swap(stream, tx_params);
+                    match signature {
+                        Ok(sig) => Ok(sig.0),
+                        Err(sw) => return Err(sw),
+                    }
+                }
+                _ => Err(AppSW::TxSignFail),
+            }
+        }
+        _ => Err(AppSW::InsNotSupported),
     }
 }
