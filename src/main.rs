@@ -121,13 +121,9 @@ use app_ui::menu::ui_menu_main;
 use handlers::{
     get_public_key, get_version, get_wallet_id, sign_nep366_delegate, sign_nep413_msg, sign_tx,
 };
+use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
-use ledger_device_sdk::{
-    io::{ApduHeader, Comm, Event, Reply, StatusWords},
-    libcall::swap::CreateTxParams,
-    testing::debug_print,
-};
 use parsing::SingleTxStream;
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
@@ -242,153 +238,28 @@ impl TryFrom<ApduHeader> for Instruction {
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::init_comm;
 
+mod swap;
+
 #[no_mangle]
 extern "C" fn sample_main(arg0: u32) {
     if arg0 != 0 {
-        use crate::utils::types::base58_buf::Base58Buf;
-        use near_token::{NearToken, TokenBuffer};
+        swap::swap_main(arg0);
+    } else {
+        ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
 
-        ledger_device_sdk::testing::debug_print("call app as a lib\n");
+        let mut comm = Comm::new();
 
-        let cmd = ledger_device_sdk::libcall::get_command(arg0);
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
+        init_comm(&mut comm);
 
-        match cmd {
-            ledger_device_sdk::libcall::LibCallCommand::SwapCheckAddress => {
-                let params = ledger_device_sdk::libcall::swap::get_check_address_params(arg0);
-
-                let path =
-                    match utils::crypto::PathBip32::parse(&params.dpath[..params.dpath_len * 4]) {
-                        Ok(path) => path,
-                        Err(_) => {
-                            debug_print("Derivation path failure\n");
-                            unsafe {
-                                *(params.result) = 0i32;
-                                ledger_secure_sdk_sys::os_lib_end();
-                            }
-                        }
-                    };
-
-                let pk = match ledger_device_sdk::ecc::Ed25519::derive_from_path_slip10(&path.0)
-                    .public_key()
-                {
-                    Ok(pk) => pk,
-                    Err(_) => {
-                        debug_print("Public key derivation failure\n");
-                        unsafe {
-                            *(params.result) = 0i32;
-                            ledger_secure_sdk_sys::os_lib_end();
-                        }
-                    }
-                };
-
-                let pk = utils::crypto::PublicKeyBe::from_little_endian(pk);
-
-                let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
-                match bs58_buf.encode(&pk.0) {
-                    Ok(_) => {
-                        debug_print("PK base58 encoding ok\n");
-                    }
-                    Err(_) => {
-                        debug_print("PK base58 encoding failure\n");
-                        unsafe {
-                            *(params.result) = 0i32;
-                            ledger_secure_sdk_sys::os_lib_end();
-                        }
-                    }
+        loop {
+            // Wait for either a specific button push to exit the app
+            // or an APDU command
+            if let Event::Command(ins) = ui_menu_main(&mut comm) {
+                match handle_apdu(&mut comm, ins) {
+                    Ok(()) => comm.reply_ok(),
+                    Err(sw) => comm.reply(sw),
                 }
-
-                if bs58_buf.as_str().eq(core::str::from_utf8(
-                    &params.ref_address[..params.ref_address_len],
-                )
-                .unwrap())
-                {
-                    unsafe {
-                        debug_print("set result OK\n");
-                        *(params.result) = 1i32;
-                        ledger_secure_sdk_sys::os_lib_end();
-                    }
-                } else {
-                    unsafe {
-                        debug_print("set result KO\n");
-                        *(params.result) = 0i32;
-                        ledger_secure_sdk_sys::os_lib_end();
-                    }
-                }
-            }
-            ledger_device_sdk::libcall::LibCallCommand::SwapGetPrintableAmount => {
-                let params = ledger_device_sdk::libcall::swap::get_printable_amount_params(arg0);
-
-                let amount = u128::from_be_bytes(params.amount);
-                let near_token = NearToken::from_yoctonear(amount);
-                let mut near_token_buffer = TokenBuffer::new();
-                near_token.display_as_buffer(&mut near_token_buffer);
-
-                let s = near_token_buffer.as_str();
-
-                unsafe {
-                    debug_print("set amount_str\n");
-                    for (i, c) in s.chars().enumerate() {
-                        *(params.amount_str.add(i)) = c as i8;
-                    }
-                    *(params.amount_str.add(s.len())) = '\0' as i8;
-                    ledger_secure_sdk_sys::os_lib_end();
-                }
-            }
-            ledger_device_sdk::libcall::LibCallCommand::SwapSignTransaction => {
-                let params = ledger_device_sdk::libcall::swap::sign_tx_params(arg0);
-
-                {
-                    let mut comm = Comm::new().set_expected_cla(CLA);
-
-                    debug_print("Wait for APDU\n");
-
-                    // Wait for an APDU command
-                    let ins: Instruction = comm.next_command();
-
-                    debug_print("APDU received\n");
-
-                    match handle_swap_apdu(&mut comm, ins, &params) {
-                        Ok(sig) => {
-                            debug_print("send back signature APDU\n");
-                            comm.append(&sig);
-                            comm.swap_reply_ok();
-                            unsafe {
-                                debug_print("set result OK\n");
-                                *(params.result) = 1u8;
-                                ledger_secure_sdk_sys::os_lib_end();
-                            }
-                        }
-                        Err(sw) => {
-                            comm.swap_reply(sw);
-                            unsafe {
-                                debug_print("set result KO\n");
-                                *(params.result) = 0u8;
-                                ledger_secure_sdk_sys::os_lib_end();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // unsafe {
-        //     ledger_secure_sdk_sys::os_lib_end();
-        // }
-    }
-
-    ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
-
-    let mut comm = Comm::new();
-
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
-    init_comm(&mut comm);
-
-    loop {
-        // Wait for either a specific button push to exit the app
-        // or an APDU command
-        if let Event::Command(ins) = ui_menu_main(&mut comm) {
-            match handle_apdu(&mut comm, ins) {
-                Ok(()) => comm.reply_ok(),
-                Err(sw) => comm.reply(sw),
             }
         }
     }
@@ -413,32 +284,5 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
             comm.append(&signature.0);
             Ok(())
         }
-    }
-}
-
-fn handle_swap_apdu(
-    comm: &mut Comm,
-    ins: Instruction,
-    tx_params: &CreateTxParams,
-) -> Result<[u8; 64], AppSW> {
-    match ins {
-        Instruction::SignTx {
-            is_last_chunk,
-            sign_mode,
-        } => {
-            ledger_device_sdk::testing::debug_print("handle_swap_apdu => Sign Tx\n");
-            let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
-            match sign_mode {
-                SignMode::Transaction => {
-                    let signature = sign_tx::handler_swap(stream, tx_params);
-                    match signature {
-                        Ok(sig) => Ok(sig.0),
-                        Err(sw) => return Err(sw),
-                    }
-                }
-                _ => Err(AppSW::TxSignFail),
-            }
-        }
-        _ => Err(AppSW::InsNotSupported),
     }
 }
