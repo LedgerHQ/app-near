@@ -274,7 +274,6 @@ fn handle_apdu(comm: &mut Comm, ins: Instruction) -> Result<(), AppSW> {
             is_last_chunk,
             sign_mode,
         } => {
-            ledger_device_sdk::testing::debug_print("handle_apdu => Sign Tx\n");
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             let signature = match sign_mode {
                 SignMode::Transaction => sign_tx::handler(stream)?,
