@@ -148,17 +148,6 @@ pub fn handler_swap(
                         ledger_device_sdk::testing::debug_print(
                             "sign_tx.rs: receiver_id does not match with dest_address\n",
                         );
-                        ledger_device_sdk::testing::debug_print("Tx dest address: ");
-                        ledger_device_sdk::testing::debug_print(tx_prefix.receiver_id.as_str());
-                        ledger_device_sdk::testing::debug_print("\n");
-                        ledger_device_sdk::testing::debug_print("Exchange dest address: ");
-                        ledger_device_sdk::testing::debug_print(
-                            core::str::from_utf8(
-                                tx_params.dest_address[..tx_params.dest_address_len].as_ref(),
-                            )
-                            .unwrap(),
-                        );
-                        ledger_device_sdk::testing::debug_print("\n");
                         return Err(AppSW::TxSignFail);
                     }
 
