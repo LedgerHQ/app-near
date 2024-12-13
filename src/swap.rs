@@ -52,48 +52,6 @@ pub fn swap_main(arg0: u32) {
                 }
             }
             swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, res));
-
-            // let path =
-            //     match crate::utils::crypto::PathBip32::parse(&params.dpath[..params.dpath_len * 4])
-            //     {
-            //         Ok(path) => path,
-            //         Err(_) => {
-            //             debug_print("Derivation path failure\n");
-            //             swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, 0i32));
-            //             PathBip32 { 0: [0; 5] }
-            //         }
-            //     };
-
-            // let pk = match ecc::Ed25519::derive_from_path_slip10(&path.0).public_key() {
-            //     Ok(pk) => pk,
-            //     Err(_) => {
-            //         debug_print("Public key derivation failure\n");
-            //         swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, 0i32));
-            //         ECPublicKey::<65, 'E'>::new(ecc::CurvesId::Ed25519)
-            //     }
-            // };
-
-            // let pk = crate::utils::crypto::PublicKeyBe::from_little_endian(pk);
-
-            // let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
-            // match bs58_buf.encode(&pk.0) {
-            //     Ok(_) => {
-            //         debug_print("PK base58 encoding ok\n");
-            //     }
-            //     Err(_) => {
-            //         debug_print("PK base58 encoding failure\n");
-            //         swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, 0i32));
-            //     }
-            // }
-
-            // if bs58_buf
-            //     .as_str()
-            //     .eq(core::str::from_utf8(&params.ref_address[..params.ref_address_len]).unwrap())
-            // {
-            //     swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, 1i32));
-            // } else {
-            //     swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, 0i32));
-            // }
         }
         libcall::LibCallCommand::SwapGetPrintableAmount => {
             let mut params = swap::get_printable_amount_params(arg0);
