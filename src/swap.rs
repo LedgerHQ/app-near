@@ -111,7 +111,7 @@ fn handle_apdu(
                     let signature = crate::handlers::sign_tx::handler_swap(stream, tx_params);
                     match signature {
                         Ok(sig) => Ok(sig.0),
-                        Err(sw) => return Err(sw),
+                        Err(sw) => Err(sw),
                     }
                 }
                 _ => Err(crate::AppSW::TxSignFail),

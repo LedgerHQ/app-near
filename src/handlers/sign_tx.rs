@@ -153,9 +153,9 @@ pub fn handler_swap(
 
                     finalize_sign::end(stream, &path)
                 }
-                _ => return Err(AppSW::TxSignFail),
+                _ => Err(AppSW::TxSignFail),
             }
         }
-        _ => return Err(AppSW::TxSignFail),
+        _ => Err(AppSW::TxSignFail),
     }
 }
