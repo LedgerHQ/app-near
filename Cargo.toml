@@ -6,7 +6,6 @@ edition = "2021"
 
 [dependencies]
 ledger_device_sdk = "1.19.0"
-ledger_secure_sdk_sys = { version = "1.6.0", features = ["heap"]}
 include_gif = "1.2.0"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
 bs58 = { version = "0.5.0", default-features = false }
