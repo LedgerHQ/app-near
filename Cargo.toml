@@ -1,5 +1,5 @@
 [package]
-name = "NEAR"
+name = "near"
 version = "2.3.1"
 authors = ["dj8yf0μl", "polyprogrammist"]
 edition = "2021"
