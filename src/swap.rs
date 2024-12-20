@@ -1,13 +1,13 @@
-use crate::utils::{
-    crypto::{PathBip32, PublicKeyBe},
-    types::base58_buf::Base58Buf,
-};
+use crate::utils::crypto::{PathBip32, PublicKeyBe};
 use near_token::{NearToken, TokenBuffer};
 
 use ledger_device_sdk::{
     ecc,
     io::Comm,
-    libcall::{self, swap, swap::CreateTxParams},
+    libcall::{
+        self,
+        swap::{self, CreateTxParams},
+    },
     testing::debug_print,
 };
 
@@ -27,20 +27,14 @@ pub fn swap_main(arg0: u32) {
                 Ok(path) => match ecc::Ed25519::derive_from_path_slip10(&path.0).public_key() {
                     Ok(pk) => {
                         let pk = PublicKeyBe::from_little_endian(pk);
-                        let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
-                        match bs58_buf.encode(&pk.0) {
-                            Ok(_) => {
-                                if bs58_buf.as_str().eq(core::str::from_utf8(
-                                    &params.ref_address[..params.ref_address_len],
-                                )
-                                .unwrap())
-                                {
-                                    res = 1i32;
-                                }
-                            }
-                            Err(_) => {
-                                debug_print("PK base58 encoding failure\n");
-                            }
+
+                        let mut buf = [0u8; 64];
+                        let address = pk.display_str_hex(&mut buf);
+                        let ref_address =
+                            core::str::from_utf8(&params.ref_address[..params.ref_address_len]);
+
+                        if address.eq(ref_address.unwrap()) {
+                            res = 1i32;
                         }
                     }
                     Err(_) => {
@@ -79,7 +73,6 @@ pub fn swap_main(arg0: u32) {
 
                 match handle_apdu(&mut comm, ins, &params) {
                     Ok(sig) => {
-                        debug_print("send back signature APDU\n");
                         comm.append(&sig);
                         comm.swap_reply_ok();
                         swap::swap_return(swap::SwapResult::CreateTxResult(&mut params, 1));
