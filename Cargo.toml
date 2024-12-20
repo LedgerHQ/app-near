@@ -22,12 +22,9 @@ lto = true
 
 [package.metadata.ledger]
 curve = ["ed25519"]
-flags = "800"
+flags = "0x800"
 path = ["44'/397'"]
 name = "NEAR"
-
-[package.metadata.ledger.nanos]
-icon = "icons/app_near_16px.gif"
 
 [package.metadata.ledger.nanox]
 icon = "icons/app_near_14px.gif"
