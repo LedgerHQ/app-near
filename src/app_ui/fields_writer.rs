@@ -15,9 +15,6 @@ pub struct FieldsWriter<'a, const N: usize> {
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 
-#[derive(Debug)]
-pub struct FieldsOverflow;
-
 impl<'a, const N: usize> FieldsWriter<'a, N> {
     pub fn new() -> Self {
         let max_fields = [(); N].map(|_| Field {
