@@ -76,7 +76,7 @@ impl<R: io::Read> io::Read for HashingStream<R> {
     }
 }
 
-impl<'a> SingleTxStream<'a> {
+impl SingleTxStream<'_> {
     pub fn peek_u8(&mut self) -> io::Result<Option<u8>> {
         let data = self
             .comm
@@ -132,7 +132,7 @@ impl<'a> SingleTxStream<'a> {
     }
 }
 
-impl<'a> io::Read for SingleTxStream<'a> {
+impl io::Read for SingleTxStream<'_> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let data = self
             .comm
