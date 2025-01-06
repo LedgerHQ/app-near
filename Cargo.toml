@@ -5,7 +5,7 @@ authors = ["dj8yf0μl", "polyprogrammist"]
 edition = "2021"
 
 [dependencies]
-ledger_device_sdk = "1.19.0"
+ledger_device_sdk = "1.19.1"
 include_gif = "1.2.0"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
 bs58 = { version = "0.5.0", default-features = false }
@@ -42,3 +42,6 @@ icon = "icons/app_near_40px.gif"
 default = []
 debug = ["ledger_device_sdk/debug"]
 speculos = ["ledger_device_sdk/speculos"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("stax", "flex", "nanos", "nanox", "nanosplus"))'] }
