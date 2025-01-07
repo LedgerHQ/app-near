@@ -66,32 +66,20 @@ pub fn swap_main(arg0: u32) {
 
                 debug_print("Wait for APDU\n");
 
-                // Wait for an APDU command
-                let ins: super::Instruction = comm.next_command();
+                loop {
+                    // Wait for an APDU command
+                    let ins: super::Instruction = comm.next_command();
 
-                debug_print("APDU received\n");
+                    debug_print("APDU received\n");
 
-                match handle_apdu(&mut comm, ins, &params) {
-                    Ok(sig) => {
-                        comm.append(&sig);
-                        comm.swap_reply_ok();
-                        swap::swap_return(swap::SwapResult::CreateTxResult(&mut params, 1));
-                    }
-                    Err(sw) => {
-                        comm.swap_reply(sw);
-                        swap::swap_return(swap::SwapResult::CreateTxResult(&mut params, 0));
-                    }
+                    handle_apdu(&mut comm, ins, &mut params);
                 }
             }
         }
     }
 }
 
-fn handle_apdu(
-    comm: &mut Comm,
-    ins: super::Instruction,
-    tx_params: &CreateTxParams,
-) -> Result<[u8; 64], crate::AppSW> {
+fn handle_apdu(comm: &mut Comm, ins: super::Instruction, tx_params: &mut CreateTxParams) {
     match ins {
         super::Instruction::SignTx {
             is_last_chunk,
@@ -103,13 +91,30 @@ fn handle_apdu(
                 super::SignMode::Transaction => {
                     let signature = crate::handlers::sign_tx::handler_swap(stream, tx_params);
                     match signature {
-                        Ok(sig) => Ok(sig.0),
-                        Err(sw) => Err(sw),
+                        Ok(sig) => {
+                            comm.append(&sig.0);
+                            comm.swap_reply_ok();
+                            swap::swap_return(swap::SwapResult::CreateTxResult(tx_params, 1));
+                        }
+                        Err(sw) => {
+                            comm.swap_reply(sw);
+                            swap::swap_return(swap::SwapResult::CreateTxResult(tx_params, 0));
+                        }
                     }
                 }
-                _ => Err(crate::AppSW::TxSignFail),
+                _ => {
+                    comm.swap_reply(crate::AppSW::TxSignFail);
+                    swap::swap_return(swap::SwapResult::CreateTxResult(tx_params, 0));
+                }
             }
         }
-        _ => Err(crate::AppSW::InsNotSupported),
+        super::Instruction::GetPubkey { display } => match display {
+            true => comm.swap_reply(crate::AppSW::InsNotSupported),
+            false => match crate::handlers::get_public_key::handler(comm, display) {
+                Ok(()) => comm.swap_reply_ok(),
+                Err(sw) => comm.swap_reply(sw),
+            },
+        },
+        _ => comm.swap_reply(crate::AppSW::InsNotSupported),
     }
 }
