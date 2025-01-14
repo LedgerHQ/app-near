@@ -12,6 +12,6 @@ def test_get_version_cmd(backend):
     # Read version from Cargo.toml
     with open('Cargo.toml', 'r') as f:
         config = toml.load(f)
-        version = config['package']['version']
-        major, minor, patch = version.split('.')
-    assert (version[0], version[1], version[2]) == (int(major), int(minor), int(patch))
+        v = config['package']['version']
+        major, minor, patch = v.split('.')
+    assert (version[0], version[1], version[2]) == (int(major), int(minor), int(patch)) 
