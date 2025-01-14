@@ -1,5 +1,6 @@
 use crate::utils::crypto::{PathBip32, PublicKeyBe};
 use fmt_buffer::Buffer;
+use near_gas::{GasBuffer, NearGas};
 use near_token::{NearToken, TokenBuffer};
 
 use ledger_device_sdk::{
@@ -123,9 +124,19 @@ fn check_address(params: &CheckAddressParams) -> Result<(), &'static str> {
 }
 
 fn get_printable_amount(params: &PrintableAmountParams) -> Buffer<30> {
-    let amount = u128::from_be_bytes(params.amount);
-    let near_token = NearToken::from_yoctonear(amount);
-    let mut near_token_buffer = TokenBuffer::new();
-    near_token.display_as_buffer(&mut near_token_buffer);
-    near_token_buffer
+    match params.is_fee {
+        true => {
+            let gas = NearGas::from_gas(450_000_000_000);
+            let mut near_gas_buffer = GasBuffer::new();
+            gas.display_as_buffer(&mut near_gas_buffer);
+            near_gas_buffer
+        }
+        false => {
+            let amount = u128::from_be_bytes(params.amount);
+            let near_token = NearToken::from_yoctonear(amount);
+            let mut near_token_buffer = TokenBuffer::new();
+            near_token.display_as_buffer(&mut near_token_buffer);
+            near_token_buffer
+        }
+    }
 }
