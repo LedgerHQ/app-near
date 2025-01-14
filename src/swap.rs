@@ -1,4 +1,5 @@
 use crate::utils::crypto::{PathBip32, PublicKeyBe};
+use fmt_buffer::Buffer;
 use near_token::{NearToken, TokenBuffer};
 
 use ledger_device_sdk::{
@@ -6,7 +7,7 @@ use ledger_device_sdk::{
     io::Comm,
     libcall::{
         self,
-        swap::{self, CreateTxParams},
+        swap::{self, CheckAddressParams, CreateTxParams, PrintableAmountParams},
     },
     testing::debug_print,
 };
@@ -21,42 +22,22 @@ pub fn swap_main(arg0: u32) {
     match cmd {
         libcall::LibCallCommand::SwapCheckAddress => {
             let mut params = swap::get_check_address_params(arg0);
-
-            let mut res = 0i32;
-            match PathBip32::parse(&params.dpath[..params.dpath_len * 4]) {
-                Ok(path) => match ecc::Ed25519::derive_from_path_slip10(&path.0).public_key() {
-                    Ok(pk) => {
-                        let pk = PublicKeyBe::from_little_endian(pk);
-
-                        let mut buf = [0u8; 64];
-                        let address = pk.display_str_hex(&mut buf);
-                        let ref_address =
-                            core::str::from_utf8(&params.ref_address[..params.ref_address_len]);
-
-                        if address.eq(ref_address.unwrap()) {
-                            res = 1i32;
-                        }
-                    }
-                    Err(_) => {
-                        debug_print("Public key derivation failure\n");
-                    }
-                },
-                Err(_) => {
-                    debug_print("Derivation path failure\n");
+            let res = match check_address(&params) {
+                Ok(_) => 1,
+                Err(err) => {
+                    debug_print(err);
+                    0
                 }
-            }
+            };
             swap::swap_return(swap::SwapResult::CheckAddressResult(&mut params, res));
         }
         libcall::LibCallCommand::SwapGetPrintableAmount => {
             let mut params = swap::get_printable_amount_params(arg0);
-
-            let amount = u128::from_be_bytes(params.amount);
-            let near_token = NearToken::from_yoctonear(amount);
-            let mut near_token_buffer = TokenBuffer::new();
-            near_token.display_as_buffer(&mut near_token_buffer);
-            let s = near_token_buffer.as_str();
-
-            swap::swap_return(swap::SwapResult::PrintableAmountResult(&mut params, s));
+            let mut s = get_printable_amount(&params);
+            swap::swap_return(swap::SwapResult::PrintableAmountResult(
+                &mut params,
+                s.as_str(),
+            ));
         }
         libcall::LibCallCommand::SwapSignTransaction => {
             let mut params = swap::sign_tx_params(arg0);
@@ -72,14 +53,14 @@ pub fn swap_main(arg0: u32) {
 
                     debug_print("APDU received\n");
 
-                    handle_apdu(&mut comm, ins, &mut params);
+                    swap_handle_apdu(&mut comm, ins, &mut params);
                 }
             }
         }
     }
 }
 
-fn handle_apdu(comm: &mut Comm, ins: super::Instruction, tx_params: &mut CreateTxParams) {
+fn swap_handle_apdu(comm: &mut Comm, ins: super::Instruction, tx_params: &mut CreateTxParams) {
     match ins {
         super::Instruction::SignTx {
             is_last_chunk,
@@ -89,7 +70,7 @@ fn handle_apdu(comm: &mut Comm, ins: super::Instruction, tx_params: &mut CreateT
             let stream = SingleTxStream::new(comm, is_last_chunk, sign_mode);
             match sign_mode {
                 super::SignMode::Transaction => {
-                    let signature = crate::handlers::sign_tx::handler_swap(stream, tx_params);
+                    let signature = crate::handlers::sign_tx::swap_handler(stream, tx_params);
                     match signature {
                         Ok(sig) => {
                             comm.append(&sig.0);
@@ -117,4 +98,34 @@ fn handle_apdu(comm: &mut Comm, ins: super::Instruction, tx_params: &mut CreateT
         },
         _ => comm.swap_reply(crate::AppSW::InsNotSupported),
     }
+}
+
+fn check_address(params: &CheckAddressParams) -> Result<(), &'static str> {
+    let path = PathBip32::parse(&params.dpath[..params.dpath_len * 4])
+        .map_err(|_| "Derivation path failure")?;
+
+    let pk = ecc::Ed25519::derive_from_path_slip10(&path.0)
+        .public_key()
+        .map_err(|_| "Public key derivation failure")?;
+
+    let pk = PublicKeyBe::from_little_endian(pk);
+    let mut buf = [0u8; 64];
+    let address = pk.display_str_hex(&mut buf);
+
+    let ref_address = core::str::from_utf8(&params.ref_address[..params.ref_address_len])
+        .map_err(|_| "Invalid UTF-8 in reference address")?;
+
+    if address == ref_address {
+        Ok(())
+    } else {
+        Err("Address mismatch")
+    }
+}
+
+fn get_printable_amount(params: &PrintableAmountParams) -> Buffer<30> {
+    let amount = u128::from_be_bytes(params.amount);
+    let near_token = NearToken::from_yoctonear(amount);
+    let mut near_token_buffer = TokenBuffer::new();
+    near_token.display_as_buffer(&mut near_token_buffer);
+    near_token_buffer
 }

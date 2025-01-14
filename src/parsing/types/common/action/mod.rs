@@ -16,6 +16,7 @@ pub mod function_call;
 pub mod stake;
 pub mod transfer;
 
+#[derive(PartialEq)]
 pub enum Action {
     CreateAccount,
     DeployContract,

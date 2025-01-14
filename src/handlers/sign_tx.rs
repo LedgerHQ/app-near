@@ -80,82 +80,74 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
 
 use ledger_device_sdk::libcall::swap::CreateTxParams;
 
-pub fn handler_swap(
+/// Sign handler for the swap transaction
+/// This handler is called when the user wants to sign a swap transaction
+/// The swap transaction is a transfer transaction with a specific amount and destination address
+/// The handler checks the transaction parameters and signs the transaction
+pub fn swap_handler(
     mut stream: SingleTxStream<'_>,
     tx_params: &CreateTxParams,
 ) -> Result<Signature, AppSW> {
-    ledger_device_sdk::testing::debug_print("sign_tx.rs: handler_swap()\n");
+    ledger_device_sdk::testing::debug_print("sign_tx.rs: swap_handler()\n");
 
     let path = <crypto::PathBip32 as BorshDeserialize>::deserialize_reader(&mut stream)
         .map_err(|_| AppSW::Bip32PathParsingFail)?;
 
     ledger_device_sdk::testing::debug_print("sign_tx.rs: path computed\n");
 
+    // Get the public key from the transaction
     let mut stream = HashingStream::new(stream)?;
-
-    ledger_device_sdk::testing::debug_print("sign_tx.rs: hashing stream instantiated\n");
-
     let mut tx_prefix = parsing::types::transaction::prefix::Prefix::new();
-
     tx_prefix
         .deserialize_reader_in_place(&mut stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
-
     let tx_public_key = match PublicKeyBe::try_from(tx_prefix.public_key) {
         Ok(tx_public_key) => tx_public_key,
         Err(_) => return Err(AppSW::PublicKeyMismatch),
     };
 
-    let matching_private_key = {
+    // Derive the public key from the path and compare it with the transaction public key
+    let dpath_public_key = {
         let pk = ledger_device_sdk::ecc::Ed25519::derive_from_path_slip10(&path.0)
             .public_key()
             .map_err(|_| AppSW::KeyDeriveFail)?;
         PublicKeyBe::from_little_endian(pk)
     };
 
-    if tx_public_key != matching_private_key {
+    if tx_public_key != dpath_public_key {
         return Err(AppSW::PublicKeyMismatch);
     }
 
-    match tx_prefix.number_of_actions {
-        1 => {
-            let action = crate::parsing::types::Action::deserialize_reader(&mut stream)
-                .map_err(|_err| AppSW::TxParsingFail)?;
-
-            match action {
-                crate::parsing::types::Action::Transfer => {
-                    let transfer = crate::parsing::types::Transfer::deserialize_reader(&mut stream)
-                        .map_err(|_err| AppSW::TxParsingFail)?;
-
-                    let amount_match = near_token::NearToken::from_yoctonear(u128::from_be_bytes(
-                        tx_params.amount,
-                    )) == transfer.deposit;
-
-                    if !amount_match {
-                        ledger_device_sdk::testing::debug_print(
-                            "sign_tx.rs: amounts do not not match\n",
-                        );
-                        return Err(AppSW::TxSignFail);
-                    }
-
-                    let dest_address_match = tx_prefix.receiver_id.as_str()
-                        == core::str::from_utf8(
-                            tx_params.dest_address[..tx_params.dest_address_len].as_ref(),
-                        )
-                        .unwrap();
-
-                    if !dest_address_match {
-                        ledger_device_sdk::testing::debug_print(
-                            "sign_tx.rs: receiver_id does not match with dest_address\n",
-                        );
-                        return Err(AppSW::TxSignFail);
-                    }
-
-                    finalize_sign::end(stream, &path)
-                }
-                _ => Err(AppSW::TxSignFail),
-            }
-        }
-        _ => Err(AppSW::TxSignFail),
+    // Check nb of actions (shall be == 1 == Transfer in swap context)
+    if tx_prefix.number_of_actions != 1 {
+        return Err(AppSW::TxSignFail);
     }
+    let action = crate::parsing::types::Action::deserialize_reader(&mut stream)
+        .map_err(|_err| AppSW::TxParsingFail)?;
+    if action != crate::parsing::types::Action::Transfer {
+        return Err(AppSW::TxSignFail);
+    }
+
+    // Check the tx parameters match with the ones previously validated in Exchange app (tx_params)
+    let transfer = crate::parsing::types::Transfer::deserialize_reader(&mut stream)
+        .map_err(|_err| AppSW::TxParsingFail)?;
+
+    let amount_match = near_token::NearToken::from_yoctonear(u128::from_be_bytes(tx_params.amount))
+        == transfer.deposit;
+    if !amount_match {
+        ledger_device_sdk::testing::debug_print("sign_tx.rs: amounts do not not match\n");
+        return Err(AppSW::TxSignFail);
+    }
+
+    let dest_address_match = tx_prefix.receiver_id.as_str()
+        == core::str::from_utf8(tx_params.dest_address[..tx_params.dest_address_len].as_ref())
+            .unwrap();
+    if !dest_address_match {
+        ledger_device_sdk::testing::debug_print(
+            "sign_tx.rs: receiver_id does not match with dest_address\n",
+        );
+        return Err(AppSW::TxSignFail);
+    }
+
+    finalize_sign::end(stream, &path)
 }
