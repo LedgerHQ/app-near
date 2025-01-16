@@ -11,8 +11,7 @@ on:
   
 jobs:
     job_functional_tests:
-      uses: LedgerHQ/app-exchange/.github/workflows/reusable_swap_functional_tests.yml@swap-near
+      uses: LedgerHQ/app-exchange/.github/workflows/reusable_swap_functional_tests.yml@develop
       with:
         branch_for_near: ${{ github.ref }}
         test_filter: '"NEAR or near or Near"'
-        branch_for_exchange: 'swap-near'
