@@ -14,9 +14,9 @@ This is a Near application written in Rust for the Ledger Nano S/X/SP devices.
 Details of the structure of application, features and encountered problems as seen during initial 
 development cycle are present in [issue](https://github.com/dj8yfo/app-near-rs/issues/3). 
 
-### Advantages in comparison with [app-near](https://github.com/LedgerHQ/app-near)
+### Advantages in comparison with [app-near-legacy](https://github.com/LedgerHQ/app-near-legacy)
 - unlimited size of transactions
-- normal support of batch transactions, [test](https://github.com/dj8yfo/app-near-rs/blob/develop/tests/test_sign_transaction/test_batch_transaction.py), [screenshots of 2/12 action](https://github.com/dj8yfo/app-near-rs/tree/develop/tests/snapshots/nanos/test_sign_batch_transaction_all_actions/2_0_next_action) ,  none of the details of actions are shown in [`app-near`](https://github.com/LedgerHQ/app-near/tree/develop/workdir/app-near/tests/snapshots/nanos/test_sign_multiple_actions_2_apdu_exchanges)  
+- normal support of batch transactions, [test](https://github.com/dj8yfo/app-near-rs/blob/develop/tests/test_sign_transaction/test_batch_transaction.py), [screenshots of 2/12 action](https://github.com/dj8yfo/app-near-rs/tree/develop/tests/snapshots/nanos/test_sign_batch_transaction_all_actions/2_0_next_action) ,  none of the details of actions are shown in [`app-near-legacy`](https://github.com/LedgerHQ/app-near-legacy/tree/develop/workdir/app-near/tests/snapshots/nanos/test_sign_multiple_actions_2_apdu_exchanges)  
 
 ### Links
 

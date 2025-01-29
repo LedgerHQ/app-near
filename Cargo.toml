@@ -1,12 +1,12 @@
 [package]
 name = "near"
-version = "2.2.0"
+version = "2.3.4"
 authors = ["dj8yf0μl", "polyprogrammist"]
 edition = "2021"
 
 [dependencies]
-ledger_device_sdk = "=1.12.0"
-include_gif = "=1.1.0"
+ledger_device_sdk = "1.19.6"
+include_gif = "1.2.0"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }
 bs58 = { version = "0.5.0", default-features = false }
 borsh =  { version = "0.1.0", path = "./borsh" }
@@ -22,12 +22,9 @@ lto = true
 
 [package.metadata.ledger]
 curve = ["ed25519"]
-flags = "0"
+flags = "0x800"
 path = ["44'/397'"]
 name = "NEAR"
-
-[package.metadata.ledger.nanos]
-icon = "icons/app_near_16px.gif"
 
 [package.metadata.ledger.nanox]
 icon = "icons/app_near_14px.gif"
@@ -43,4 +40,8 @@ icon = "icons/app_near_40px.gif"
 
 [features]
 default = []
+debug = ["ledger_device_sdk/debug"]
 speculos = ["ledger_device_sdk/speculos"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("stax", "flex", "nanos", "nanox", "nanosplus"))'] }

@@ -238,20 +238,28 @@ impl TryFrom<ApduHeader> for Instruction {
 #[cfg(any(target_os = "stax", target_os = "flex"))]
 use ledger_device_sdk::nbgl::init_comm;
 
+mod swap;
+
 #[no_mangle]
-extern "C" fn sample_main() {
-    let mut comm = Comm::new();
+extern "C" fn sample_main(arg0: u32) {
+    if arg0 != 0 {
+        swap::swap_main(arg0);
+    } else {
+        ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
 
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
-    init_comm(&mut comm);
+        let mut comm = Comm::new();
 
-    loop {
-        // Wait for either a specific button push to exit the app
-        // or an APDU command
-        if let Event::Command(ins) = ui_menu_main(&mut comm) {
-            match handle_apdu(&mut comm, ins) {
-                Ok(()) => comm.reply_ok(),
-                Err(sw) => comm.reply(sw),
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
+        init_comm(&mut comm);
+
+        loop {
+            // Wait for either a specific button push to exit the app
+            // or an APDU command
+            if let Event::Command(ins) = ui_menu_main(&mut comm) {
+                match handle_apdu(&mut comm, ins) {
+                    Ok(()) => comm.reply_ok(),
+                    Err(sw) => comm.reply(sw),
+                }
             }
         }
     }
