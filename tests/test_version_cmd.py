@@ -1,3 +1,4 @@
+from pathlib import Path
 from application_client.client import Nearbackend
 import toml
 
@@ -10,7 +11,7 @@ def test_get_version_cmd(backend):
     version = client.get_version().data
     assert len(version) == 3
     # Read version from Cargo.toml
-    with open('Cargo.toml', 'r') as f:
+    with open(Path(__file__).parent.parent / 'Cargo.toml', 'r') as f:
         config = toml.load(f)
         v = config['package']['version']
         major, minor, patch = v.split('.')
