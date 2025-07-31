@@ -105,6 +105,7 @@ pub mod parsing {
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
             deploy_contract::DeployContract,
+            deploy_global_contract::DeployGlobalContract,
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,

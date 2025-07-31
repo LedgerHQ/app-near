@@ -33,6 +33,7 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod deploy_global_contract;
 mod function_call_bin;
 mod function_call_common;
 mod function_call_permission;
@@ -136,6 +137,17 @@ pub fn ui_display_deploy_contract(
     let mut writer = FieldsWriter::new();
 
     deploy_contract::format(deploy_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_deploy_global_contract(
+    deploy_global_contract: &parsing::types::DeployGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    deploy_global_contract::format(deploy_global_contract, &mut writer);
 
     ui_display_common(&mut writer, params)
 }

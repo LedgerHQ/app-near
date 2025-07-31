@@ -9,6 +9,7 @@ pub mod delegate;
 pub mod delete_account;
 pub mod delete_key;
 pub mod deploy_contract;
+pub mod deploy_global_contract;
 pub mod function_call;
 pub mod stake;
 pub mod transfer;
@@ -36,5 +37,6 @@ pub fn handle_action(
         Action::DeployContract => deploy_contract::handle(stream, params),
         Action::FunctionCall => function_call::handle(stream, params),
         Action::Delegate => delegate::handle(stream, params),
+        Action::DeployGlobalContract => deploy_global_contract::handle(stream, params),
     }
 }
