@@ -3,15 +3,18 @@ use crate::utils::types::base58_buf::Base58Buf;
 use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
 
+/// arbitrary chunk size, which is set to around 40% of apdu buffer size
+/// in order to not consume much stack space on `nanos`
 const CHUNK_SIZE: usize = 100;
 
-#[repr(u8)]
 pub enum GlobalContractDeployMode {
     CodeHash = 0,
     AccountId = 1,
 }
 
 pub struct DeployGlobalContract {
+    /// WebAssembly binary (hash)
+    /// 50 bytes is enough to store base58 of a sha256 hash
     pub code_sha256: Base58Buf<50>,
     pub deploy_mode: GlobalContractDeployMode,
 }
@@ -37,7 +40,6 @@ impl BorshDeserialize for DeployGlobalContract {
         let chunks = bytes_count / (CHUNK_SIZE as u32);
         let remainder = bytes_count % (CHUNK_SIZE as u32);
 
-        // XXX: is this a right way of borrowing? At least compiler suggested it..
         let mut stream =
             HashingStream::new(&mut *reader).map_err(|_err| Error::from(ErrorKind::Other))?;
 

@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 # WARN: I had to downgrade these deps and ledger_secure_sdk_sys to 1.8.0 in Cargo.lock, 
-# as my nanosplus w Secure element:v1.3.2, Microcontroller:v4.5.2, and Bootloader:v3.14.2
+# as my nanosplus w Secure element:v1.3.2, Microcontroller:v4.5.2, and Bootloader:v3.14.2 wasn't working w it
 ledger_device_sdk = "=1.21.5"
 include_gif = "=1.2.0"
 hex = { version = "0.4.3", default-features = false, features = ["serde"] }

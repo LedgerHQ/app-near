@@ -1,5 +1,4 @@
 use crate::{
-    // XXX: How to put this GlobalContractDeployMode export in more better way?
     parsing::{self, types::common::action::deploy_global_contract::GlobalContractDeployMode},
     utils::types::elipsis_fields::ElipsisFields,
 };
@@ -28,7 +27,7 @@ pub fn format<'b>(
     }));
 
     writer.push_fields(ElipsisFields::one(Field {
-        name: "Contract deploy mode",
+        name: "Deploy mode",
         value: match deploy_global_contract.deploy_mode {
             GlobalContractDeployMode::CodeHash => "Code hash (immutable)",
             GlobalContractDeployMode::AccountId => "Account Id (mutable)",

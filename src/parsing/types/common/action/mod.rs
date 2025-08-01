@@ -16,6 +16,7 @@ pub mod deploy_global_contract;
 pub mod function_call;
 pub mod stake;
 pub mod transfer;
+pub mod use_global_contract;
 
 #[derive(PartialEq)]
 pub enum Action {
@@ -29,6 +30,7 @@ pub enum Action {
     DeleteAccount,
     Delegate,
     DeployGlobalContract,
+    UseGlobalContract,
 }
 
 impl BorshDeserialize for Action {
@@ -45,6 +47,7 @@ impl BorshDeserialize for Action {
             7 => Ok(Self::DeleteAccount),
             8 => Ok(Self::Delegate),
             9 => Ok(Self::DeployGlobalContract),
+            10 => Ok(Self::UseGlobalContract),
             _ => Err(Error::from(ErrorKind::InvalidData)),
         }
     }
