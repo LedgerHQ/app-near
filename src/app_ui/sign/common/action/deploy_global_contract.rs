@@ -22,7 +22,7 @@ pub fn format<'b>(
     }));
 
     writer.push_fields(ElipsisFields::one(Field {
-        name: "Global Contract SHA256",
+        name: "Contract SHA256",
         value: deploy_global_contract.code_sha256.as_str(),
     }));
 

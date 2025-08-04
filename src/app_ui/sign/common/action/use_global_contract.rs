@@ -20,12 +20,12 @@ pub fn format<'b>(
 
     writer.push_fields(ElipsisFields::one(match use_global_contract {
         parsing::types::UseGlobalContract::CodeHash(code_hash) => Field {
-            name: "Global Contract SHA256",
+            name: "Contract SHA256",
             value: code_hash.as_str(),
         },
 
         parsing::types::UseGlobalContract::AccountId(account_id) => Field {
-            name: "Global Contract AccountId",
+            name: "Contract AccountId",
             value: account_id.as_str(),
         },
     }));
