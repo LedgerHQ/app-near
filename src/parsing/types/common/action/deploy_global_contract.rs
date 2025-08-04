@@ -7,6 +7,7 @@ use borsh::BorshDeserialize;
 /// in order to not consume much stack space on `nanos`
 const CHUNK_SIZE: usize = 100;
 
+#[repr(u8)]
 pub enum GlobalContractDeployMode {
     CodeHash = 0,
     AccountId = 1,
