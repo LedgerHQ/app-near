@@ -27,10 +27,12 @@ pub fn format<'b>(
     }));
 
     writer.push_fields(ElipsisFields::one(Field {
-        name: "Deploy mode",
+        name: "Can be used",
         value: match deploy_global_contract.deploy_mode {
-            GlobalContractDeployMode::CodeHash => "Code hash (immutable)",
-            GlobalContractDeployMode::AccountId => "Account Id (mutable)",
+            GlobalContractDeployMode::CodeHash => "by Code Hash",
+            GlobalContractDeployMode::AccountId => {
+                "by AccountId (auto-upgrade everywhere it is used)"
+            }
         },
     }))
 }
