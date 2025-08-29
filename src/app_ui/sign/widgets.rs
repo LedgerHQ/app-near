@@ -35,7 +35,8 @@ pub fn display_receiving() {
         "Receiving".place(Location::Custom(2), Layout::Centered, true);
         "Transaction...".place(Location::Custom(14), Layout::Centered, true);
     } else {
-        WARNING.draw(57, 10);
+        let w = WARNING;
+        w.draw(57, 10);
         "Receiving".place(Location::Custom(28), Layout::Centered, true);
         "Transaction...".place(Location::Custom(42), Layout::Centered, true);
     }
