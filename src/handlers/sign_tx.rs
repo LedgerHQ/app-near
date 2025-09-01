@@ -15,6 +15,7 @@
  *  limitations under the License.
  *****************************************************************************/
 use crate::parsing;
+use crate::parsing::types::transaction::prefix::TxVersion;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto::public_key::NoSecpAllowed;
@@ -28,6 +29,7 @@ use super::common::finalize_sign::{self, Signature};
 use super::common::validate_public_key;
 
 struct PrefixResult {
+    tx_version: TxVersion,
     number_of_actions: u32,
     tx_public_key_prevalidation: Result<PublicKeyBe, NoSecpAllowed>,
 }
@@ -47,9 +49,17 @@ fn handle_transaction_prefix(
     let tx_public_key = PublicKeyBe::try_from(tx_prefix.public_key);
 
     Ok(PrefixResult {
+        tx_version: tx_prefix.tx_version,
         number_of_actions: tx_prefix.number_of_actions,
         tx_public_key_prevalidation: tx_public_key,
     })
+}
+
+fn handle_transaction_suffix(
+    stream: &mut HashingStream<SingleTxStream<'_>>,
+    tx_version: TxVersion,
+) -> Result<(), AppSW> {
+    todo!();
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -60,6 +70,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     let mut stream = HashingStream::new(stream)?;
 
     let PrefixResult {
+        tx_version,
         number_of_actions,
         tx_public_key_prevalidation,
     } = handle_transaction_prefix(&mut stream)?;
@@ -74,6 +85,8 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         };
         handle_action(&mut stream, params)?;
     }
+
+    handle_transaction_suffix(&mut stream)?;
 
     finalize_sign::end(stream, &path)
 }
