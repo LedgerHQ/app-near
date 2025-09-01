@@ -33,12 +33,14 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod deploy_global_contract;
 mod function_call_bin;
 mod function_call_common;
 mod function_call_permission;
 mod function_call_str;
 mod stake;
 mod transfer;
+mod use_global_contract;
 
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
@@ -140,6 +142,17 @@ pub fn ui_display_deploy_contract(
     ui_display_common(&mut writer, params)
 }
 
+pub fn ui_display_deploy_global_contract(
+    deploy_global_contract: &parsing::types::DeployGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    deploy_global_contract::format(deploy_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
@@ -219,6 +232,17 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
 
         NbglStatus::new().text("Transaction rejected").show(res);
     }
+}
+
+pub fn ui_display_use_global_contract(
+    use_global_contract: &mut parsing::types::UseGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    use_global_contract::format(use_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_common<const N: usize>(

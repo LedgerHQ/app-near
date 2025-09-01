@@ -105,9 +105,11 @@ pub mod parsing {
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
             deploy_contract::DeployContract,
+            deploy_global_contract::DeployGlobalContract,
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
+            use_global_contract::UseGlobalContract,
             Action,
         };
         pub use common::message_discriminant::MessageDiscriminant;
