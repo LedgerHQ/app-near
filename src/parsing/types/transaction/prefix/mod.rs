@@ -4,6 +4,7 @@ use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
 
 #[repr(u8)]
+#[derive(PartialEq, Eq)]
 pub enum TxVersion {
     V0,
     V1,

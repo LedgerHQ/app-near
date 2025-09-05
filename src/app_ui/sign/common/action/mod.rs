@@ -238,6 +238,8 @@ pub fn ui_display_common<const N: usize>(
 
     let last_msg = if params.is_nested_delegate {
         "To NEP366 suffix"
+    } else if params.has_suffix {
+        "To transaction suffix"
     } else {
         "Sign"
     };
@@ -297,7 +299,7 @@ pub fn ui_display_common<const N: usize>(
 
         let last_screen: &str;
 
-        if is_last && !params.is_nested_delegate {
+        if is_last && !params.is_nested_delegate && !params.has_suffix {
             review = review.add_content(NbglPageContent::InfoLongPress(info_longpress));
             last_screen = "Transaction signed";
         } else {

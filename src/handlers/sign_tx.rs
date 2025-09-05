@@ -16,6 +16,7 @@
  *****************************************************************************/
 use crate::parsing;
 use crate::parsing::types::transaction::prefix::TxVersion;
+use crate::parsing::types::transaction::suffix::TxSuffix;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto::public_key::NoSecpAllowed;
@@ -59,7 +60,22 @@ fn handle_transaction_suffix(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     tx_version: TxVersion,
 ) -> Result<(), AppSW> {
-    todo!();
+    let tx_suffix = parsing::types::transaction::suffix::TxSuffix::deserialize_with_tx_version(
+        stream, tx_version,
+    )
+    .map_err(|_err| AppSW::TxDisplayFail)?;
+
+    let ui_result = match tx_suffix {
+        TxSuffix::V1(mut suffix) => {
+            sign_ui::transaction::suffix::ui_display_transaction_v1(&mut suffix)
+        }
+    };
+
+    if !ui_result {
+        return Err(AppSW::Deny);
+    }
+
+    Ok(())
 }
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
@@ -82,11 +98,14 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
             ordinal_action: i + 1,
             total_actions: number_of_actions,
             is_nested_delegate: false,
+            has_suffix: tx_version != TxVersion::V0,
         };
         handle_action(&mut stream, params)?;
     }
 
-    handle_transaction_suffix(&mut stream)?;
+    if tx_version != TxVersion::V0 {
+        handle_transaction_suffix(&mut stream, tx_version)?;
+    }
 
     finalize_sign::end(stream, &path)
 }
