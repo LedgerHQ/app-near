@@ -49,6 +49,7 @@ mod app_ui {
         }
         pub mod transaction {
             pub mod prefix;
+            pub mod suffix;
         }
         pub mod nep413 {
             pub mod payload;
@@ -85,6 +86,7 @@ pub mod parsing {
     pub mod types {
         pub mod transaction {
             pub mod prefix;
+            pub mod suffix;
         }
         pub mod common {
             pub mod action;

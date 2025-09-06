@@ -18,6 +18,7 @@ pub struct ActionParams {
     pub ordinal_action: u32,
     pub total_actions: u32,
     pub is_nested_delegate: bool,
+    pub has_suffix: bool,
 }
 
 pub fn handle_action(
