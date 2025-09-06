@@ -446,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "near"
-version = "2.3.5"
+version = "2.5.0"
 dependencies = [
  "borsh",
  "bs58",
