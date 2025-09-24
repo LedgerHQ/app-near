@@ -3,15 +3,15 @@ use crate::{
     AppSW,
 };
 use fmt_buffer::Buffer;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use include_gif::include_gif;
 use ledger_device_sdk::ecc::Ed25519;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{
     CenteredInfo, CenteredInfoStyle, Field, InfoButton, NbglGenericReview, NbglGlyph,
     NbglPageContent, NbglStatus, TagValueList, TuneIndex,
 };
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE},
     gadgets::{Field, MultiFieldReview},
@@ -89,7 +89,7 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     let msg_before = "Pub Key Mismatch";
     let msg_after = "Error!";
 
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
         let binding = [msg_before];
 
@@ -105,10 +105,14 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
 
         Ok(my_review.show())
     }
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        #[cfg(target_os = "apex_p")]
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,

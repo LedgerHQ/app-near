@@ -1,8 +1,8 @@
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview, NbglReviewStatus, StatusType};
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
     gadgets::{Field, MultiFieldReview},
@@ -70,7 +70,7 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
 
     let msg_before = "View NEP366 suffix";
 
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
         let binding = [msg_before];
 
@@ -87,10 +87,14 @@ pub fn ui_display(suffix: &parsing::types::nep366_delegate_action::suffix::Suffi
         my_review.show()
     }
 
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        #[cfg(target_os = "apex_p")]
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
 
         let review: NbglReview = NbglReview::new()
             .titles(msg_before, "", "Sign transaction")

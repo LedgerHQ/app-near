@@ -2,15 +2,15 @@ use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
 use crate::Instruction;
 use ledger_device_sdk::io::Comm;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{
     CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglGenericReview, NbglGlyph,
     NbglPageContent, NbglStatus, TagValueList, TuneIndex,
 };
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::{
     buttons::ButtonEvent,
     io::Event,
@@ -22,7 +22,7 @@ use ledger_device_sdk::{
     },
 };
 
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use include_gif::include_gif;
 use numtoa::NumToA;
 
@@ -175,7 +175,7 @@ pub fn ui_display_function_call_bin(
 }
 
 pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
     {
         clear_screen();
 
@@ -200,10 +200,14 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
             }
         }
     }
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        #[cfg(target_os = "apex_p")]
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
 
         let info_button = InfoButton::new(
             "Delegate action is not supported",
@@ -244,7 +248,7 @@ pub fn ui_display_common<const N: usize>(
 
     let msg_after = if is_last { last_msg } else { next_msg };
 
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
         let binding = [msg_before];
 
@@ -261,10 +265,14 @@ pub fn ui_display_common<const N: usize>(
         my_review.show()
     }
 
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
+        #[cfg(any(target_os = "stax", target_os = "flex"))]
         const NEAR_LOGO: NbglGlyph =
             NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
+        #[cfg(target_os = "apex_p")]
+        const NEAR_LOGO: NbglGlyph =
+            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
 
         let centered_info = CenteredInfo::new(
             msg_before,
