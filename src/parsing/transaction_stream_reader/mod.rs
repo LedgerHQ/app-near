@@ -1,4 +1,4 @@
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::buttons::ButtonEvent;
 use ledger_device_sdk::io::{Comm, Event};
 
@@ -100,7 +100,7 @@ impl SingleTxStream<'_> {
     fn get_next_chunk(&mut self) -> io::Result<&[u8]> {
         let is_last_chunk = loop {
             match self.comm.next_event() {
-                #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+                #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
                 Event::Button(ButtonEvent::BothButtonsRelease) => {
                     return Err(io::Error::from(io::ErrorKind::Interrupted))
                 }

@@ -15,23 +15,23 @@
  *  limitations under the License.
  *****************************************************************************/
 
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use crate::app_ui::logo::NEAR_LOGO;
 use crate::utils::crypto;
 use crate::AppSW;
 use fmt_buffer::Buffer;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex"))]
-use ledger_device_sdk::nbgl::{NbglAddressReview, NbglGlyph, NbglReviewStatus, StatusType};
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use ledger_device_sdk::nbgl::{NbglAddressReview, NbglReviewStatus, StatusType};
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::bitmaps::{CROSSMARK, EYE, VALIDATE_14};
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::gadgets::{Field, MultiFieldReview};
 
 pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = Buffer::<60>::new();
     public_key.display_str_base58(&mut out_buf)?;
 
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
         let my_field = [Field {
             name: "Public Key",
@@ -50,11 +50,8 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
         Ok(my_review.show())
     }
 
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-
         let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
             .verify_str("Confirm Public Key");
@@ -73,7 +70,7 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     let mut out_buf = [0u8; 64];
     let pbkey_str = public_key.display_str_hex(&mut out_buf);
 
-    #[cfg(not(any(target_os = "stax", target_os = "flex")))]
+    #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
         let my_field = [Field {
             name: "Wallet ID",
@@ -91,11 +88,8 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
         Ok(my_review.show())
     }
 
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-
         let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
             .verify_str("Confirm Wallet ID");
