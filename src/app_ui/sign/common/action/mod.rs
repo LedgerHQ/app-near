@@ -180,14 +180,9 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
         clear_screen();
 
         // Add icon and text to match the C SDK equivalent.
-        if cfg!(target_os = "nanos") {
-            "Sign delegate action".place(Location::Custom(2), Layout::Centered, true);
-            "not supported...".place(Location::Custom(14), Layout::Centered, true);
-        } else {
-            WARNING.draw(57, 10);
-            "Sign delegate action".place(Location::Custom(28), Layout::Centered, true);
-            "not supported...".place(Location::Custom(42), Layout::Centered, true);
-        }
+        WARNING.draw(57, 10);
+        "Sign delegate action".place(Location::Custom(28), Layout::Centered, true);
+        "not supported...".place(Location::Custom(42), Layout::Centered, true);
 
         screen_update();
         loop {

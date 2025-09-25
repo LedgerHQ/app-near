@@ -47,4 +47,4 @@ debug = ["ledger_device_sdk/debug"]
 speculos = ["ledger_device_sdk/speculos"]
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("apex_p", "stax", "flex", "nanos", "nanox", "nanosplus"))'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("apex_p", "stax", "flex", "nanox", "nanosplus"))'] }

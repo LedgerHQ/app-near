@@ -11,8 +11,6 @@ pub const NEAR_LOGO: NbglGlyph =
 #[cfg(target_os = "apex_p")]
 pub const NEAR_LOGO: NbglGlyph =
     NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-#[cfg(target_os = "nanos")]
-pub const NEAR_LOGO: Glyph = Glyph::from_include(include_gif!("icons/app_near_16px.gif"));
 #[cfg(target_os = "nanosplus")]
 pub const NEAR_LOGO: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
 #[cfg(target_os = "nanox")]

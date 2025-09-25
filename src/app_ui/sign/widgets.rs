@@ -31,15 +31,10 @@ pub fn display_receiving() {
     clear_screen();
 
     // Add icon and text to match the C SDK equivalent.
-    if cfg!(target_os = "nanos") {
-        "Receiving".place(Location::Custom(2), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(14), Layout::Centered, true);
-    } else {
-        let w = WARNING;
-        w.draw(57, 10);
-        "Receiving".place(Location::Custom(28), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(42), Layout::Centered, true);
-    }
+    let w = WARNING;
+    w.draw(57, 10);
+    "Receiving".place(Location::Custom(28), Layout::Centered, true);
+    "Transaction...".place(Location::Custom(42), Layout::Centered, true);
 
     screen_update();
 }
