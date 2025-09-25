@@ -1,15 +1,15 @@
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use crate::app_ui::logo::NEAR_LOGO;
 use crate::{
     utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
 };
 use fmt_buffer::Buffer;
-#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
-use include_gif::include_gif;
 use ledger_device_sdk::ecc::Ed25519;
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, Field, InfoButton, NbglGenericReview, NbglGlyph,
-    NbglPageContent, NbglStatus, TagValueList, TuneIndex,
+    CenteredInfo, CenteredInfoStyle, Field, InfoButton, NbglGenericReview, NbglPageContent,
+    NbglStatus, TagValueList, TuneIndex,
 };
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::{
@@ -107,13 +107,6 @@ fn ui_display(info: &KeyMismatchInfo) -> Result<bool, AppSW> {
     }
     #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        #[cfg(any(target_os = "stax", target_os = "flex"))]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        #[cfg(target_os = "apex_p")]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-
         let centered_info = CenteredInfo::new(
             msg_before,
             "",

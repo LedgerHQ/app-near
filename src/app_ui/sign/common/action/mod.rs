@@ -7,8 +7,8 @@ use crate::Instruction;
 use ledger_device_sdk::io::Comm;
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglGenericReview, NbglGlyph,
-    NbglPageContent, NbglStatus, TagValueList, TuneIndex,
+    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglGenericReview, NbglPageContent,
+    NbglStatus, TagValueList, TuneIndex,
 };
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::{
@@ -23,7 +23,7 @@ use ledger_device_sdk::{
 };
 
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
-use include_gif::include_gif;
+use crate::app_ui::logo::NEAR_LOGO;
 use numtoa::NumToA;
 
 use super::tx_public_key_context;
@@ -202,13 +202,6 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
     }
     #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        #[cfg(any(target_os = "stax", target_os = "flex"))]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        #[cfg(target_os = "apex_p")]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-
         let info_button = InfoButton::new(
             "Delegate action is not supported",
             Some(&NEAR_LOGO),
@@ -267,13 +260,6 @@ pub fn ui_display_common<const N: usize>(
 
     #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        #[cfg(any(target_os = "stax", target_os = "flex"))]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        #[cfg(target_os = "apex_p")]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-
         let centered_info = CenteredInfo::new(
             msg_before,
             "",

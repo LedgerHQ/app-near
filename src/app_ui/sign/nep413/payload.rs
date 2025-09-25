@@ -1,12 +1,12 @@
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use crate::app_ui::logo::NEAR_LOGO;
 use crate::{
     app_ui::fields_writer::FieldsWriter,
     parsing::types::nep413::payload::Payload,
     utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
 };
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
-use include_gif::include_gif;
-#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
-use ledger_device_sdk::nbgl::{Field, NbglGlyph, NbglReview, NbglReviewStatus, StatusType};
+use ledger_device_sdk::nbgl::{Field, NbglReview, NbglReviewStatus, StatusType};
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::{
     bitmaps::{CROSSMARK, EYE, VALIDATE_14},
@@ -98,13 +98,6 @@ pub fn ui_display(payload: &mut Payload) -> bool {
 
     #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
-        #[cfg(any(target_os = "stax", target_os = "flex"))]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-        #[cfg(target_os = "apex_p")]
-        const NEAR_LOGO: NbglGlyph =
-            NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-
         let review: NbglReview = NbglReview::new()
             .titles("Review NEP413 msg sign", "", "Sign message")
             .glyph(&NEAR_LOGO);

@@ -41,6 +41,7 @@ mod app_ui {
     pub mod address;
     pub mod aliases;
     pub mod fields_writer;
+    pub mod logo;
     pub mod menu;
     pub mod sign {
         pub mod common {

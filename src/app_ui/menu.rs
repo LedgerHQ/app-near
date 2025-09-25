@@ -15,12 +15,12 @@
  *  limitations under the License.
  *****************************************************************************/
 
-use include_gif::include_gif;
+use crate::app_ui::logo::NEAR_LOGO;
 use ledger_device_sdk::io::{Comm, Event};
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
-use ledger_device_sdk::nbgl::{NbglGlyph, NbglHomeAndSettings};
+use ledger_device_sdk::nbgl::NbglHomeAndSettings;
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
-use ledger_device_sdk::ui::bitmaps::{Glyph, BACK, CERTIFICATE, DASHBOARD_X};
+use ledger_device_sdk::ui::bitmaps::{BACK, CERTIFICATE, DASHBOARD_X};
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::gadgets::{EventOrPageIndex, MultiPageMenu, Page};
 
@@ -43,16 +43,10 @@ fn ui_about_menu(comm: &mut Comm) -> Event<Instruction> {
 
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
-    #[cfg(target_os = "nanos")]
-    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_16px.gif"));
-    #[cfg(target_os = "nanosplus")]
-    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
-    #[cfg(target_os = "nanox")]
-    const APP_ICON: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
     let pages = [
         // The from trait allows to create different styles of pages
         // without having to use the new() function.
-        &Page::from((["Near app", "is ready"], &APP_ICON)),
+        &Page::from((["Near app", "is ready"], &NEAR_LOGO)),
         &Page::from((["Version", env!("CARGO_PKG_VERSION")], true)),
         &Page::from(("About", &CERTIFICATE)),
         &Page::from(("Quit", &DASHBOARD_X)),
@@ -69,13 +63,6 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
 
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
-    const NEAR_LOGO: NbglGlyph =
-        NbglGlyph::from_include(include_gif!("icons/app_near_64px.gif", NBGL));
-    #[cfg(target_os = "apex_p")]
-    const NEAR_LOGO: NbglGlyph =
-        NbglGlyph::from_include(include_gif!("icons/app_near_48px.png", NBGL));
-
     NbglHomeAndSettings::new()
         .glyph(&NEAR_LOGO)
         .infos("NEAR", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"))
