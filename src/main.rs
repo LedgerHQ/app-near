@@ -41,6 +41,7 @@ mod app_ui {
     pub mod address;
     pub mod aliases;
     pub mod fields_writer;
+    pub mod logo;
     pub mod menu;
     pub mod sign {
         pub mod common {
@@ -235,7 +236,7 @@ impl TryFrom<ApduHeader> for Instruction {
     }
 }
 
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::init_comm;
 
 mod swap;
@@ -249,7 +250,7 @@ extern "C" fn sample_main(arg0: u32) {
 
         let mut comm = Comm::new();
 
-        #[cfg(any(target_os = "stax", target_os = "flex"))]
+        #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
         init_comm(&mut comm);
 
         loop {

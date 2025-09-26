@@ -1,7 +1,7 @@
 use crate::{parsing, utils::types::elipsis_fields::ElipsisFields};
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::Field;
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::app_ui::fields_writer::FieldsWriter;

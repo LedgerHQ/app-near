@@ -14,36 +14,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::bitmaps::WARNING;
 
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::gadgets::clear_screen;
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::layout::{Layout, Location, StringPlace};
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::screen_util::screen_update;
 
 /// the constants and their special meaning were copied from
 /// [ledger_device_sdk::ui::gadgets::display_pending_review]
-#[cfg(not(any(target_os = "stax", target_os = "flex")))]
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 pub fn display_receiving() {
     clear_screen();
 
     // Add icon and text to match the C SDK equivalent.
-    if cfg!(target_os = "nanos") {
-        "Receiving".place(Location::Custom(2), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(14), Layout::Centered, true);
-    } else {
-        WARNING.draw(57, 10);
-        "Receiving".place(Location::Custom(28), Layout::Centered, true);
-        "Transaction...".place(Location::Custom(42), Layout::Centered, true);
-    }
+    let w = WARNING;
+    w.draw(57, 10);
+    "Receiving".place(Location::Custom(28), Layout::Centered, true);
+    "Transaction...".place(Location::Custom(42), Layout::Centered, true);
 
     screen_update();
 }
 
-#[cfg(any(target_os = "stax", target_os = "flex"))]
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 pub fn display_receiving() {
-    // TODO: implement loader indicator for stax and flex
+    // TODO: implement loader indicator for stax, flex and apex_p
 }
