@@ -109,6 +109,7 @@ pub mod parsing {
             function_call::FunctionCallCommon,
             stake::Stake,
             transfer::Transfer,
+            use_global_contract::UseGlobalContract,
             Action,
         };
         pub use common::message_discriminant::MessageDiscriminant;
