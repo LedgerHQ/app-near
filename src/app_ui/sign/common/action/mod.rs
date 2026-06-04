@@ -44,6 +44,7 @@ mod function_call_str;
 mod stake;
 pub mod stake_fn_call;
 mod transfer;
+mod use_global_contract;
 
 #[derive(serde::Deserialize)]
 struct StringArgs<'a> {
@@ -146,6 +147,17 @@ pub fn ui_display_deploy_contract(
     let mut writer = FieldsWriter::new();
 
     deploy_contract::format(deploy_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_use_global_contract(
+    use_global_contract: &mut parsing::types::UseGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    use_global_contract::format(use_global_contract, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
