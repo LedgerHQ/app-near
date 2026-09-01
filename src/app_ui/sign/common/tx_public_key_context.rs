@@ -34,6 +34,16 @@ impl FieldsContext {
                 self.buffer.write_str("secp256k1:");
                 self.buffer.write_str(bs58_buf.as_str());
             }
+            TxPublicKey::MlDsa65Hash(arr) => {
+                let mut bs58_buf: Base58Buf<50> = Base58Buf::new();
+                // expecting `tmp_buf` to be always large enough: 1.4 * 32
+                // .unwrap() is ok, as [`bs58::encode::Error::BufferTooSmall`](https://docs.rs/bs58/0.5.0/bs58/encode/enum.Error.html)
+                // is not expected to be encountered on encoding 32 bytes to 50 bytes long buffer
+                bs58_buf.encode(arr).unwrap();
+
+                self.buffer.write_str("ml-dsa-65-hash:");
+                self.buffer.write_str(bs58_buf.as_str());
+            }
         }
     }
 

@@ -12,13 +12,17 @@ const PUBLIC_KEY_LITTLE_ENDIAN_LEN: usize = 65;
 #[derive(PartialEq, Eq)]
 pub struct PublicKeyBe(pub [u8; PUBLIC_KEY_BIG_ENDIAN_LEN]);
 
-pub struct NoSecpAllowed;
+pub enum DisallowedKeys {
+    NoSecpAllowed,
+    NoMlDsaAllowed,
+}
 
 impl TryFrom<TxPublicKey> for PublicKeyBe {
-    type Error = NoSecpAllowed;
+    type Error = DisallowedKeys;
     fn try_from(value: TxPublicKey) -> Result<Self, Self::Error> {
         match value {
-            TxPublicKey::SECP256K1(_arr) => Err(NoSecpAllowed),
+            TxPublicKey::SECP256K1(_arr) => Err(DisallowedKeys::NoSecpAllowed),
+            TxPublicKey::MlDsa65Hash(_arr) => Err(DisallowedKeys::NoMlDsaAllowed),
             TxPublicKey::ED25519(arr) => Ok(Self(arr)),
         }
     }

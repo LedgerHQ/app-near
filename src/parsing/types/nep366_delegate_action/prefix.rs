@@ -1,6 +1,6 @@
 use crate::app_ui::aliases::CappedAccountId;
-use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Read, Result};
 
 pub struct Prefix {
     /// Signer of the delegated actions

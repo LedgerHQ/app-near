@@ -1,21 +1,20 @@
 use crate::{
+    AppSW,
     parsing::{
-        self,
-        types::{common::message_discriminant::NEP_366_META_TRANSACTIONS, MessageDiscriminant},
-        HashingStream, SingleTxStream,
+        self, HashingStream, SingleTxStream,
+        types::{MessageDiscriminant, common::message_discriminant::NEP_366_META_TRANSACTIONS},
     },
     sign_ui,
-    utils::crypto::{self, public_key::NoSecpAllowed, PublicKeyBe},
-    AppSW,
+    utils::crypto::{self, PublicKeyBe, public_key::DisallowedKeys},
 };
 use borsh::BorshDeserialize;
 
 use super::common::{
-    action::{handle_action, ActionParams},
+    action::{ActionParams, handle_action},
     finalize_sign::{self, Signature},
     validate_public_key,
 };
-pub type SuffixResult = Result<PublicKeyBe, NoSecpAllowed>;
+pub type SuffixResult = Result<PublicKeyBe, DisallowedKeys>;
 
 pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     sign_ui::widgets::display_receiving();

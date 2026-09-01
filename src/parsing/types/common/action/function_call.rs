@@ -2,8 +2,8 @@ use near_gas::NearGas;
 use near_token::NearToken;
 
 use crate::utils::types::capped_string::CappedString;
-use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Read, Result};
 
 /// a buffer for storing `method_name`, long enough
 /// for most of practical cases

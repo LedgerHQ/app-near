@@ -27,3 +27,4 @@ near_gas/Cargo.lock
 borsh/Cargo.lock
 
 .vscode/
+.DS_Store

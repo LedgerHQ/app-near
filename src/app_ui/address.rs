@@ -15,10 +15,10 @@
  *  limitations under the License.
  *****************************************************************************/
 
+use crate::AppSW;
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use crate::app_ui::logo::NEAR_LOGO;
 use crate::utils::crypto;
-use crate::AppSW;
 use fmt_buffer::Buffer;
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{NbglAddressReview, NbglReviewStatus, StatusType};

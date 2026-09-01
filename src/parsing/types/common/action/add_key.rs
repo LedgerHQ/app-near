@@ -1,7 +1,7 @@
 use crate::app_ui::aliases::{CappedAccountId, MethodNamesBuffer};
 use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 use near_token::NearToken;
 
 use super::Nonce;

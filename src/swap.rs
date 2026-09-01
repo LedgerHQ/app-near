@@ -1,6 +1,5 @@
 use crate::utils::crypto::{PathBip32, PublicKeyBe};
 use fmt_buffer::Buffer;
-use ledger_device_sdk::log;
 use near_token::{NearToken, TokenBuffer};
 
 use ledger_device_sdk::{
@@ -10,6 +9,7 @@ use ledger_device_sdk::{
         self,
         swap::{self, CheckAddressParams, CreateTxParams, PrintableAmountParams},
     },
+    log,
 };
 
 use crate::parsing::transaction_stream_reader::SingleTxStream;

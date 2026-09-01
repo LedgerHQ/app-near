@@ -1,8 +1,8 @@
 use crate::parsing::types::DeployContract;
 use crate::sign_ui;
 use crate::{
-    parsing::{HashingStream, SingleTxStream},
     AppSW,
+    parsing::{HashingStream, SingleTxStream},
 };
 use borsh::BorshDeserialize;
 

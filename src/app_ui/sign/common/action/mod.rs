@@ -16,7 +16,7 @@ use ledger_device_sdk::{
     io::Event,
     ui::{
         bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING},
-        gadgets::{clear_screen, MultiFieldReview},
+        gadgets::{MultiFieldReview, clear_screen},
         layout::{Layout, Location, StringPlace},
         screen_util::screen_update,
     },
@@ -37,6 +37,7 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod deploy_global_contract;
 mod function_call_bin;
 mod function_call_common;
 mod function_call_permission;
@@ -44,6 +45,7 @@ mod function_call_str;
 mod stake;
 pub mod stake_fn_call;
 mod transfer;
+mod use_global_contract;
 
 #[derive(serde::Deserialize)]
 struct StringArgs<'a> {
@@ -150,6 +152,17 @@ pub fn ui_display_deploy_contract(
     ui_display_common(&mut writer, params)
 }
 
+pub fn ui_display_deploy_global_contract(
+    deploy_global_contract: &parsing::types::DeployGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    deploy_global_contract::format(deploy_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
@@ -221,6 +234,17 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
 
         NbglStatus::new().text("Transaction rejected").show(res);
     }
+}
+
+pub fn ui_display_use_global_contract(
+    use_global_contract: &mut parsing::types::UseGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    use_global_contract::format(use_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
 }
 
 /// Returns `true` if `method_name` is a known staking pool method.
@@ -604,9 +628,10 @@ mod tests {
 
     fn make_args(s: &str) -> FnCallCappedString {
         let mut args = FnCallCappedString::new();
-        assert!(args
-            .deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
-            .is_ok());
+        assert!(
+            args.deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
+                .is_ok()
+        );
         args
     }
 
