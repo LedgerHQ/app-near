@@ -30,11 +30,7 @@ impl FieldsContext {
     }
 }
 
-/// action type (1) + Public Key (1) + Access Key Nonce (1) +
-/// Access Permission (1) + FnCall Allowance (1)  +
-/// FnCall Receiver `ElipsisFields` (1-2) + Total FnCall Methods (1) +
-/// Method Names `ElipsisFields` (1-2)
-const MAX_FIELDS: usize = 10;
+const MAX_FIELDS: usize = super::add_key_common::MAX_FIELDS_ADD_KEY;
 
 pub fn format<'b, 'a: 'b>(
     function_call_perm: &'a mut parsing::types::FunctionCallPermission,

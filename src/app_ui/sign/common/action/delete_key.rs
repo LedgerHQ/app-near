@@ -8,8 +8,8 @@ use crate::{
     utils::types::elipsis_fields::ElipsisFields,
 };
 
-/// action type(1) + Public Key (1)
-const MAX_FIELDS: usize = 2;
+/// Public Key (1)
+const MAX_FIELDS: usize = 1;
 
 pub fn format<'b, 'a: 'b>(
     delete_key: &parsing::types::DeleteKey,
@@ -17,10 +17,6 @@ pub fn format<'b, 'a: 'b>(
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     field_context.format_public_key(&delete_key.public_key);
-    writer.push_fields(ElipsisFields::one(Field {
-        name: "Action type",
-        value: "Delete Key",
-    }));
 
     writer.push_fields(ElipsisFields::one(Field {
         name: "Public Key",

@@ -15,9 +15,9 @@
  *  limitations under the License.
  *****************************************************************************/
 
+use crate::AppSW;
 use crate::app_ui::address;
 use crate::utils::crypto;
-use crate::AppSW;
 use ledger_device_sdk::ecc::Ed25519;
 use ledger_device_sdk::io::Comm;
 
@@ -25,6 +25,7 @@ pub fn handler(comm: &mut Comm, display: bool) -> Result<(), AppSW> {
     let data = comm.get_data().map_err(|_| AppSW::WrongApduLength)?;
     let path = crypto::PathBip32::parse(data).map_err(|_| AppSW::Bip32PathParsingFail)?;
 
+    // TODO: ML-DSA-65 deterministic pub-key generation?
     let pk = Ed25519::derive_from_path_slip10(&path.0)
         .public_key()
         .map_err(|_| AppSW::KeyDeriveFail)?;

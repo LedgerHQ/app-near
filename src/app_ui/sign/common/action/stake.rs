@@ -24,8 +24,8 @@ impl FieldsContext {
         }
     }
 }
-/// action type (1) + Stake (1) + Public Key (1)
-const MAX_FIELDS: usize = 3;
+/// Stake (1) + Public Key (1)
+const MAX_FIELDS: usize = 2;
 
 pub fn format<'b, 'a: 'b>(
     stake: &parsing::types::Stake,
@@ -35,10 +35,6 @@ pub fn format<'b, 'a: 'b>(
     field_context
         .pub_key_context
         .format_public_key(&stake.public_key);
-    writer.push_fields(ElipsisFields::one(Field {
-        name: "Action type",
-        value: "Stake",
-    }));
 
     stake
         .stake

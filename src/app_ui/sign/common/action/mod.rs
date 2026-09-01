@@ -16,7 +16,7 @@ use ledger_device_sdk::{
     io::Event,
     ui::{
         bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING},
-        gadgets::{clear_screen, MultiFieldReview},
+        gadgets::{MultiFieldReview, clear_screen},
         layout::{Layout, Location, StringPlace},
         screen_util::screen_update,
     },
@@ -37,13 +37,19 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod deploy_global_contract;
+mod deterministic_state_init;
+mod deterministic_state_init_common;
 mod function_call_bin;
 mod function_call_common;
 mod function_call_permission;
 mod function_call_str;
+mod gas_key_info;
+mod gas_key_transaction;
 mod stake;
 pub mod stake_fn_call;
 mod transfer;
+mod use_global_contract;
 
 #[derive(serde::Deserialize)]
 struct StringArgs<'a> {
@@ -61,23 +67,25 @@ pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionPa
 
 pub fn ui_display_create_account(
     create_account: &parsing::types::CreateAccount,
+    account_id: &mut crate::utils::types::capped_account_id::CappedAccountId,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
 
-    create_account::format(create_account, &mut writer);
+    create_account::format(create_account, account_id, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
 
 pub fn ui_display_delete_account(
     delete_account: &mut parsing::types::DeleteAccount,
+    account_id: &mut crate::utils::types::capped_account_id::CappedAccountId,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
 
-    delete_account::format(delete_account, &mut field_context, &mut writer);
+    delete_account::format(delete_account, &mut field_context, account_id, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -139,6 +147,52 @@ pub fn ui_display_add_key_functioncall(
     ui_display_common(&mut writer, params)
 }
 
+pub fn ui_display_add_gas_key_fullaccess(
+    add_key: &parsing::types::AddKey,
+    gas_key_inf: &mut parsing::types::GasKeyInfo,
+    params: ActionParams,
+) -> bool {
+    let mut common_field_context: add_key_common::FieldsContext =
+        add_key_common::FieldsContext::new();
+    let mut gas_key_info_context: gas_key_info::FieldsContext = gas_key_info::FieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    add_key_common::format(
+        add_key,
+        &mut common_field_context,
+        &mut writer,
+        "Full Access",
+    );
+    gas_key_info::format(gas_key_inf, &mut gas_key_info_context, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_add_gas_key_functioncall(
+    add_key: &parsing::types::AddKey,
+    gas_key_inf: &mut parsing::types::GasKeyInfo,
+    function_call_per: &mut parsing::types::FunctionCallPermission,
+    params: ActionParams,
+) -> bool {
+    let mut common_field_context: add_key_common::FieldsContext =
+        add_key_common::FieldsContext::new();
+    let mut gas_key_info_context: gas_key_info::FieldsContext = gas_key_info::FieldsContext::new();
+    let mut func_call_field_context: function_call_permission::FieldsContext =
+        function_call_permission::FieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    add_key_common::format(
+        add_key,
+        &mut common_field_context,
+        &mut writer,
+        "Function Call",
+    );
+    gas_key_info::format(gas_key_inf, &mut gas_key_info_context, &mut writer);
+    function_call_permission::format(function_call_per, &mut func_call_field_context, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
 pub fn ui_display_deploy_contract(
     deploy_contract: &parsing::types::DeployContract,
     params: ActionParams,
@@ -146,6 +200,35 @@ pub fn ui_display_deploy_contract(
     let mut writer = FieldsWriter::new();
 
     deploy_contract::format(deploy_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_deploy_global_contract(
+    deploy_global_contract: &parsing::types::DeployGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    deploy_global_contract::format(deploy_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_deterministic_state_init_v1(
+    state_init_v1: &mut parsing::types::DeterministicAccountStateInitV1,
+    postfix: &parsing::types::DeterministicAccountStateInitPostfix,
+    params: ActionParams,
+) -> bool {
+    let mut v1_context: deterministic_state_init::V1FieldsContext =
+        deterministic_state_init::V1FieldsContext::new();
+    let mut postfix_context: deterministic_state_init_common::PostfixFieldsContext =
+        deterministic_state_init_common::PostfixFieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    deterministic_state_init_common::format("State Init V1", &mut writer);
+    deterministic_state_init::format_v1(state_init_v1, &mut v1_context, &mut writer);
+    deterministic_state_init_common::format_postfix(postfix, &mut postfix_context, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -221,6 +304,53 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
 
         NbglStatus::new().text("Transaction rejected").show(res);
     }
+}
+
+pub fn ui_display_gas_key_transfer(
+    gas_key_transaction: &parsing::types::GasKeyTransactionData,
+    params: ActionParams,
+) -> bool {
+    let mut gas_key_transaction_context: gas_key_transaction::FieldsContext =
+        gas_key_transaction::FieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    gas_key_transaction::format(
+        gas_key_transaction,
+        &mut gas_key_transaction_context,
+        &mut writer,
+        "Deposit Amount",
+    );
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_gas_key_withdraw(
+    gas_key_transaction: &parsing::types::GasKeyTransactionData,
+    params: ActionParams,
+) -> bool {
+    let mut gas_key_transaction_context: gas_key_transaction::FieldsContext =
+        gas_key_transaction::FieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    gas_key_transaction::format(
+        gas_key_transaction,
+        &mut gas_key_transaction_context,
+        &mut writer,
+        "Withdraw Amount",
+    );
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_use_global_contract(
+    use_global_contract: &mut parsing::types::GlobalContractIdentifier,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    use_global_contract::format(use_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
 }
 
 /// Returns `true` if `method_name` is a known staking pool method.
@@ -485,10 +615,11 @@ pub fn ui_display_common<const N: usize>(
     writer: &mut FieldsWriter<'_, N>,
     params: ActionParams,
 ) -> bool {
-    let mut ordinal_fmt_buf = OrdinalStringBuffer::new();
-    let is_last = ordinal_string(&mut ordinal_fmt_buf, params);
+    let mut action_params_fmt_buf = ActionParamsContext::new();
+    let is_last = ordinal_string(&mut action_params_fmt_buf, params);
 
-    let msg_before = ordinal_fmt_buf.as_str();
+    let msg_before_main = action_params_fmt_buf.ordinal_string_buf.as_str();
+    let msg_before_sub = action_params_fmt_buf.action_name_buf.as_str();
 
     let next_msg = if params.is_nested_delegate {
         "Next Subaction"
@@ -506,7 +637,7 @@ pub fn ui_display_common<const N: usize>(
 
     #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
     {
-        let binding = [msg_before];
+        let binding = [msg_before_main, msg_before_sub];
 
         let my_review = MultiFieldReview::new(
             writer.get_fields(),
@@ -524,8 +655,8 @@ pub fn ui_display_common<const N: usize>(
     #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
     {
         let centered_info = CenteredInfo::new(
-            msg_before,
-            "",
+            msg_before_main,
+            msg_before_sub,
             "",
             Some(&NEAR_LOGO),
             false,
@@ -578,21 +709,45 @@ pub fn ui_display_common<const N: usize>(
 
 /// a buffer, large enough to fit description string and
 /// 2 u32 numbers as strings
-type OrdinalStringBuffer = Buffer<40>;
+type OrdinalStringBuffer = Buffer<60>;
 
-fn ordinal_string(fmt_buf: &mut OrdinalStringBuffer, params: ActionParams) -> bool {
+/// a buffer, large enough to fit action string from [Action](crate::parsing::types::common::action::Action)
+/// under description
+type ActionStringBuffer = Buffer<60>;
+
+struct ActionParamsContext {
+    pub ordinal_string_buf: OrdinalStringBuffer,
+    pub action_name_buf: ActionStringBuffer,
+}
+
+impl ActionParamsContext {
+    pub fn new() -> Self {
+        Self {
+            ordinal_string_buf: OrdinalStringBuffer::new(),
+            action_name_buf: ActionStringBuffer::new(),
+        }
+    }
+}
+
+fn ordinal_string(fmt_buf: &mut ActionParamsContext, params: ActionParams) -> bool {
     let mut num_out = U32Buffer::default();
     let header = if params.is_nested_delegate {
         "View subaction "
     } else {
         "View action "
     };
-    fmt_buf.write_str(header);
+    fmt_buf.ordinal_string_buf.write_str(header);
     // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
-    fmt_buf.write_str(params.ordinal_action.numtoa_str(10, &mut num_out));
-    fmt_buf.write_str(" / ");
+    fmt_buf
+        .ordinal_string_buf
+        .write_str(params.ordinal_action.numtoa_str(10, &mut num_out));
+    fmt_buf.ordinal_string_buf.write_str(" / ");
     // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
-    fmt_buf.write_str(params.total_actions.numtoa_str(10, &mut num_out));
+    fmt_buf
+        .ordinal_string_buf
+        .write_str(params.total_actions.numtoa_str(10, &mut num_out));
+
+    fmt_buf.action_name_buf.write_str(params.action_str);
 
     params.ordinal_action == params.total_actions
 }
@@ -604,9 +759,10 @@ mod tests {
 
     fn make_args(s: &str) -> FnCallCappedString {
         let mut args = FnCallCappedString::new();
-        assert!(args
-            .deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
-            .is_ok());
+        assert!(
+            args.deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
+                .is_ok()
+        );
         args
     }
 

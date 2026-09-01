@@ -41,5 +41,7 @@ pub fn display_receiving() {
 
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 pub fn display_receiving() {
-    // TODO: implement loader indicator for stax, flex and apex_p
+    let mut spinner = ledger_device_sdk::nbgl::nbgl_spinner::NbglSpinner::new();
+
+    spinner.show("Receiving Transaction...");
 }

@@ -1,7 +1,7 @@
 use crate::{
+    AppSW,
     parsing::{HashingStream, SingleTxStream},
     utils::crypto::PathBip32,
-    AppSW,
 };
 use borsh::io::{ErrorKind, Read};
 use ledger_device_sdk::ecc::Ed25519;

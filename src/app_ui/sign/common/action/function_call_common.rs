@@ -32,11 +32,6 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, N>,
 ) {
-    writer.push_fields(ElipsisFields::one(Field {
-        name: "Action type",
-        value: "Function Call",
-    }));
-
     let method_name = ElipsisFields::from_capped_string(
         &mut func_call_common.method_name,
         "Method Name",
