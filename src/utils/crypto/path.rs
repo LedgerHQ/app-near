@@ -1,8 +1,8 @@
 use core::iter::zip;
 use core::mem;
 
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 
 pub const ALLOWED_PATH_LEN: usize = 5;
 pub struct PathBip32(pub [u32; ALLOWED_PATH_LEN]);

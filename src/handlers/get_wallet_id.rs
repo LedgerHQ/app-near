@@ -1,6 +1,6 @@
+use crate::AppSW;
 use crate::app_ui::address;
 use crate::utils::crypto;
-use crate::AppSW;
 use ledger_device_sdk::ecc::Ed25519;
 use ledger_device_sdk::io::Comm;
 

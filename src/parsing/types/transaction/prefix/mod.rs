@@ -1,7 +1,7 @@
 use crate::app_ui::aliases::CappedAccountId;
 use crate::parsing::types::TxPublicKey;
-use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Read, Result};
 
 pub struct Prefix {
     pub signer_id: CappedAccountId,

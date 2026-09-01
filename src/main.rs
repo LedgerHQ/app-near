@@ -29,6 +29,7 @@ mod utils {
     }
     pub mod types {
         pub mod base58_buf;
+        pub mod capped_account_id;
         pub mod capped_string;
         pub mod elipsis_fields;
         pub mod hex_display;
@@ -101,15 +102,22 @@ pub mod parsing {
         }
 
         pub use common::action::{
-            add_key::{AccessKeyPermission, AddKey, FunctionCallPermission},
+            Action,
+            add_key::{AccessKeyPermission, AddKey, FunctionCallPermission, GasKeyInfo},
             create_account::CreateAccount,
             delete_account::DeleteAccount,
             delete_key::DeleteKey,
             deploy_contract::DeployContract,
+            deploy_global_contract::DeployGlobalContract,
+            deterministic_state_init::{
+                DeterministicAccountStateInit, DeterministicAccountStateInitPostfix,
+                DeterministicAccountStateInitV1,
+            },
             function_call::FunctionCallCommon,
+            gas_key_transaction::{GasKeyTransactionData, GasKeyTransactionType},
             stake::Stake,
             transfer::Transfer,
-            Action,
+            use_global_contract::GlobalContractIdentifier,
         };
         pub use common::message_discriminant::MessageDiscriminant;
         pub use common::tx_public_key::TxPublicKey;
@@ -164,6 +172,7 @@ pub enum AppSW {
     Bip32PathParsingFail = 0xB00B,
     TxHashFinalizeFail = 0xB00C,
     PublicKeyMismatch = 0xB00D,
+    DerivedAccountIdMismatch = 0xB00E,
     WrongApduLength = StatusWords::BadLen as u16,
 }
 
@@ -242,7 +251,7 @@ use ledger_device_sdk::nbgl::init_comm;
 
 mod swap;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "C" fn sample_main(arg0: u32) {
     if arg0 != 0 {
         swap::swap_main(arg0);

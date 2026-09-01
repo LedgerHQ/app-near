@@ -53,6 +53,18 @@ impl BorshDeserialize for u8 {
     }
 }
 
+impl BorshDeserialize for u16 {
+    #[inline]
+    fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
+        let mut buf = [0u8; size_of::<u16>()];
+        reader
+            .read_exact(&mut buf)
+            .map_err(unexpected_eof_to_unexpected_length_of_input)?;
+        let res = u16::from_le_bytes(buf);
+        Ok(res)
+    }
+}
+
 impl BorshDeserialize for u32 {
     fn deserialize_reader<R: Read>(reader: &mut R) -> Result<Self> {
         let mut buf = [0u8; size_of::<u32>()];

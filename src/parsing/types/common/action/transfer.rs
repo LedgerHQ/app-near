@@ -1,7 +1,7 @@
 use near_token::NearToken;
 
-use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Read, Result};
 
 pub struct Transfer {
     pub deposit: NearToken,

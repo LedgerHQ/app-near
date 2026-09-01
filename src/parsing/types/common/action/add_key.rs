@@ -1,7 +1,8 @@
 use crate::app_ui::aliases::{CappedAccountId, MethodNamesBuffer};
+use crate::parsing::types::common::action::NonceIndex;
 use crate::{parsing::types::TxPublicKey, utils::types::capped_string::CappedString};
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 use near_token::NearToken;
 
 use super::Nonce;
@@ -29,6 +30,12 @@ pub enum AccessKeyPermission {
     /// Grants full access to the account.
     /// NOTE: It's used to replace account-level public keys.
     FullAccess,
+
+    /// Consists of GasKeyInfo and FunctionCallPermission
+    GasKeyFunctionCall,
+
+    /// Consists of GasKeyInfo
+    GasKeyFullAccess,
 }
 
 pub struct FunctionCallPermission {
@@ -54,12 +61,22 @@ pub struct FunctionCallPermission {
     pub method_names: MethodNamesBuffer,
 }
 
+pub struct GasKeyInfo {
+    /// Balance independent from the account balance, used by this gas key to pay execution costs.
+    pub balance: NearToken,
+    /// Number of nonces represents how many independent nonces can be managed by this gas key,
+    /// enabling concurrent parallel transactions from a single public key.
+    pub num_nonces: NonceIndex,
+}
+
 impl BorshDeserialize for AccessKeyPermission {
     fn deserialize_reader<R: Read>(rd: &mut R) -> Result<Self> {
         let tag = u8::deserialize_reader(rd)?;
         match tag {
             0 => Ok(Self::FunctionCall),
             1 => Ok(Self::FullAccess),
+            2 => Ok(Self::GasKeyFunctionCall),
+            3 => Ok(Self::GasKeyFullAccess),
             _unknown_key_type => Err(Error::from(ErrorKind::InvalidData)),
         }
     }
@@ -79,6 +96,15 @@ impl BorshDeserialize for AddKey {
         Ok(Self {
             public_key: BorshDeserialize::deserialize_reader(rd)?,
             access_key: BorshDeserialize::deserialize_reader(rd)?,
+        })
+    }
+}
+
+impl BorshDeserialize for GasKeyInfo {
+    fn deserialize_reader<R: Read>(rd: &mut R) -> Result<Self> {
+        Ok(Self {
+            balance: BorshDeserialize::deserialize_reader(rd)?,
+            num_nonces: BorshDeserialize::deserialize_reader(rd)?,
         })
     }
 }
@@ -117,6 +143,22 @@ impl FunctionCallPermission {
             }
             self.method_names.write_str(";");
         }
+        Ok(())
+    }
+}
+
+impl GasKeyInfo {
+    pub fn new() -> Self {
+        Self {
+            balance: NearToken(0),
+            num_nonces: 0,
+        }
+    }
+
+    pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
+        self.balance = BorshDeserialize::deserialize_reader(reader)?;
+        self.num_nonces = BorshDeserialize::deserialize_reader(reader)?;
+
         Ok(())
     }
 }

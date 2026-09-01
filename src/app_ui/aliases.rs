@@ -2,13 +2,7 @@ use fmt_buffer::Buffer;
 
 use crate::utils::types::{capped_string::CappedString, hex_display::HexDisplay};
 
-/// A capped string for storing
-/// https://docs.rs/near-account-id/1.0.0/near_account_id/struct.AccountId.html
-/// where all bytes after 64-byte prefix are truncated and displayed as `... N bytes` ellipsis
-///
-/// 64 is enough to show implicit account ID-s and most of
-/// practical named account ID-s
-pub type CappedAccountId = CappedString<64>;
+pub use crate::utils::types::capped_account_id::CappedAccountId;
 
 /// A buffer, large enough to contain string representation
 /// of u64
@@ -16,6 +10,11 @@ pub type U64Buffer = [u8; 20];
 /// A buffer, large enough to contain string representation
 /// of u32
 pub type U32Buffer = [u8; 10];
+/// A buffer, large enough to contain string representation
+/// of u16
+pub type U16Buffer = [u8; 5];
+
+// TODO: maybe increase display buffers considering nanos is gone?
 
 /// Type, which is used for displaying full `args` field of
 /// https://docs.rs/near-primitives/0.21.2/near_primitives/action/struct.FunctionCallAction.html

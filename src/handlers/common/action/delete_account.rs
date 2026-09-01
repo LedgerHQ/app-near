@@ -1,7 +1,7 @@
 use crate::sign_ui;
 use crate::{
-    parsing::{types::DeleteAccount, HashingStream, SingleTxStream},
     AppSW,
+    parsing::{HashingStream, SingleTxStream, types::DeleteAccount},
 };
 
 use super::ActionParams;
