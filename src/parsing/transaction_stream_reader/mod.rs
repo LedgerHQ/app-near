@@ -2,8 +2,8 @@
 use ledger_device_sdk::buttons::ButtonEvent;
 use ledger_device_sdk::io::{Comm, Event};
 
-use ledger_device_sdk::hash::sha2::Sha2_256;
 use ledger_device_sdk::hash::HashInit;
+use ledger_device_sdk::hash::sha2::Sha2_256;
 
 use crate::{AppSW, Instruction, SignMode};
 use borsh::io::{self};
@@ -112,18 +112,18 @@ impl SingleTxStream<'_> {
             match self.comm.next_event() {
                 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
                 Event::Button(ButtonEvent::BothButtonsRelease) => {
-                    return Err(io::Error::from(io::ErrorKind::Interrupted))
+                    return Err(io::Error::from(io::ErrorKind::Interrupted));
                 }
                 Event::Command(Instruction::GetVersion)
                 | Event::Command(Instruction::GetPubkey { .. }) => {
-                    return Err(io::Error::from(io::ErrorKind::InvalidData))
+                    return Err(io::Error::from(io::ErrorKind::InvalidData));
                 }
                 Event::Command(Instruction::SignTx {
                     is_last_chunk,
                     sign_mode,
                 }) if sign_mode == self.sign_mode => break is_last_chunk,
                 Event::Command(Instruction::SignTx { .. }) => {
-                    return Err(io::Error::from(io::ErrorKind::InvalidData))
+                    return Err(io::Error::from(io::ErrorKind::InvalidData));
                 }
                 _ => (),
             };

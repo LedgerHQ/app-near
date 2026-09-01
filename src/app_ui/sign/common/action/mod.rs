@@ -16,7 +16,7 @@ use ledger_device_sdk::{
     io::Event,
     ui::{
         bitmaps::{CROSSMARK, EYE, VALIDATE_14, WARNING},
-        gadgets::{clear_screen, MultiFieldReview},
+        gadgets::{MultiFieldReview, clear_screen},
         layout::{Layout, Location, StringPlace},
         screen_util::screen_update,
     },
@@ -37,6 +37,9 @@ mod create_account;
 mod delete_account;
 mod delete_key;
 mod deploy_contract;
+mod deploy_global_contract;
+mod deterministic_state_init;
+mod deterministic_state_init_common;
 mod function_call_bin;
 mod function_call_common;
 mod function_call_permission;
@@ -44,6 +47,7 @@ mod function_call_str;
 mod stake;
 pub mod stake_fn_call;
 mod transfer;
+mod use_global_contract;
 
 #[derive(serde::Deserialize)]
 struct StringArgs<'a> {
@@ -150,6 +154,35 @@ pub fn ui_display_deploy_contract(
     ui_display_common(&mut writer, params)
 }
 
+pub fn ui_display_deploy_global_contract(
+    deploy_global_contract: &parsing::types::DeployGlobalContract,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    deploy_global_contract::format(deploy_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
+pub fn ui_display_deterministic_state_init_v1(
+    state_init_v1: &mut parsing::types::DeterministicAccountStateInitV1,
+    postfix: &parsing::types::DeterministicAccountStateInitPostfix,
+    params: ActionParams,
+) -> bool {
+    let mut v1_context: deterministic_state_init::V1FieldsContext =
+        deterministic_state_init::V1FieldsContext::new();
+    let mut postfix_context: deterministic_state_init_common::PostfixFieldsContext =
+        deterministic_state_init_common::PostfixFieldsContext::new();
+    let mut writer = FieldsWriter::new();
+
+    deterministic_state_init_common::format("State Init V1", &mut writer);
+    deterministic_state_init::format_v1(state_init_v1, &mut v1_context, &mut writer);
+    deterministic_state_init_common::format_postfix(postfix, &mut postfix_context, &mut writer);
+
+    ui_display_common(&mut writer, params)
+}
+
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
@@ -221,6 +254,17 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
 
         NbglStatus::new().text("Transaction rejected").show(res);
     }
+}
+
+pub fn ui_display_use_global_contract(
+    use_global_contract: &mut parsing::types::GlobalContractIdentifier,
+    params: ActionParams,
+) -> bool {
+    let mut writer = FieldsWriter::new();
+
+    use_global_contract::format(use_global_contract, &mut writer);
+
+    ui_display_common(&mut writer, params)
 }
 
 /// Returns `true` if `method_name` is a known staking pool method.
@@ -604,9 +648,10 @@ mod tests {
 
     fn make_args(s: &str) -> FnCallCappedString {
         let mut args = FnCallCappedString::new();
-        assert!(args
-            .deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
-            .is_ok());
+        assert!(
+            args.deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
+                .is_ok()
+        );
         args
     }
 

@@ -1,7 +1,7 @@
 use crate::sign_ui;
 use crate::{
-    parsing::{types::DeleteKey, HashingStream, SingleTxStream},
     AppSW,
+    parsing::{HashingStream, SingleTxStream, types::DeleteKey},
 };
 use borsh::BorshDeserialize;
 

@@ -1,8 +1,8 @@
 use near_token::NearToken;
 
 use crate::parsing::types::TxPublicKey;
-use borsh::io::{Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Read, Result};
 
 pub struct Stake {
     /// Amount of tokens to stake.

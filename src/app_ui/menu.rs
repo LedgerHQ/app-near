@@ -63,6 +63,7 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
 
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
+    #[allow(deprecated)]
     NbglHomeAndSettings::new()
         .glyph(&NEAR_LOGO)
         .infos("NEAR", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"))

@@ -1,5 +1,5 @@
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 
 /// Nonce for transactions.
 pub type Nonce = u64;
@@ -12,9 +12,12 @@ pub mod create_account;
 pub mod delete_account;
 pub mod delete_key;
 pub mod deploy_contract;
+pub mod deploy_global_contract;
+pub mod deterministic_state_init;
 pub mod function_call;
 pub mod stake;
 pub mod transfer;
+pub mod use_global_contract;
 
 #[derive(PartialEq)]
 pub enum Action {
@@ -27,6 +30,9 @@ pub enum Action {
     DeleteKey,
     DeleteAccount,
     Delegate,
+    DeployGlobalContract,
+    UseGlobalContract,
+    DeterministicStateInit,
 }
 
 impl BorshDeserialize for Action {
@@ -42,6 +48,9 @@ impl BorshDeserialize for Action {
             6 => Ok(Self::DeleteKey),
             7 => Ok(Self::DeleteAccount),
             8 => Ok(Self::Delegate),
+            9 => Ok(Self::DeployGlobalContract),
+            10 => Ok(Self::UseGlobalContract),
+            11 => Ok(Self::DeterministicStateInit),
             _ => Err(Error::from(ErrorKind::InvalidData)),
         }
     }

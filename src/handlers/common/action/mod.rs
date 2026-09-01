@@ -1,6 +1,7 @@
+use crate::AppSW;
+use crate::app_ui::aliases::CappedAccountId;
 use crate::parsing::types::Action;
 use crate::parsing::{HashingStream, SingleTxStream};
-use crate::AppSW;
 use borsh::BorshDeserialize;
 
 pub mod add_key;
@@ -9,9 +10,12 @@ pub mod delegate;
 pub mod delete_account;
 pub mod delete_key;
 pub mod deploy_contract;
+pub mod deploy_global_contract;
+pub mod deterministic_state_init;
 pub mod function_call;
 pub mod stake;
 pub mod transfer;
+pub mod use_global_contract;
 
 #[derive(Clone, Copy)]
 pub struct ActionParams {
@@ -23,9 +27,10 @@ pub struct ActionParams {
 pub fn handle_action(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     params: ActionParams,
+    receiver_id: &CappedAccountId,
 ) -> Result<(), AppSW> {
     let action = Action::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
-    dispatch_action(stream, action, params)
+    dispatch_action(stream, action, params, receiver_id)
 }
 
 /// Dispatch an already-deserialized `Action` — used when the action tag byte
@@ -34,6 +39,7 @@ pub fn dispatch_action(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     action: Action,
     params: ActionParams,
+    receiver_id: &CappedAccountId,
 ) -> Result<(), AppSW> {
     match action {
         Action::Transfer => transfer::handle(stream, params),
@@ -45,5 +51,10 @@ pub fn dispatch_action(
         Action::DeployContract => deploy_contract::handle(stream, params),
         Action::FunctionCall => function_call::handle(stream, params),
         Action::Delegate => delegate::handle(stream, params),
+        Action::DeployGlobalContract => deploy_global_contract::handle(stream, params),
+        Action::UseGlobalContract => use_global_contract::handle(stream, params),
+        Action::DeterministicStateInit => {
+            deterministic_state_init::handle(stream, params, receiver_id)
+        }
     }
 }

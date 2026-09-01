@@ -2,9 +2,9 @@ use crate::parsing::types::common::message_discriminant::NEP_413_SIGN_MESSAGE;
 use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
 use crate::{
-    parsing::{types::MessageDiscriminant, HashingStream, SingleTxStream},
-    utils::crypto,
     AppSW,
+    parsing::{HashingStream, SingleTxStream, types::MessageDiscriminant},
+    utils::crypto,
 };
 use borsh::BorshDeserialize;
 

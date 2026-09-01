@@ -3,11 +3,11 @@ use crate::parsing::types::FunctionCallCommon;
 use crate::sign_ui;
 use crate::utils::types::capped_string::CappedString;
 use crate::{
-    parsing::{HashingStream, SingleTxStream},
     AppSW,
+    parsing::{HashingStream, SingleTxStream},
 };
-use borsh::io::ErrorKind;
 use borsh::BorshDeserialize;
+use borsh::io::ErrorKind;
 
 use super::ActionParams;
 
