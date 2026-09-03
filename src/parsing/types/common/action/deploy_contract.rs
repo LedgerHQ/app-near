@@ -1,7 +1,7 @@
 use crate::parsing::HashingStream;
 use crate::utils::types::base58_buf::Base58Buf;
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 
 /// arbitrary chunk size, which is set to around 40% of apdu buffer size
 /// in order to not consume much stack space on `nanos`

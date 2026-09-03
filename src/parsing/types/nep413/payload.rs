@@ -1,7 +1,7 @@
 use crate::app_ui::aliases::{CappedAccountId, NEP413CappedString};
 use crate::utils::types::capped_string::CappedString;
-use borsh::io::{Error, ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{Error, ErrorKind, Read, Result};
 
 /// buffer to store nonce, corresponding to
 /// https://github.com/near/NEPs/blob/master/neps/nep-0413.md and

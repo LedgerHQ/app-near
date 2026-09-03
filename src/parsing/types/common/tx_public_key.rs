@@ -1,5 +1,5 @@
-use borsh::io::{ErrorKind, Read, Result};
 use borsh::BorshDeserialize;
+use borsh::io::{ErrorKind, Read, Result};
 
 pub enum KeyType {
     ED25519 = 0,

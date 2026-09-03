@@ -1,10 +1,10 @@
 use crate::parsing::types::AddKey;
 use crate::parsing::types::{AccessKeyPermission, FunctionCallPermission};
-use crate::{parsing, sign_ui};
 use crate::{
-    parsing::{HashingStream, SingleTxStream},
     AppSW,
+    parsing::{HashingStream, SingleTxStream},
 };
+use crate::{parsing, sign_ui};
 use borsh::BorshDeserialize;
 
 use super::ActionParams;

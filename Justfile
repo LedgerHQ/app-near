@@ -41,26 +41,26 @@ run_builder_with_local_sdk:
 	# docker command to build with local sdk folder (relative path via volume)
 	docker run --rm -ti --privileged -v "/dev/bus/usb:/dev/bus/usb" -v "$(realpath ./):/app" -v "$(realpath ../ledger-device-rust-sdk):/sdk" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
 
-run_speculos_nanos:
-	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
-	-v "$(realpath ./):/app" -it --name  \
-	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
-	bash -c '/usr/bin/python3 -m speculos --model nanos --api-port 5000 --apdu-port 5001 --display headless /app/target/nanos/release/app-near-rust'
-
 run_speculos_nanosplus:
 	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
 	-v "$(realpath ./):/app" -it --name  \
 	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
-	bash -c '/usr/bin/python3 -m speculos --model nanosp --api-port 5000 --apdu-port 5001 --display headless /app/target/nanosplus/release/app-near-rust'
+	bash -c '/usr/bin/python3 -m speculos --model nanosp --api-port 5000 --apdu-port 5001 --display headless /app/target/nanosplus/release/near'
 
 run_speculos_nanox:
 	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
 	-v "$(realpath ./):/app" -it --name  \
 	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
-	bash -c '/usr/bin/python3 -m speculos --model nanox --api-port 5000 --apdu-port 5001 --display headless /app/target/nanox/release/app-near-rust'
+	bash -c '/usr/bin/python3 -m speculos --model nanox --api-port 5000 --apdu-port 5001 --display headless /app/target/nanox/release/near'
 
 run_speculos_stax:
 	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
 	-v "$(realpath ./):/app" -it --name  \
 	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
-	bash -c '/usr/bin/python3 -m speculos --model stax --api-port 5000 --apdu-port 5001 --display headless /app/target/stax/release/app-near-rust'
+	bash -c '/usr/bin/python3 -m speculos --model stax --api-port 5000 --apdu-port 5001 --display headless /app/target/stax/release/near'
+
+run_speculos_apex_p:
+	docker run --rm -p 5000:5000 -p 5001:5001 -v '/dev/bus/usb:/dev/bus/usb'  \
+	-v "$(realpath ./):/app" -it --name  \
+	app-near-container ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
+	bash -c '/usr/bin/python3 -m speculos --model apex_p --api-port 5000 --apdu-port 5001 --display headless /app/target/apex_p/release/near'

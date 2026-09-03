@@ -1,8 +1,8 @@
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use crate::app_ui::logo::NEAR_LOGO;
 use crate::{
-    utils::crypto::{public_key::NoSecpAllowed, PathBip32, PublicKeyBe},
     AppSW,
+    utils::crypto::{PathBip32, PublicKeyBe, public_key::NoSecpAllowed},
 };
 use fmt_buffer::Buffer;
 use ledger_device_sdk::ecc::Ed25519;

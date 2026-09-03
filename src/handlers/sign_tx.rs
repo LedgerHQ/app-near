@@ -14,16 +14,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
+use crate::AppSW;
+use crate::handlers::common::action::{ActionParams, handle_action};
 use crate::parsing;
+use crate::parsing::types::{Action, Stake};
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
 use crate::utils::crypto::{self, PublicKeyBe};
 use crate::utils::types::capped_string::CappedString;
-use crate::AppSW;
-use borsh::BorshDeserialize;
 
-use crate::handlers::common::action::{handle_action, ActionParams};
-use crate::parsing::types::{Action, Stake};
+use borsh::BorshDeserialize;
 
 use super::common::finalize_sign::{self, Signature};
 use super::common::validate_public_key;
