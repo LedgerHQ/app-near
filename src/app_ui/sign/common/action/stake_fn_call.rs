@@ -13,6 +13,7 @@ pub struct FieldsContext {
     pub signer_display_buf: EllipsisBuffer,
     pub pool_display_buf: EllipsisBuffer,
     pub amount_buffer: TokenBuffer,
+    pub deposit_buffer: TokenBuffer,
     pub gas_buf: GasBuffer,
 }
 
@@ -22,13 +23,14 @@ impl FieldsContext {
             signer_display_buf: EllipsisBuffer::default(),
             pool_display_buf: EllipsisBuffer::default(),
             amount_buffer: TokenBuffer::new(),
+            deposit_buffer: TokenBuffer::new(),
             gas_buf: GasBuffer::new(),
         }
     }
 }
 
-/// Stake account (1-2) + amount or "all" (1) + Stake pool (1-2) + Gas (1)
-pub const MAX_FIELDS: usize = 6;
+/// Stake account (1-2) + amount or "all" (1) + Attached deposit (0-1) + Stake pool (1-2) + Gas (1)
+pub const MAX_FIELDS: usize = 7;
 
 /// Labels and amount display depend on the operation kind.
 #[derive(Copy, Clone)]
@@ -45,6 +47,8 @@ pub fn format<'b, 'a: 'b>(
     signer_id: &'b mut CappedAccountId,
     receiver_id: &'b mut CappedAccountId,
     amount_opt: Option<near_token::NearToken>,
+    deposit: near_token::NearToken,
+    show_deposit: bool,
     gas: near_gas::NearGas,
     kind: StakeOpKind,
     field_context: &'a mut FieldsContext,
@@ -72,6 +76,13 @@ pub fn format<'b, 'a: 'b>(
                 }));
             }
 
+            push_attached_deposit(
+                deposit,
+                show_deposit,
+                &mut field_context.deposit_buffer,
+                writer,
+            );
+
             let pool_fields = ElipsisFields::from_capped_string(
                 receiver_id,
                 "Stake to pool",
@@ -95,6 +106,13 @@ pub fn format<'b, 'a: 'b>(
                 }));
             }
 
+            push_attached_deposit(
+                deposit,
+                show_deposit,
+                &mut field_context.deposit_buffer,
+                writer,
+            );
+
             let signer_fields = ElipsisFields::from_capped_string(
                 signer_id,
                 "Unstake to",
@@ -115,6 +133,13 @@ pub fn format<'b, 'a: 'b>(
                 value: "All staked NEAR",
             }));
 
+            push_attached_deposit(
+                deposit,
+                show_deposit,
+                &mut field_context.deposit_buffer,
+                writer,
+            );
+
             let signer_fields = ElipsisFields::from_capped_string(
                 signer_id,
                 "Unstake to",
@@ -129,4 +154,21 @@ pub fn format<'b, 'a: 'b>(
         name: "Gas",
         value: field_context.gas_buf.as_str(),
     }));
+}
+
+/// Pushes the attached deposit as its own field when it is nonzero and not
+/// already displayed as the operation amount.
+fn push_attached_deposit<'b>(
+    deposit: near_token::NearToken,
+    show_deposit: bool,
+    deposit_buffer: &'b mut TokenBuffer,
+    writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
+) {
+    if show_deposit && deposit.as_yoctonear() != 0 {
+        deposit.display_as_buffer(deposit_buffer);
+        writer.push_fields(ElipsisFields::one(Field {
+            name: "Attached deposit",
+            value: deposit_buffer.as_str(),
+        }));
+    }
 }

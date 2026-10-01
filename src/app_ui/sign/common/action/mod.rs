@@ -387,6 +387,8 @@ pub fn ui_display_fn_call_stake(
         StakeAmountSource::Args => amount_opt,
         StakeAmountSource::NotApplicable => None,
     };
+    // The deposit is shown on its own unless it is already the displayed amount.
+    let show_deposit = !matches!(amount_source, StakeAmountSource::Deposit);
     let mut field_context = stake_fn_call::FieldsContext::new();
     let mut writer: FieldsWriter<'_, { stake_fn_call::MAX_FIELDS }> = FieldsWriter::new();
 
@@ -394,6 +396,8 @@ pub fn ui_display_fn_call_stake(
         &mut prefix.signer_id,
         &mut prefix.receiver_id,
         display_amount,
+        deposit,
+        show_deposit,
         gas,
         kind,
         &mut field_context,
