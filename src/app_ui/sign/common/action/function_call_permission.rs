@@ -61,6 +61,15 @@ pub fn format<'b, 'a: 'b>(
 
     writer.push_fields(recevier_id);
 
+    // An empty list grants access to every method of the receiver.
+    if function_call_perm.number_of_method_names == 0 {
+        writer.push_fields(ElipsisFields::one(Field {
+            name: "Method Names",
+            value: "Any method",
+        }));
+        return;
+    }
+
     writer.push_fields(ElipsisFields::one(Field {
         name: "Total FnCall Methods",
         value: function_call_perm
