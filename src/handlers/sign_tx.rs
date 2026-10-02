@@ -184,12 +184,7 @@ fn handle_fn_call_stake_with_prefix(
         args_str.as_str()
     );
 
-    // Try to extract the NEAR amount from the JSON args (only when valid UTF-8).
-    let amount_opt = if args_valid {
-        sign_ui::action::try_parse_amount_from_args(&mut args_str)
-    } else {
-        None
-    };
+    let args = sign_ui::action::decode_stake_args(method_name, args_str, args_valid);
 
     // Read gas and deposit.
     let gas: near_gas::NearGas =
@@ -197,8 +192,7 @@ fn handle_fn_call_stake_with_prefix(
     let deposit: near_token::NearToken =
         BorshDeserialize::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display_fn_call_stake(tx_prefix, method_name, amount_opt, gas, deposit)
-    {
+    if !sign_ui::action::ui_display_fn_call_stake(tx_prefix, method_name, args, gas, deposit) {
         return Err(AppSW::Deny);
     }
     Ok(())
