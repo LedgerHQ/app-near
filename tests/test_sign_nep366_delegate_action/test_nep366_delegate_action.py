@@ -1,11 +1,13 @@
 from application_client.client import (
     AsyncAPDU,
     SW_OK,
+    SW_TX_PARSING_FAIL,
     NavigableConditions,
     Nearbackend,
     FINISH_STUB_APDU,
     generic_test_sign,
 )
+from ragger.backend import RaisePolicy
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
@@ -304,5 +306,53 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
                 ),
             ),
         ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_delegate_action_method_name_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    DelegateAction {
+        sender_id: AccountId(
+            "bob.near",
+        ),
+        receiver_id: AccountId(
+            "alice.near",
+        ),
+        actions: [
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaevil,
+                        args: {"x":1},
+                        gas: 125000000000000,
+                        deposit: 0,
+                    },
+                ),
+            ),
+        ],
+        nonce: 127127122121,
+        max_block_height: 100500,
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+    }
+
+    The 51-byte method name exceeds what the review can display: the delegate
+    action is rejected with a parsing error before the subaction review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057be8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e65617201000000023300000061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616576696c070000007b2278223a317d00d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions"],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        )
     ]
     generic_test_sign(client, chunks, navigator, test_name, firmware)

@@ -1,10 +1,12 @@
 from application_client.client import (
     AsyncAPDU,
     SW_OK,
+    SW_TX_PARSING_FAIL,
     NavigableConditions,
     Nearbackend,
     generic_test_sign,
 )
+from ragger.backend import RaisePolicy
 from ragger.backend.interface import RAPDU
 from ragger.navigator import Navigator
 
@@ -420,6 +422,65 @@ Dx8vP09fb3+Pn6+/z9/g==,
                 bytes.fromhex(
                     "936cb9a2b06160c6ff27aae978014285eeefb37e21461365306089833ef3e5a815947e11215302b3340f1b58486c47656eab453ecc47b29cc05fe277f268d90d"
                 ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_method_name_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose 51-byte method name exceeds what the review can display.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaevil,
+                    args: {"x":1},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+
+    The transaction is rejected with a parsing error before any action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000233000000616161616161616161616161"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280574a61616161616161616161616161616161616161616161616161616161616161616161616576696c070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
             ),
         ),
     ]

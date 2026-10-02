@@ -32,6 +32,11 @@ pub fn handle_from_method_name(
     method_name: CappedString<50>,
     params: ActionParams,
 ) -> Result<(), AppSW> {
+    // The method name is never signed unless it can be displayed in full.
+    if method_name.truncated() {
+        return Err(AppSW::TxParsingFail);
+    }
+
     let args_bytes_count: u32 =
         u32::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
