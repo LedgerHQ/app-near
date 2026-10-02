@@ -2,6 +2,7 @@ from application_client.client import (
     AsyncAPDU,
     SW_DENY,
     SW_OK,
+    SW_TX_PARSING_FAIL,
     NavigableConditions,
     Nearbackend,
     generic_test_sign_single_review,
@@ -534,3 +535,21 @@ def test_sign_withdraw_all_with_deposit(firmware, backend, navigator: Navigator,
         ),
     ]
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_overflowing_method_length(firmware, backend, navigator: Navigator, test_name):
+    """
+    Single-action FunctionCall whose method name length is 0xffffffff.
+
+    The app must answer with a parsing error, without any review screen and
+    without exiting, and keep serving commands afterwards.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    rapdu = backend.exchange_raw(
+        bytes.fromhex(
+            "80028057d08000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000002ffffffff756e7374616b65"
+        )
+    )
+    assert rapdu.status == SW_TX_PARSING_FAIL
+    assert client.get_version().status == SW_OK

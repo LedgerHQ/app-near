@@ -138,11 +138,14 @@ fn detect_combined_stake_flow(
             }
 
             let method_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
-            if rest.len() < 4 + method_len {
+            let Some(method_end) = 4usize.checked_add(method_len) else {
+                return Err(AppSW::TxParsingFail);
+            };
+            let Some(method_bytes) = rest.get(4..method_end) else {
                 return Ok(None);
-            }
+            };
 
-            let method_name = core::str::from_utf8(&rest[4..4 + method_len]).ok();
+            let method_name = core::str::from_utf8(method_bytes).ok();
             if let Some(method_name) = method_name {
                 if sign_ui::action::is_staking_method(method_name) {
                     return Ok(Some(CombinedStakeFlow::StakingFunctionCall));
