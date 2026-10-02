@@ -74,8 +74,8 @@ impl CombinedFieldsContext {
     }
 }
 
-/// Stake account (1-2) + Stake amount (1) + Stake to pool (1)
-pub const COMBINED_MAX_FIELDS: usize = 4;
+/// Stake account (1-2) + Stake amount (1) + Stake to pool (1-2) + Public Key (1)
+pub const COMBINED_MAX_FIELDS: usize = 6;
 
 pub fn format_combined<'b, 'a: 'b>(
     signer_id: &'b mut CappedAccountId,
@@ -111,4 +111,9 @@ pub fn format_combined<'b, 'a: 'b>(
         &mut field_context.pool_display_buf,
     );
     writer.push_fields(pool_fields);
+
+    writer.push_fields(ElipsisFields::one(Field {
+        name: "Public Key",
+        value: field_context.pub_key_context.as_str(),
+    }));
 }

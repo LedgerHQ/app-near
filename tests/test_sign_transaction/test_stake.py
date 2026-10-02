@@ -85,3 +85,52 @@ def test_reject_stake(firmware, backend, navigator: Navigator, test_name):
         ),
     ]
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_stake_long_account_ids(firmware, backend, navigator: Navigator, test_name):
+    """
+    Transaction {
+        signer_id: AccountId(
+            "long-staking-account-ssssssssssssssssssssssssssssssssssssssssssss.near",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "long-validator-pool-name-pppppppppppppppppppppppppppppppppppppppppppp.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            Stake(
+                StakeAction {
+                    stake: 1157130000000000000000000,
+                    public_key: ed25519:5KporntzQkHiVMKxnFuUGcwPKhtVdhaFkneEkhnoZi1U,
+                },
+            ),
+        ],
+    }
+
+    Signer and receiver are both longer than the 64-byte display capacity, so
+    each takes two review fields; the combined review still shows the stake
+    amount, the pool and the validator public key.
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057fa8000002c8000018d800000008000000080000001460000006c6f6e672d7374616b696e672d6163636f756e742d73737373737373737373737373737373737373737373737373737373737373737373737373737373737373732e6e65617200c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000510000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d70707070707070707070707070707070707070707070707070707070707070707070707070707070707070702e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805738583101000000040000e82982269b2408f500000000000000404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex(
+                    "03e7521b44c4f162f9c90f4a63dc1bdbffe82b327d4984d16df75ed471d471a7dfd624233088ea97a8692f8c4b3415dd6d19fe50f6eb570b139c642c2d58520b"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
