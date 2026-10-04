@@ -48,6 +48,7 @@ pub enum StakeOpKind {
     UnstakeAll,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn format<'b, 'a: 'b>(
     signer_id: &'b mut CappedAccountId,
     receiver_id: &'b mut CappedAccountId,

@@ -61,7 +61,10 @@ pub fn ui_menu_main(comm: &mut Comm) -> Event<Instruction> {
     }
 }
 
+// `show` is deprecated since SDK 1.37 in favour of `show_and_return`; migrating changes when the
+// home screen is redrawn after each flow, so it is kept out of this change.
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+#[allow(deprecated)]
 pub fn ui_menu_main(_: &mut Comm) -> Event<Instruction> {
     NbglHomeAndSettings::new()
         .glyph(&NEAR_LOGO)
