@@ -40,8 +40,8 @@ pub type FnCallHexDisplay = HexDisplay<200>;
 pub type FnCallCappedString = CappedString<200>;
 
 /// Type, which is used for displaying full `method_names` field of
-/// https://docs.rs/near-primitives/0.21.2/near_primitives/account/struct.FunctionCallPermission.html
-/// or prefix of `method_names` with suffix truncated and displayed as `... N bytes` ellipsis
+/// https://docs.rs/near-primitives/0.21.2/near_primitives/account/struct.FunctionCallPermission.html ;
+/// a list that does not fit is rejected during parsing
 ///
 /// Current parameter value is limited by `nanos` capabilities.
 /// The parameter value can be made larger with `#[cfg(target_os = "...")]`
