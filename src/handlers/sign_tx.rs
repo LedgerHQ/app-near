@@ -240,6 +240,15 @@ pub fn swap_handler(
         return Err(AppSW::PublicKeyMismatch);
     }
 
+    // The swap source checked by `swap::check_address` is the implicit account of the
+    // derived key: the transaction must be sent from that exact account.
+    let mut signer_buf = [0u8; 64];
+    let expected_signer = dpath_public_key.display_str_hex(&mut signer_buf);
+    if tx_prefix.signer_id.truncated() || tx_prefix.signer_id.as_str() != expected_signer {
+        log::debug!("sign_tx.rs: signer_id does not match the swap source account\n");
+        return Err(AppSW::TxSignFail);
+    }
+
     // Check nb of actions (shall be == 1 == Transfer in swap context)
     if tx_prefix.number_of_actions != 1 {
         return Err(AppSW::TxSignFail);
