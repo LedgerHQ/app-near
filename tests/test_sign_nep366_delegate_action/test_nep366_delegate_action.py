@@ -75,7 +75,7 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
                 DeleteAccount(
                     DeleteAccountAction {
                         beneficiary_id: AccountId(
-                            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                         ),
                     },
                 ),
@@ -124,7 +124,7 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
                                     allowance: Some(
                                         150000000000000000000,
                                     ),
-                                    receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                    receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                     method_names: [
                                         "first_method",
                                         "saturating_add_signed",
@@ -193,7 +193,7 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
     chunks = [
         AsyncAPDU(
             data=bytes.fromhex(
-                "80080057fa8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e6561720c000000000780000000646337653334656563656333303936613461363631653130393332383334663830313134396334396462613962393333323266366439646531383034376639633162313162336233313637333033333933366164303762646463303166396461323764393734383131653438306662313937633739396532333438306134383906008cf7fde291819ba810ce4ec49dff5ade081df2c5c3af03260cfd2c81dc1d18ad060161dd29ada831ab894b465a656c86c557c5008156da0909c4a281f5c8d9ee"
+                "80080057ba8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e6561720c0000000007400000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396306008cf7fde291819ba810ce4ec49dff5ade081df2c5c3af03260cfd2c81dc1d18ad060161dd29ada831ab894b465a656c86c557c5008156da0909c4a281f5c8d9ee"
             ),
             navigable_conditions=NavigableConditions(
                 value=["Proceed to subactions", "Next Subaction", "Next Subaction", "Next Subaction"],
@@ -216,7 +216,7 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
             ),
         ),
         bytes.fromhex(
-            "80080057facfb47a4c96509b57045e991d000000000100009814440dab210800000000000000800000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396331623131623362333136373330333339333661643037626464633031663964613237643937343831316534383066623139376337393965323334383061343839060000000c00000066697273745f6d6574686f641500000073617475726174696e675f6164645f7369676e65640d00000066726f6d5f726573696475616c0b00000066726f6d5f6f757470757414000000756e7772"
+            "80080057bacfb47a4c96509b57045e991d000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963060000000c00000066697273745f6d6574686f641500000073617475726174696e675f6164645f7369676e65640d00000066726f6d5f726573696475616c0b00000066726f6d5f6f757470757414000000756e7772"
         ),
         AsyncAPDU(
             data=bytes.fromhex(
@@ -292,7 +292,7 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
                 SW_OK,
                 # signature
                 bytes.fromhex(
-                    "6f797477de79bcc363816e9c674eadb1d187fccb52446d2e8aab453d7f6d9710be6765d74f16b16a0ed8f073395dac5bd09c68080ef5ef15ce5bf438d6f3ab06"
+                    "d94a1288bcb50a753d6695949873e47a5ab7a17a2121940176d2cd3763d6d678c644f0eb6cbf76fe22e58924b41aa35ae35b9ce669bbe5f23d24fcf9fee59906"
                 ),
             ),
         ),
@@ -493,6 +493,96 @@ def test_reject_delegate_action_add_key_method_name_too_long(firmware, backend, 
             ),
             navigable_conditions=NavigableConditions(
                 value=["Proceed to subactions"],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_delegate_action_sender_id_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    Delegate action whose sender_id is 65 bytes, one over the longest valid account ID
+    ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.near").
+
+    It is rejected with a parsing error before any review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057ad8000002c8000018d800000008000000080000001410000006161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161612e6e6561720a000000616c6963652e6e65617201000000030000c071f0d12b84c31f000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_delegate_action_receiver_id_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    Delegate action whose receiver_id is 65 bytes, one over the longest valid account ID
+    ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.near").
+
+    It is rejected with a parsing error before any review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057ab8000002c8000018d80000000800000008000000108000000626f622e6e656172410000006161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161612e6e65617201000000030000c071f0d12b84c31f000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_delegate_action_function_call_args_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    Delegate action with a FunctionCall subaction whose string args are 201 bytes, one over
+    what the review can display ({"memo":"xxx...xxx"}).
+
+    It is rejected with a parsing error before the subaction review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80080057328000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e65617201000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057e7021500000073617475726174696e675f6164645f7369676e6564c90000007b226d656d6f223a2278787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
             ),
             expected_response=RAPDU(
                 SW_TX_PARSING_FAIL,

@@ -62,6 +62,16 @@ impl<const N: usize> CappedString<N> {
         self.deserialize_with_bytes_count(reader, bytes_count)
     }
 
+    /// Same as [`Self::deserialize_reader_in_place`], but a string longer than the buffer
+    /// is an `InvalidData` error instead of being kept truncated.
+    pub fn deserialize_reader_in_place_whole<R: Read>(&mut self, reader: &mut R) -> Result<()> {
+        self.deserialize_reader_in_place(reader)?;
+        if self.truncated {
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+        Ok(())
+    }
+
     pub fn deserialize_with_bytes_count<R: Read>(
         &mut self,
         reader: &mut R,

@@ -845,3 +845,165 @@ def test_sign_function_call_method_name_50_bytes(firmware, backend, navigator: N
         ),
     ]
     generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_function_call_string_args_at_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose string args are exactly 200 bytes, the most the review can display
+    ({"memo":"xxx...xxx"}).
+
+    The args are reviewed in full and signed.
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057e6021500000073617475726174696e675f6164645f7369676e6564c80000007b226d656d6f223a22787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805718c9f05d991d0000000000c071f0d12b84c31f000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "e6c8e260ff087ac6fb9cdd578ba5834f2a8a032955fb3e565848129e3d5ca6d15715ad6927d622138f916de01e7162a5b9460133b27e5269f13af5bad538590f"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_string_args_one_over_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose string args are 201 bytes, one over what the review can display
+    ({"memo":"xxx...xxx"}).
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057e7021500000073617475726174696e675f6164645f7369676e6564c90000007b226d656d6f223a2278787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_function_call_binary_args_at_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose binary args are exactly 100 bytes (0x80..0xe3), the most the review can
+    display as hex.
+
+    The args are reviewed in full and signed.
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "8002005782021500000073617475726174696e675f6164645f7369676e656464000000808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805718c9f05d991d0000000000c071f0d12b84c31f000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "2985228dcfb0c88768c48de752a11e08b23219469b624bcc8df64842af9cd9851ff8c01790bd775bac8fa6531f657fc55a137374938fda0c4f722f988468fc03"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_binary_args_one_over_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose binary args are 101 bytes (0x80..0xe4), one over what the review can
+    display as hex.
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805783021500000073617475726174696e675f6164645f7369676e656465000000808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

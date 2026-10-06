@@ -102,7 +102,7 @@ impl FunctionCallPermission {
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         let allowance: Option<u128> = BorshDeserialize::deserialize_reader(reader)?;
         self.allowance = allowance.map(NearToken::from_yoctonear);
-        self.receiver_id.deserialize_reader_in_place(reader)?;
+        self.receiver_id.deserialize_reader_in_place_whole(reader)?;
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;
 

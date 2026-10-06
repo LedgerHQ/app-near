@@ -92,7 +92,7 @@ def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test
                                 allowance: Some(
                                     150000000000000000000,
                                 ),
-                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                 method_names: [
                                     "first_method",
                                     "saturating_add_signed",
@@ -124,7 +124,7 @@ def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test
             ),
         ),
         bytes.fromhex(
-            "80020057fa57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab210800000000000000800000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396331623131623362333136373330333339333661643037626464633031663964613237643937343831316534383066623139376337393965323334383061343839060000000c00000066697273745f6d6574686f641500000073617475726174696e675f6164645f7369676e"
+            "80020057ba57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963060000000c00000066697273745f6d6574686f641500000073617475726174696e675f6164645f7369676e"
         ),
         bytes.fromhex(
             "800200574e65640d00000066726f6d5f726573696475616c0b00000066726f6d5f6f757470757414000000756e777261705f6572725f756e636865636b6564110000007472795f726573657276655f65786163"
@@ -140,7 +140,7 @@ def test_sign_add_key_functioncall(firmware, backend, navigator: Navigator, test
                 SW_OK,
                 # signature
                 bytes.fromhex(
-                    "e8735cdfda4b287e4364508eb120831da083df3466c445799a0b6e1bc64500005c16dab5080104021e19f2f264de2d4296d5690755a9edd55d1e474d2a1b8f05"
+                    "0c621b325f5ee71006234dd81babd8d837730632bbd00965d186dfcba136c7fb146d8fec67f9efc81fd6128432f36c8d6fb7f5f5d87e709ae04fba5538eb4203"
                 ),
             ),
         ),
@@ -174,7 +174,7 @@ def test_reject_add_key_method_name_too_long(firmware, backend, navigator: Navig
                                 allowance: Some(
                                     150000000000000000000,
                                 ),
-                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                 method_names: [
                                     "first_method",
                                     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaevil",
@@ -203,7 +203,7 @@ def test_reject_add_key_method_name_too_long(firmware, backend, navigator: Navig
             ),
         ),
         bytes.fromhex(
-            "80020057fa57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab210800000000000000800000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396331623131623362333136373330333339333661643037626464633031663964613237643937343831316534383066623139376337393965323334383061343839020000000c00000066697273745f6d6574686f642c00000061616161616161616161616161616161616161"
+            "80020057ba57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963020000000c00000066697273745f6d6574686f642c00000061616161616161616161616161616161616161"
         ),
         bytes.fromhex(
             "8002005718616161616161616161616161616161616161616161657669"
@@ -251,7 +251,7 @@ def test_reject_add_key_method_names_too_long(firmware, backend, navigator: Navi
                                 allowance: Some(
                                     150000000000000000000,
                                 ),
-                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                 method_names: [
                                     "method_name_number00",
                                     "method_name_number01",
@@ -289,7 +289,7 @@ def test_reject_add_key_method_names_too_long(firmware, backend, navigator: Navi
             ),
         ),
         bytes.fromhex(
-            "80020057fa57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab2108000000000000008000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963316231316233623331363733303333393336616430376264646330316639646132376439373438313165343830666231393763373939653233343830613438390b000000140000006d6574686f645f6e616d655f6e756d6265723030140000006d6574686f645f6e616d65"
+            "80020057ba57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab21080000000000000040000000646337653334656563656333303936613461363631653130393332383334663830313134396334396462613962393333323266366439646531383034376639630b000000140000006d6574686f645f6e616d655f6e756d6265723030140000006d6574686f645f6e616d65"
         ),
         bytes.fromhex(
             "800200574e5f6e756d6265723031140000006d6574686f645f6e616d655f6e756d6265723032140000006d6574686f645f6e616d655f6e756d6265723033140000006d6574686f645f6e616d655f6e756d6265"
@@ -336,7 +336,7 @@ def test_reject_add_key_method_name_with_separator(firmware, backend, navigator:
                                 allowance: Some(
                                     150000000000000000000,
                                 ),
-                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                 method_names: [
                                     "first_method;evil",
                                 ],
@@ -364,7 +364,7 @@ def test_reject_add_key_method_name_with_separator(firmware, backend, navigator:
             ),
         ),
         bytes.fromhex(
-            "80020057e757c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab210800000000000000800000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396331623131623362333136373330333339333661643037626464633031663964613237643937343831316534383066623139376337393965323334383061343839010000001100000066697273745f6d6574686f643b657669"
+            "80020057a757c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963010000001100000066697273745f6d6574686f643b657669"
         ),
         AsyncAPDU(
             data=bytes.fromhex(
@@ -409,7 +409,7 @@ def test_reject_add_key_method_name_not_ascii(firmware, backend, navigator: Navi
                                 allowance: Some(
                                     150000000000000000000,
                                 ),
-                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489",
+                                receiver_id: "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
                                 method_names: [
                                     "méthode",
                                 ],
@@ -437,7 +437,7 @@ def test_reject_add_key_method_name_not_ascii(firmware, backend, navigator: Navi
             ),
         ),
         bytes.fromhex(
-            "80020057de57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab21080000000000000080000000646337653334656563656333303936613461363631653130393332383334663830313134396334396462613962393333323266366439646531383034376639633162313162336233313637333033333933366164303762646463303166396461323764393734383131653438306662313937633739396532333438306134383901000000080000006dc3a974686f64"
+            "800200579e57c5008156da0909c4a281f5c8d9ee3de837534833badf7ad41a5e83071908af7d4f2ae835c9d9aceb48cfb47a4c96509b57045e991d000000000100009814440dab210800000000000000400000006463376533346565636563333039366134613636316531303933323833346638303131343963343964626139623933333232663664396465313830343766396301000000080000006dc3a974686f64"
         ),
         AsyncAPDU(
             data=bytes.fromhex(
@@ -582,6 +582,293 @@ def test_sign_add_key_functioncall_any_method_unlimited(firmware, backend, navig
             expected_response=RAPDU(
                 SW_OK,
                 bytes.fromhex("db9fdc260ca1356f91535443052dcc9c9d4a295f53e8d225d0bf2b77d4b5ef7564438ca1dd4e4bfcf135f659a5ea6bccb359f9238ec614e506682c47b4021d00"),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_add_key_receiver_id_too_long(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose receiver_id is 65 bytes, one over the longest
+    valid account ID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.near").
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057840500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f39300000000000000000410000006161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161612e6e656172010000000b0000006765745f62616c616e6365"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_add_key_method_names_at_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose method names fill the review exactly:
+    five 40-byte names (the longest accepted) and "ping", 210 bytes with separators.
+
+    The full list is reviewed and signed.
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057e806000000280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303030280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303031280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303032280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303033280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f3030340400000070696e67"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "19fc81b1388afd5726d0e470b0dd3af56cef1042f986beb11faea611d81cbd14e8d1ae562c08a718939d52a3199c6de544499791490ec9ab7f3bf854359f1006"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_add_key_method_name_one_over_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose only method name is 41 bytes, one over the
+    longest the review can display.
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280573101000000290000006d6574686f645f6e616d655f65786163746c795f666f7274795f6f6e655f62797465735f6c6f6e675f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_add_key_method_names_one_over_display_limit(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose method names are each short enough but add up
+    to 211 bytes with separators, one over the review capacity (five 40-byte names and "pings").
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057e906000000280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303030280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303031280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303032280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f303033280000006d6574686f645f6e616d655f65786163746c795f666f7274795f62797465735f6c6f6e675f3030340500000070696e6773"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_add_key_method_name_with_del_byte(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose method name contains a raw 0x7f byte
+    ("get\x7fbalance"), which the review would show as the same glyph as any non-printable byte.
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805713010000000b0000006765747f62616c616e6365"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_add_key_method_name_with_control_byte(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission whose method name contains a control byte
+    ("get\nbalance").
+
+    The transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805713010000000b0000006765740a62616c616e6365"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_add_key_empty_method_name(firmware, backend, navigator: Navigator, test_name):
+    """
+    AddKey with a FunctionCall permission listing an empty method name before "get_balance".
+
+    The empty name is reviewed as an empty entry (";get_balance;") and signed.
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057e98000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        bytes.fromhex(
+            "80020057800500c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f3930000000000000000100009814440dab2108000000000000004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280571702000000000000000b0000006765745f62616c616e6365"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "b2a6fd212db45604b5c7fd09beaa13d905811c54b841dc0b624ed83883ff03c0b46a45c7379539575d53f09d6be117eda1bca974d0afb5ba073620888ee1a209"
+                ),
             ),
         ),
     ]

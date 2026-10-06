@@ -31,12 +31,12 @@ impl Prefix {
     // NOTE: using this instead of `BorshDeserialize`
     // allows to increase available buffers
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.signer_id.deserialize_reader_in_place(reader)?;
+        self.signer_id.deserialize_reader_in_place_whole(reader)?;
         let pk: TxPublicKey = BorshDeserialize::deserialize_reader(reader)?;
 
         self.public_key = pk;
         let _nonce: u64 = BorshDeserialize::deserialize_reader(reader)?;
-        self.receiver_id.deserialize_reader_in_place(reader)?;
+        self.receiver_id.deserialize_reader_in_place_whole(reader)?;
 
         let _crypto_hash: CryptoHash = BorshDeserialize::deserialize_reader(reader)?;
 
