@@ -15,9 +15,9 @@ from ragger.navigator import Navigator
 def test_sign_nep413_msg(firmware, backend, navigator: Navigator, test_name):
     """
     NEP413Payload {
-        message: "Makes it possible to authenticate users without having to add new access keys. This wil\
-l improve UX, save money and will not increase the on-chain storage of the users' accou\
-nts.",
+        message: "Makes it possible to authenticate users without having to add new access keys. \
+This will improve UX, save money and will not increase the on-chain storage of the users' \
+accounts.",
         nonce: [
             42,
             42,
