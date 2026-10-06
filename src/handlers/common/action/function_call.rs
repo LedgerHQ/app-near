@@ -124,3 +124,48 @@ impl ArgsRepr {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ArgsRepr;
+    use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay};
+
+    fn string_args(len: usize) -> ArgsRepr {
+        let bytes = [b'x'; 201];
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+            .is_ok());
+        ArgsRepr::String(args)
+    }
+
+    fn binary_args(len: usize) -> ArgsRepr {
+        let bytes = [0x80u8; 101];
+        let mut args = FnCallHexDisplay::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+            .is_ok());
+        args.reformat();
+        ArgsRepr::BinHex(args)
+    }
+
+    #[test_case]
+    fn string_args_at_display_limit_are_not_truncated() {
+        assert!(!string_args(200).truncated());
+    }
+
+    #[test_case]
+    fn string_args_one_over_display_limit_are_truncated() {
+        assert!(string_args(201).truncated());
+    }
+
+    #[test_case]
+    fn binary_args_at_display_limit_are_not_truncated() {
+        assert!(!binary_args(100).truncated());
+    }
+
+    #[test_case]
+    fn binary_args_one_over_display_limit_are_truncated() {
+        assert!(binary_args(101).truncated());
+    }
+}

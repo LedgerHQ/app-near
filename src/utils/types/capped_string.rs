@@ -119,3 +119,49 @@ impl<const N: usize> CappedString<N> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CappedString;
+    use borsh::io::ErrorKind;
+
+    /// Borsh string of `len` bytes of `b'a'`, in a buffer large enough for 65 bytes.
+    fn borsh_string(len: usize) -> ([u8; 4 + 65], usize) {
+        let mut buf = [b'a'; 4 + 65];
+        buf[..4].copy_from_slice(&(len as u32).to_le_bytes());
+        (buf, 4 + len)
+    }
+
+    #[test_case]
+    fn whole_accepts_string_that_fits() {
+        let (buf, len) = borsh_string(64);
+        let mut reader = &buf[..len];
+        let mut s: CappedString<64> = CappedString::new();
+        assert!(s.deserialize_reader_in_place_whole(&mut reader).is_ok());
+        assert_eq!(s.as_str().len(), 64);
+        assert!(reader.is_empty());
+    }
+
+    #[test_case]
+    fn whole_rejects_string_one_byte_too_long() {
+        let (buf, len) = borsh_string(65);
+        let mut reader = &buf[..len];
+        let mut s: CappedString<64> = CappedString::new();
+        let err = s
+            .deserialize_reader_in_place_whole(&mut reader)
+            .unwrap_err();
+        assert!(err.kind() == ErrorKind::InvalidData);
+        // the whole string is consumed, so it is still covered by the hash
+        assert!(reader.is_empty());
+    }
+
+    #[test_case]
+    fn in_place_keeps_string_one_byte_too_long_as_truncated() {
+        let (buf, len) = borsh_string(65);
+        let mut reader = &buf[..len];
+        let mut s: CappedString<64> = CappedString::new();
+        assert!(s.deserialize_reader_in_place(&mut reader).is_ok());
+        assert!(s.truncated());
+        assert_eq!(s.leftover(), 1);
+    }
+}

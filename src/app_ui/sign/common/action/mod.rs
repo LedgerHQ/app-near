@@ -678,7 +678,7 @@ mod tests {
         args
     }
 
-    #[test]
+    #[test_case]
     fn parses_amount_with_json_spacing() {
         let args = r#"{"amount" : "1.25"}"#;
         let mut s = make_args(args);
@@ -691,7 +691,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_extra_fields() {
         let args = r#"{"account_id":"alice.near","amount":"1000000000000000000000000"}"#;
         let mut s = make_args(args);
@@ -699,7 +699,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_key_prefix_field() {
         let args = r#"{"total_amount":"999000000000000000000000000","amount":"5000000000000000000000000"}"#;
         let mut s = make_args(args);
@@ -707,7 +707,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_duplicate_amount() {
         let args = r#"{"amount":"1","amount":"2"}"#;
         let mut s = make_args(args);
@@ -715,7 +715,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_trailing_data() {
         let args = r#"{"amount":"1"}{"beneficiary_id":"x"}"#;
         let mut s = make_args(args);
@@ -723,7 +723,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn decodes_empty_args_for_methods_without_amount() {
         for args in ["", "{}", " { } "] {
             assert!(matches!(
@@ -733,7 +733,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[test_case]
     fn keeps_raw_args_when_not_strictly_decoded() {
         assert!(matches!(
             decode_stake_args("unstake_all", make_args(r#"{"amount":"1"}"#), true),
@@ -749,7 +749,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_case]
     fn parses_decimal_with_24_fractional_digits() {
         let args = r#"{"amount":"1.000000000000000000000001"}"#;
         let mut s = make_args(args);
@@ -762,7 +762,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_case]
     fn rejects_decimal_with_more_than_24_fractional_digits() {
         let args = r#"{"amount":"1.0000000000000000000000001"}"#;
         let mut s = make_args(args);
@@ -770,7 +770,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn parses_zero_amount() {
         let args = r#"{"amount":"0"}"#;
         let mut s = make_args(args);
@@ -778,7 +778,7 @@ mod tests {
         assert_eq!(result, Some(near_token::NearToken::from_yoctonear(0)));
     }
 
-    #[test]
+    #[test_case]
     fn rejects_overflow_decimal_amount() {
         let args = r#"{"amount":"340282366920938463463374607431.768211456"}"#;
         let mut s = make_args(args);
@@ -786,11 +786,42 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_trailing_dot_decimal_amount() {
         let args = r#"{"amount":"1."}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn stake_args_decoded_are_not_truncated() {
+        let args = make_args(r#"{"amount":"1"}"#);
+        assert!(!decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_string_over_display_limit_are_truncated() {
+        let bytes = [b'x'; 201];
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..], 201)
+            .is_ok());
+        assert!(decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_binary_at_and_over_display_limit() {
+        for (len, truncated) in [(100usize, false), (101, true)] {
+            let bytes = [0x80u8; 101];
+            let mut args = FnCallCappedString::new();
+            assert!(args
+                .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+                .is_err());
+            assert_eq!(
+                decode_stake_args("unstake", args, false).truncated(),
+                truncated
+            );
+        }
     }
 }

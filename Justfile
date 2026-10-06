@@ -16,6 +16,11 @@ fmt:
 unit_tests:
 	RUSTFLAGS='-D warnings' bash local_unit_tests.sh
 
+# unit tests of the app crate itself, run on Speculos (nanosplus)
+app_unit_tests:
+	docker run --rm -i -v "$(realpath ./):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest \
+	bash -c 'cd /app && cargo test --features speculos --target nanosplus'
+
 build_all:
 	#!/usr/bin/env bash
 	bash local_test_helper.sh -c build_all

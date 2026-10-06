@@ -84,7 +84,11 @@ See [local_test_helper.sh](./local_test_helper.sh) and [Justfile](./Justfile)
 
 #### Unit testing
 
-See [local_unit_tests.sh](./local_unit_tests.sh).
+See [local_unit_tests.sh](./local_unit_tests.sh) for the helper crates.
+
+The app crate's own unit tests (`#[test_case]` functions) run on Speculos:
+`just app_unit_tests`, or `cargo test --features speculos --target nanosplus`
+inside the `ledger-app-dev-tools` image.
 
 ## Continuous Integration
 
