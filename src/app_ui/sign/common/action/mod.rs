@@ -65,6 +65,17 @@ pub enum StakeArgs {
     RawHex(FnCallHexDisplay),
 }
 
+impl StakeArgs {
+    /// `true` when the args shown as signed do not fit the review in full.
+    pub fn truncated(&self) -> bool {
+        match self {
+            StakeArgs::Decoded(_) => false,
+            StakeArgs::RawStr(args_str) => args_str.truncated(),
+            StakeArgs::RawHex(args_bin) => args_bin.truncated(),
+        }
+    }
+}
+
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
     let mut writer = FieldsWriter::new();

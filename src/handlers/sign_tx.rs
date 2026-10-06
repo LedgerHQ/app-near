@@ -185,6 +185,10 @@ fn handle_fn_call_stake_with_prefix(
     );
 
     let args = sign_ui::action::decode_stake_args(method_name, args_str, args_valid);
+    // The args are never signed unless they can be displayed in full.
+    if args.truncated() {
+        return Err(AppSW::TxParsingFail);
+    }
 
     // Read gas and deposit.
     let gas: near_gas::NearGas =

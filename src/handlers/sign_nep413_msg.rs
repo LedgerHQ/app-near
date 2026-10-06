@@ -31,6 +31,15 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .deserialize_reader_in_place(&mut stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
+    // The message is never signed unless every field can be displayed in full.
+    let callback_url_truncated = payload
+        .callback_url
+        .as_ref()
+        .is_some_and(|callback_url| callback_url.truncated());
+    if payload.message.truncated() || payload.recipient.truncated() || callback_url_truncated {
+        return Err(AppSW::TxParsingFail);
+    }
+
     if !sign_ui::nep413::payload::ui_display(&mut payload) {
         return Err(AppSW::Deny);
     }

@@ -73,6 +73,10 @@ pub fn handle_from_method_name(
             return Err(AppSW::TxParsingFail);
         }
     };
+    // The args are never signed unless they can be displayed in full.
+    if representation.truncated() {
+        return Err(AppSW::TxParsingFail);
+    }
     handle_common(stream, method_name, params, &mut representation)
 }
 fn handle_common(
@@ -110,4 +114,13 @@ fn handle_common(
 enum ArgsRepr {
     String(FnCallCappedString),
     BinHex(FnCallHexDisplay),
+}
+
+impl ArgsRepr {
+    fn truncated(&self) -> bool {
+        match self {
+            ArgsRepr::String(args_str) => args_str.truncated(),
+            ArgsRepr::BinHex(args_bin) => args_bin.truncated(),
+        }
+    }
 }

@@ -5,6 +5,7 @@ from application_client.client import (
     SW_TX_PARSING_FAIL,
     NavigableConditions,
     Nearbackend,
+    generic_test_sign,
     generic_test_sign_single_review,
 )
 from ragger.backend import RaisePolicy
@@ -704,12 +705,12 @@ def test_sign_unstake_all_with_args_shown_raw(firmware, backend, navigator: Navi
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
 
 
-def test_sign_unstake_long_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
+def test_reject_unstake_long_args(firmware, backend, navigator: Navigator, test_name):
     """
     FunctionCall unstake whose args exceed the 200-byte display capacity.
 
-    The args cannot be decoded strictly, so the review shows them as signed,
-    with the number of bytes that do not fit.
+    The args cannot be displayed in full, so the transaction is rejected with a
+    parsing error and no review is shown.
 
     Transaction {
         signer_id: AccountId(
@@ -733,6 +734,7 @@ def test_sign_unstake_long_args_shown_raw(firmware, backend, navigator: Navigato
         ],
     }
     """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
     chunks = [
         bytes.fromhex(
@@ -746,15 +748,15 @@ def test_sign_unstake_long_args_shown_raw(firmware, backend, navigator: Navigato
                 "80028057197d00d098d4af71000000000000000000000000000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=["Sign"],
+                value=[],
             ),
             expected_response=RAPDU(
-                SW_OK,
-                bytes.fromhex("291f3141f3b688b20e12f10ba24175e8d313a8dfc42c40eb779bda1c9cb18096858939ebb62a7a9b9085bf0a22eb38ebbdfe784e2721a0ef531229440bd95101"),
+                SW_TX_PARSING_FAIL,
+                bytes(),
             ),
         ),
     ]
-    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_unstake_binary_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
