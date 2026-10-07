@@ -7,7 +7,9 @@ use crate::utils::types::{capped_string::CappedString, hex_display::HexDisplay};
 ///
 /// An account ID longer than this buffer is rejected during parsing.
 /// 64 is the maximum length of a valid account ID, which also fits
-/// implicit account ID-s
+/// implicit account ID-s: `MAX_LEN` in near-account-id
+/// (https://github.com/near/near-account-id-rs/blob/v3.0.0/src/validation.rs),
+/// the version nearcore uses to reject longer IDs when it deserializes a transaction.
 pub type CappedAccountId = CappedString<64>;
 
 /// A buffer, large enough to contain string representation
