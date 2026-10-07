@@ -41,6 +41,7 @@ serde-json-core = "0.6.0"
 [profile.release]
 opt-level = 'z'
 lto = true
+overflow-checks = true
 
 [profile.dev]
 opt-level = 'z'
