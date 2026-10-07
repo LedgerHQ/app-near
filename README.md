@@ -97,6 +97,7 @@ The following workflows are executed in [GitHub Actions](https://github.com/feat
 * Ledger guidelines enforcer which verifies that an app is compliant with Ledger guidelines. The successful completion of this reusable workflow is a mandatory step for an app to be available on the Ledger application store. More information on the guidelines can be found in the repository [ledger-app-workflow](https://github.com/LedgerHQ/ledger-app-workflows)
 * Compilation of the application for all supported devices in the [ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder) docker image
 * End-to-end tests with the [Speculos](https://github.com/LedgerHQ/speculos) emulator and [ragger](https://github.com/LedgerHQ/ragger) (see [tests/](tests/))
+* Unit tests of the helper crates and of the app crate (see [Unit testing](#unit-testing))
 * Various lint checks :
   * Source code lint checks with `cargo fmt`
   * Python functional test code lint checks with `pylint` and `mypy`

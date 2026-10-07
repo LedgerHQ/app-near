@@ -1,0 +1,38 @@
+name: Run unit tests
+
+# This workflow runs the unit tests:
+# - the helper crates (fmt_buffer, near_token, near_gas) on the host, with local_unit_tests.sh;
+# - the app crate's `#[test_case]` functions on Speculos, which ends the run with a non-zero
+#   exit code when an assertion fails.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  helper_crates:
+    name: Unit tests of the helper crates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+      - name: Install the stable toolchain
+        run: rustup toolchain install stable --profile minimal
+      - name: Run unit tests
+        run: RUSTFLAGS='-D warnings' bash local_unit_tests.sh
+
+  app_crate:
+    name: Unit tests of the app crate on Speculos
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+      - name: Run unit tests
+        run: cargo test --features speculos --target nanosplus
