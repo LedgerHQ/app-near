@@ -1476,7 +1476,7 @@ def test_sign_unstake_non_printable_args_shown_raw(firmware, backend, navigator:
             FunctionCall(
                 FunctionCallAction {
                     method_name: unstake,
-                    args: {"amount":"1","memo":"caf\u00e9"},
+                    args: {"amount":"1","memo":"café"},
                     gas: 125000000000000,
                     deposit: 0,
                 },

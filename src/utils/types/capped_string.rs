@@ -184,7 +184,7 @@ mod tests {
         assert!(!capped(b"a\nb").is_printable_ascii());
         assert!(!capped(b"a\x1fb").is_printable_ascii());
         assert!(!capped(b"a\x7fb").is_printable_ascii());
-        assert!(!capped("caf\u{e9}".as_bytes()).is_printable_ascii());
+        assert!(!capped("café".as_bytes()).is_printable_ascii());
     }
 
     #[test_case]
