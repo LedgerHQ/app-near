@@ -345,7 +345,9 @@ fn stake_method_routing(method_name: &str) -> (stake_fn_call::StakeOpKind, Stake
     match method_name {
         "deposit_and_stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Deposit),
         "stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Args),
-        "unstake" | "withdraw" => (StakeOpKind::Unstake, StakeAmountSource::Args),
+        "unstake" => (StakeOpKind::Unstake, StakeAmountSource::Args),
+        "withdraw" => (StakeOpKind::Withdraw, StakeAmountSource::Args),
+        "withdraw_all" => (StakeOpKind::WithdrawAll, StakeAmountSource::NotApplicable),
         _ => (StakeOpKind::UnstakeAll, StakeAmountSource::NotApplicable),
     }
 }
@@ -395,9 +397,8 @@ pub fn ui_display_fn_call_stake(
     let review_title = match method_name {
         "deposit_and_stake" => "Review transaction to deposit and stake NEAR",
         "stake" => "Review transaction to stake NEAR",
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            "Review transaction to unstake NEAR"
-        }
+        "unstake" | "unstake_all" => "Review transaction to unstake NEAR",
+        "withdraw" | "withdraw_all" => "Review transaction to withdraw NEAR",
         _ => "Review transaction",
     };
 
@@ -405,9 +406,8 @@ pub fn ui_display_fn_call_stake(
     let review_title = match method_name {
         "deposit_and_stake" => ["Review transaction to", "deposit and stake NEAR", ""],
         "stake" => ["Review transaction to", "stake NEAR", ""],
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            ["Review transaction to", "unstake NEAR", ""]
-        }
+        "unstake" | "unstake_all" => ["Review transaction to", "unstake NEAR", ""],
+        "withdraw" | "withdraw_all" => ["Review transaction to", "withdraw NEAR", ""],
         _ => ["Review transaction", "", ""],
     };
 
@@ -415,9 +415,8 @@ pub fn ui_display_fn_call_stake(
     let sign_title = match method_name {
         "deposit_and_stake" => "Sign transaction to deposit and stake NEAR?",
         "stake" => "Sign transaction to stake NEAR?",
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            "Sign transaction to unstake NEAR?"
-        }
+        "unstake" | "unstake_all" => "Sign transaction to unstake NEAR?",
+        "withdraw" | "withdraw_all" => "Sign transaction to withdraw NEAR?",
         _ => "Sign transaction",
     };
 

@@ -1052,3 +1052,402 @@ def test_sign_unstake_empty_args_shown_raw(firmware, backend, navigator: Navigat
         ),
     ]
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_not_a_pool_receiver(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake sent to an account that is not a staking pool.
+
+    The method name alone selects the staking review, so the review shows the
+    method name and the receiver as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"1157130000000000000000000"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057f68000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b6526"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057410000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("5a68c8598c62a6874dca4f412b83944945bec4a7368267a992ef87b1d59c49d9afbc560a50ac089602c94c65de659485b823db9b787f4f0eda7166167cc89604"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_withdraw_extra_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall withdraw whose args carry a field besides `amount`.
+
+    The review shows the method name and the args as signed instead of a
+    withdraw amount.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: withdraw,
+                    args: {"amount":"1157130000000000000000000","account_id":"pool.near"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d28000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000020800000077697468647261773f"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280575a0000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030222c226163636f756e745f6964223a22706f6f6c2e6e656172227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("2991001d20a38659285757c776234a752fdf98c5ac5bb7e23224a8601bf3a54e8337b6baf75fb63aa67e105f60a0780104b5f2393ff2bb61dac17b12d6f1870e"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_withdraw_duplicate_amount_shown_raw(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall withdraw whose args repeat the `amount` key.
+
+    The review shows the method name and the args as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: withdraw,
+                    args: {"amount":"1","amount":"1157130000000000000000000"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d28000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000208000000776974686472617733"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280574e0000007b22616d6f756e74223a2231222c22616d6f756e74223a2231313537313330303030303030303030303030303030303030227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("c99d340df6a9f87011e50a40a9ff08591a10601f6f280b9c29ec3b8749da388964d62cbf6cb241738fdd3e8c8424e1589d8a0d0f22b707420ea1195699775f0e"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_withdraw_all_with_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall withdraw_all with non-empty args.
+
+    withdraw_all takes no args, so the review shows the method name and the
+    args as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: withdraw_all,
+                    args: {"amount":"1"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d68000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000020c00000077697468647261775f616c6c0e"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057290000007b22616d6f756e74223a2231227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("0f3ec28a7b5407e02ea7993bd523ed12ab543f821b1aa64c99075e61055cabd57f8df36509724724edd7c07be31baf54f597240187c5256bb19831f619444c08"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_all_spaced_empty_args(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake_all whose args are an empty JSON object with whitespace.
+
+    The args still match the expected shape and are decoded.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake_all,
+                    args:  { } ,
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d58000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000020b000000756e7374616b655f616c6c05"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805720000000207b207d2000d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("9538c913dc6ff04c20239d8e163d5daa6b887fd3e87234a89ccd8b91ae7d455468b421afa69cfe0226b8fc974547e14e32a22afce2bb72e41b47ebe2b8d3de03"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_withdraw_all_spaced_empty_args(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall withdraw_all whose args are an empty JSON object with whitespace.
+
+    The args still match the expected shape and are decoded.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: withdraw_all,
+                    args:  { } ,
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d68000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000020c00000077697468647261775f616c6c05"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805720000000207b207d2000d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("3e5be4a1049687c5fcbf9c3103abd89f13f1f508a679dbee2552e44ebd899105872d26ead8b1e212e1c218ecee25d8afaae74da2a040d47a29123fc6a5f2860c"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_deposit_and_stake_spaced_empty_args(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall deposit_and_stake whose args are an empty JSON object with whitespace.
+
+    The args still match the expected shape and are decoded.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: deposit_and_stake,
+                    args:  { } ,
+                    gas: 125000000000000,
+                    deposit: 2006231634787054162110590,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057db8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000002110000006465706f7369745f616e645f7374616b6505"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805720000000207b207d2000d098d4af7100007e6855ec10c0eb08d6a8010000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("6aa155b19b7f70d64f121baf85fb92bbed509249c784c9abcf64287763ce277cdf0ad0fb356da7edb5cb63d8694232fee9c33aee5876fa897002ea37de615906"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_max_fields(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake with long signer and pool ids, args shown as signed
+    and truncated, and a nonzero deposit.
+
+    The review uses every field the combined staking review can hold.
+
+    Transaction {
+        signer_id: AccountId(
+            "long-staking-account-ssssssssssssssssssssssssssssssssssssssssssss.near",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "long-validator-pool-name-pppppppppppppppppppppppppppppppppppppppppppp.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"1157130000000000000000000","memo":"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"},
+                    gas: 125000000000000,
+                    deposit: 1,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057fa8000002c8000018d800000008000000080000001460000006c6f6e672d7374616b696e672d6163636f756e742d73737373737373737373737373737373737373737373737373737373737373737373737373737373737373732e6e65617200c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000510000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d70707070707070707070707070707070707070707070707070707070707070707070707070707070707070702e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72"
+        ),
+        bytes.fromhex(
+            "80020057135831010000000207000000756e7374616b65d0"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057eb0000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030222c226d656d6f223a226d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d227d00d098d4af71000001000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("ea1d0c03123dba28ee0eb23aec83182dc7efb72bfc3b57e1bd523351aa7f1e1de503fee0ef15c176c559fdeff6099ad399b26db72db06d1e8877b59e539d730b"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
