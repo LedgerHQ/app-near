@@ -312,6 +312,9 @@ def test_sign_delegate_action_batch(firmware, backend, navigator: Navigator, tes
 
 def test_reject_delegate_action_method_name_too_long(firmware, backend, navigator: Navigator, test_name):
     """
+    The 51-byte method name exceeds what the review can display: the delegate
+    action is rejected with a parsing error before the subaction review.
+
     DelegateAction {
         sender_id: AccountId(
             "bob.near",
@@ -323,7 +326,7 @@ def test_reject_delegate_action_method_name_too_long(firmware, backend, navigato
             NonDelegateAction(
                 FunctionCall(
                     FunctionCallAction {
-                        method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaevil,
+                        method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab,
                         args: {"x":1},
                         gas: 125000000000000,
                         deposit: 0,
@@ -335,16 +338,13 @@ def test_reject_delegate_action_method_name_too_long(firmware, backend, navigato
         max_block_height: 100500,
         public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
     }
-
-    The 51-byte method name exceeds what the review can display: the delegate
-    action is rejected with a parsing error before the subaction review.
     """
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
     chunks = [
         AsyncAPDU(
             data=bytes.fromhex(
-                "80088057be8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e65617201000000023300000061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616576696c070000007b2278223a317d00d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+                "80088057be8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e656172010000000233000000616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616162070000007b2278223a317d00d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
             ),
             navigable_conditions=NavigableConditions(
                 value=["Proceed to subactions"],
@@ -353,6 +353,101 @@ def test_reject_delegate_action_method_name_too_long(firmware, backend, navigato
                 SW_TX_PARSING_FAIL,
                 bytes(),
             ),
-        )
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_delegate_action_method_name_too_long_other_suffix(firmware, backend, navigator: Navigator, test_name):
+    """
+    Same as test_reject_delegate_action_method_name_too_long with a method name
+    that differs only after the first 50 bytes: rejected too.
+
+    DelegateAction {
+        sender_id: AccountId(
+            "bob.near",
+        ),
+        receiver_id: AccountId(
+            "alice.near",
+        ),
+        actions: [
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac,
+                        args: {"x":1},
+                        gas: 125000000000000,
+                        deposit: 0,
+                    },
+                ),
+            ),
+        ],
+        nonce: 127127122121,
+        max_block_height: 100500,
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+    }
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057be8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e656172010000000233000000616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616163070000007b2278223a317d00d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions"],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_delegate_action_method_name_50_bytes(firmware, backend, navigator: Navigator, test_name):
+    """
+    Delegate action with a FunctionCall whose method name is exactly 50 bytes:
+    the whole name is shown and the delegate action is signed.
+
+    DelegateAction {
+        sender_id: AccountId(
+            "bob.near",
+        ),
+        receiver_id: AccountId(
+            "alice.near",
+        ),
+        actions: [
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                        args: {"x":1},
+                        gas: 125000000000000,
+                        deposit: 0,
+                    },
+                ),
+            ),
+        ],
+        nonce: 127127122121,
+        max_block_height: 100500,
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80088057bd8000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e6561720100000002320000006161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161070000007b2278223a317d00d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions", "To NEP366 suffix", "Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("b39259bebba4d23cbca456d8b384801c945f43b09f3b41d65441192bc5d71c0ebc1ee7d418e51d5201bf9546b6ba831503a51a60f6607364c233c803c43fd301"),
+            ),
+        ),
     ]
     generic_test_sign(client, chunks, navigator, test_name, firmware)

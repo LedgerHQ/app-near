@@ -432,6 +432,8 @@ def test_reject_function_call_method_name_too_long(firmware, backend, navigator:
     """
     FunctionCall whose 51-byte method name exceeds what the review can display.
 
+    The transaction is rejected with a parsing error before any action review.
+
     Transaction {
         signer_id: AccountId(
             "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
@@ -445,7 +447,7 @@ def test_reject_function_call_method_name_too_long(firmware, backend, navigator:
         actions: [
             FunctionCall(
                 FunctionCallAction {
-                    method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaevil,
+                    method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab,
                     args: {"x":1},
                     gas: 125000000000000,
                     deposit: 0,
@@ -453,8 +455,6 @@ def test_reject_function_call_method_name_too_long(firmware, backend, navigator:
             ),
         ],
     }
-
-    The transaction is rejected with a parsing error before any action review.
     """
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
@@ -473,7 +473,7 @@ def test_reject_function_call_method_name_too_long(firmware, backend, navigator:
         ),
         AsyncAPDU(
             data=bytes.fromhex(
-                "800280574a61616161616161616161616161616161616161616161616161616161616161616161616576696c070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
+                "800280574a616161616161616161616161616161616161616161616161616161616161616161616161616162070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
             ),
             navigable_conditions=NavigableConditions(
                 value=[],
@@ -481,6 +481,126 @@ def test_reject_function_call_method_name_too_long(firmware, backend, navigator:
             expected_response=RAPDU(
                 SW_TX_PARSING_FAIL,
                 bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_method_name_too_long_other_suffix(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose 51-byte method name shares its first 50 bytes with the one
+    of test_reject_function_call_method_name_too_long.
+
+    It is rejected with a parsing error too: no suffix past the display limit
+    reaches signing.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac,
+                    args: {"x":1},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000233000000616161616161616161616161"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280574a616161616161616161616161616161616161616161616161616161616161616161616161616163070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_function_call_method_name_50_bytes(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose method name is exactly 50 bytes, the most the review can
+    display.
+
+    The whole name is shown and the transaction is signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                    args: {"x":1},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000232000000616161616161616161616161"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80028057496161616161616161616161616161616161616161616161616161616161616161616161616161070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("e41be93a8e33be46f7a3019551a3ebb2204c9b3525e8749c43e87b807bc23ab0481659285459fbd21d8688ac1418459453e31f8f4bb01a66d9e879eeb163410a"),
             ),
         ),
     ]
