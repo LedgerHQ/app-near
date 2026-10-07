@@ -1,6 +1,7 @@
 use crate::parsing::types::common::message_discriminant::NEP_413_SIGN_MESSAGE;
 use crate::parsing::types::nep413::payload::Payload;
 use crate::sign_ui;
+use crate::utils::types::capped_string::CappedString;
 use crate::{
     parsing::{types::MessageDiscriminant, HashingStream, SingleTxStream},
     utils::crypto,
@@ -31,12 +32,14 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .deserialize_reader_in_place(&mut stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    // The message is never signed unless every field can be displayed in full.
-    let callback_url_truncated = payload
-        .callback_url
-        .as_ref()
-        .is_some_and(|callback_url| callback_url.truncated());
-    if payload.message.truncated() || payload.recipient.truncated() || callback_url_truncated {
+    // The message is never signed unless every field can be displayed in full,
+    // with each byte shown as its own glyph. None of these fields is validated
+    // on chain, the recipient included.
+    let callback_url_displayable = payload.callback_url.as_ref().is_none_or(displayable);
+    if !displayable(&payload.message)
+        || !displayable(&payload.recipient)
+        || !callback_url_displayable
+    {
         return Err(AppSW::TxParsingFail);
     }
 
@@ -45,4 +48,9 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     }
 
     finalize_sign::end(stream, &path)
+}
+
+/// `true` when the field fits the review and every byte is shown as its own glyph.
+fn displayable<const N: usize>(field: &CappedString<N>) -> bool {
+    !field.truncated() && field.is_printable_ascii()
 }

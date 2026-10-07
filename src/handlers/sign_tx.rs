@@ -180,9 +180,10 @@ fn handle_fn_call_stake_with_prefix(
         Err(_) => return Err(AppSW::TxParsingFail),
     };
 
+    // `as_str` would rewrite the bytes that are not printable ASCII before they are classified.
     log::debug!(
-        "sign_tx.rs: handle_fn_call_stake_with_prefix - arg_str:{}\n",
-        args_str.as_str()
+        "sign_tx.rs: handle_fn_call_stake_with_prefix - args bytes: {}\n",
+        args_bytes_count
     );
 
     let args = sign_ui::action::decode_stake_args(method_name, args_str, args_valid);

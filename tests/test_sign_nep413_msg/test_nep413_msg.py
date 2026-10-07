@@ -308,3 +308,81 @@ def test_reject_nep413_msg_callback_url_one_over_display_limit(firmware, backend
         ),
     ]
     generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_nep413_msg_message_not_printable_ascii(firmware, backend, navigator: Navigator, test_name):
+    """
+    NEP-413 message whose message is valid UTF-8 but not printable ASCII (a line feed).
+
+    The review would draw that character as a square glyph shared by every such byte,
+    so the message is rejected with a parsing error before any review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80078057838000002c8000018d800000008000000080000001260000004c6f6720696e20746f206d796170702e636f6d0a776974682074686973206163636f756e742e2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a0000006d796170702e6e65617201120000006d796170702e636f6d2f63616c6c6261636b"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_nep413_msg_recipient_not_printable_ascii(firmware, backend, navigator: Navigator, test_name):
+    """
+    NEP-413 message whose recipient is valid UTF-8 but not printable ASCII (an accented letter; a NEP-413 recipient is never validated on chain).
+
+    The review would draw that character as a square glyph shared by every such byte,
+    so the message is rejected with a parsing error before any review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80078057858000002c8000018d800000008000000080000001260000004c6f6720696e20746f206d796170702e636f6d20776974682074686973206163636f756e742e2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0c0000006d79617070c3a92e6e65617201120000006d796170702e636f6d2f63616c6c6261636b"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_nep413_msg_callback_url_not_printable_ascii(firmware, backend, navigator: Navigator, test_name):
+    """
+    NEP-413 message whose callback url is valid UTF-8 but not printable ASCII (an escape control byte).
+
+    The review would draw that character as a square glyph shared by every such byte,
+    so the message is rejected with a parsing error before any review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80078057848000002c8000018d800000008000000080000001260000004c6f6720696e20746f206d796170702e636f6d20776974682074686973206163636f756e742e2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a0000006d796170702e6e65617201130000006d796170702e636f6d2f63616c6c6261636b1b"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

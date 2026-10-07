@@ -153,8 +153,10 @@ MDAwMDAwMDAwMDAiLCJlbmRfdGltZXN0YW1wIjoiMTcwNDE1MDAwMDAwMDAwMDAwMCJ9LCJzYWx0Ijoi
 
 def test_sign_function_call_string_with_newline(firmware, backend, navigator: Navigator, test_name):
     """
-    Args String:
+    Args (valid UTF-8, with a line feed):
     "{\"test_key\": \"value\nhidden part of value 1 2 3 4 5 6 7 8 9\"}"
+
+    The args are not printable ASCII, so the review shows them in hexadecimal.
 
     Transaction {
         signer_id: AccountId(
@@ -212,8 +214,10 @@ def test_sign_function_call_string_with_newline(firmware, backend, navigator: Na
 
 def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: Navigator, test_name):
     r"""
-    Args String:
+    Args (every printable ASCII character, then DEL):
     "{\" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u{7f}\"}"
+
+    DEL is not printable ASCII, so the review shows the args in hexadecimal.
 
     Transaction {
         signer_id: AccountId(
@@ -271,8 +275,10 @@ def test_sign_function_call_string_ascii_subrange(firmware, backend, navigator: 
 
 def test_sign_function_call_string_with_multibyte_utf8(firmware, backend, navigator: Navigator, test_name):
     """
-    Args String:
+    Args (valid UTF-8, with multibyte characters):
     {"test_utf8_key": "2©3ଔ4🝙2©3ଔ4🝙"}
+
+    The args are not printable ASCII, so the review shows them in hexadecimal.
 
     Transaction {
         signer_id: AccountId(
@@ -996,6 +1002,66 @@ def test_reject_function_call_binary_args_one_over_display_limit(firmware, backe
         AsyncAPDU(
             data=bytes.fromhex(
                 "8002805783021500000073617475726174696e675f6164645f7369676e656465000000808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[],
+            ),
+            expected_response=RAPDU(
+                SW_TX_PARSING_FAIL,
+                bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_reject_function_call_method_name_not_printable_ascii(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall whose method name is valid UTF-8 but not printable ASCII.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: get_balanc\u00e9,
+                    args: {"x":1},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+
+    The review would draw the non-ASCII character as a square glyph shared by every
+    such byte, so the transaction is rejected with a parsing error before the action review.
+    """
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057f58000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000020c0000006765745f62616c"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805728616e63c3a9070000007b2278223a317d00d098d4af71000000000000000000000000000000000000"
             ),
             navigable_conditions=NavigableConditions(
                 value=[],

@@ -115,10 +115,13 @@ impl FunctionCallPermission {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
 
+            // `as_str` shows every byte outside printable ASCII as the same square
+            // glyph, and `;` separates the names in the review.
+            if !per_method_buffer.is_printable_ascii() {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
             let method_name = per_method_buffer.as_str();
-            // `;` separates the names in the review, and `as_str` shows every byte
-            // outside printable ASCII as the same 0x7f glyph.
-            if method_name.bytes().any(|byte| byte == b';' || byte == 0x7f) {
+            if method_name.contains(';') {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
 

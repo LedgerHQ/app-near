@@ -1453,3 +1453,53 @@ def test_sign_unstake_max_fields(firmware, backend, navigator: Navigator, test_n
         ),
     ]
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_non_printable_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake whose args are valid UTF-8 but not printable ASCII.
+
+    The review shows the method name and the args in hexadecimal, as it would
+    draw the non-ASCII character as a square glyph shared by every such byte.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"1","memo":"caf\u00e9"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057fa8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b651d0000007b22616d6f756e74223a2231222c226d656d6f223a22636166c3a9227d00d098d4af71000000"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280570f000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex("7d7d030da1939d32c1a73cfdf4d941cdb52222c4b5d61fb86f98799668b09a94315940ff68ab435913edb42dbb7d9bc68922f61a5234639fcf3e5f13bad6db07"),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)

@@ -43,6 +43,16 @@ impl<const N: usize> CappedString<N> {
         core::str::from_utf8(&self.buffer[..self.used]).unwrap()
     }
 
+    /// `true` when every stored byte is printable ASCII (0x20..=0x7e), i.e. when
+    /// `as_str` shows each byte as its own glyph instead of the shared 0x7f square.
+    ///
+    /// Must be called before `as_str`, which rewrites the other bytes in place.
+    pub fn is_printable_ascii(&self) -> bool {
+        self.buffer[..self.used]
+            .iter()
+            .all(|byte| (0x20..=0x7e).contains(byte))
+    }
+
     pub fn truncated(&self) -> bool {
         self.truncated
     }
@@ -153,6 +163,28 @@ mod tests {
         assert!(err.kind() == ErrorKind::InvalidData);
         // the whole string is consumed, so it is still covered by the hash
         assert!(reader.is_empty());
+    }
+
+    fn capped(bytes: &[u8]) -> CappedString<8> {
+        let mut s: CappedString<8> = CappedString::new();
+        assert!(s
+            .deserialize_with_bytes_count(&mut &bytes[..], bytes.len() as u32)
+            .is_ok());
+        s
+    }
+
+    #[test_case]
+    fn printable_ascii_accepts_space_to_tilde() {
+        assert!(capped(b" az~{}").is_printable_ascii());
+        assert!(capped(b"").is_printable_ascii());
+    }
+
+    #[test_case]
+    fn printable_ascii_rejects_bytes_drawn_as_the_square_glyph() {
+        assert!(!capped(b"a\nb").is_printable_ascii());
+        assert!(!capped(b"a\x1fb").is_printable_ascii());
+        assert!(!capped(b"a\x7fb").is_printable_ascii());
+        assert!(!capped("caf\u{e9}".as_bytes()).is_printable_ascii());
     }
 
     #[test_case]

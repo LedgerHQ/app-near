@@ -61,7 +61,7 @@ pub enum StakeArgs {
     Decoded(Option<near_token::NearToken>),
     /// Args are shown as signed, as a string.
     RawStr(FnCallCappedString),
-    /// Args are shown as signed, in hexadecimal (not valid UTF-8).
+    /// Args are shown as signed, in hexadecimal (not printable ASCII).
     RawHex(FnCallHexDisplay),
 }
 
@@ -281,14 +281,15 @@ pub fn try_parse_amount_from_args(args: &mut FnCallCappedString) -> Option<near_
 }
 
 /// Decode the args of a staking FunctionCall strictly against the shape the
-/// method expects. Args that do not match exactly, are truncated or are not
-/// valid UTF-8 are kept to be displayed as signed.
+/// method expects. Args that do not match exactly or are truncated are kept to
+/// be displayed as signed: in hexadecimal when they are not printable ASCII, as
+/// the device draws every other byte as the same square glyph.
 pub fn decode_stake_args(
     method_name: &str,
     mut args: FnCallCappedString,
     utf8_valid: bool,
 ) -> StakeArgs {
-    if !utf8_valid {
+    if !utf8_valid || !args.is_printable_ascii() {
         let mut args_bin: FnCallHexDisplay = args.into();
         args_bin.reformat();
         return StakeArgs::RawHex(args_bin);
@@ -745,6 +746,18 @@ mod tests {
         ));
         assert!(matches!(
             decode_stake_args("unstake", make_args(r#"{"amount":"1"}"#), false),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
+    fn keeps_non_printable_raw_args_in_hex() {
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{\"amount\":\"\u{e9}\"}"), true),
+            StakeArgs::RawHex(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args("{\n}"), true),
             StakeArgs::RawHex(_)
         ));
     }
