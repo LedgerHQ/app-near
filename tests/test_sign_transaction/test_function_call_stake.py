@@ -1404,26 +1404,26 @@ def test_sign_deposit_and_stake_spaced_empty_args(firmware, backend, navigator: 
 
 def test_sign_unstake_max_fields(firmware, backend, navigator: Navigator, test_name):
     """
-    FunctionCall unstake with long signer and pool ids, args shown as signed
-    and truncated, and a nonzero deposit.
+    FunctionCall unstake with long signer and pool ids, args at the 200-byte
+    display limit and shown in full, and a nonzero deposit.
 
     The review uses every field the combined staking review can hold.
 
     Transaction {
         signer_id: AccountId(
-            "long-staking-account-ssssssssssssssssssssssssssssssssssssssssssss.near",
+            "long-staking-account-ssssssssssssssssssssssssssssssssssssss.near",
         ),
         public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
         nonce: 103595482000005,
         receiver_id: AccountId(
-            "long-validator-pool-name-pppppppppppppppppppppppppppppppppppppppppppp.poolv1.near",
+            "long-validator-pool-name-ppppppppppppppppppppppppppp.poolv1.near",
         ),
         block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
         actions: [
             FunctionCall(
                 FunctionCallAction {
                     method_name: unstake,
-                    args: {"amount":"1157130000000000000000000","memo":"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"},
+                    args: {"amount":"1157130000000000000000000","memo":"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"},
                     gas: 125000000000000,
                     deposit: 1,
                 },
@@ -1434,21 +1434,18 @@ def test_sign_unstake_max_fields(firmware, backend, navigator: Navigator, test_n
     client = Nearbackend(backend)
     chunks = [
         bytes.fromhex(
-            "80020057fa8000002c8000018d800000008000000080000001460000006c6f6e672d7374616b696e672d6163636f756e742d73737373737373737373737373737373737373737373737373737373737373737373737373737373737373732e6e65617200c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000510000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d70707070707070707070707070707070707070707070707070707070707070707070707070707070707070702e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72"
-        ),
-        bytes.fromhex(
-            "80020057135831010000000207000000756e7374616b65d0"
+            "80020057f68000002c8000018d800000008000000080000001400000006c6f6e672d7374616b696e672d6163636f756e742d73737373737373737373737373737373737373737373737373737373737373737373737373732e6e65617200c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000400000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d7070707070707070707070707070707070707070707070707070702e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b65c8"
         ),
         AsyncAPDU(
             data=bytes.fromhex(
-                "80028057eb0000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030222c226d656d6f223a226d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d227d00d098d4af71000001000000000000000000000000000000"
+                "80028057e30000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030222c226d656d6f223a226d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d227d00d098d4af71000001000000000000000000000000000000"
             ),
             navigable_conditions=NavigableConditions(
                 value=["Sign"],
             ),
             expected_response=RAPDU(
                 SW_OK,
-                bytes.fromhex("ea1d0c03123dba28ee0eb23aec83182dc7efb72bfc3b57e1bd523351aa7f1e1de503fee0ef15c176c559fdeff6099ad399b26db72db06d1e8877b59e539d730b"),
+                bytes.fromhex("18b412343cbca341c9e77cee369ed2d9dfacf536f17e7e5b4226fee14fcf326d2f7c1a60719b960e79fca676016e262c538211b8b4734b74c0cc611f4265350e"),
             ),
         ),
     ]
