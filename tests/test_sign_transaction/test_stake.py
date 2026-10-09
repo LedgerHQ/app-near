@@ -91,12 +91,12 @@ def test_sign_stake_long_account_ids(firmware, backend, navigator: Navigator, te
     """
     Transaction {
         signer_id: AccountId(
-            "long-staking-account-ssssssssssssssssssssssssssssssssssssssssssss.near",
+            "long-staking-account-ssssssssssssssssssssssssssssssssssssss.near",
         ),
         public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
         nonce: 103595482000005,
         receiver_id: AccountId(
-            "long-validator-pool-name-pppppppppppppppppppppppppppppppppppppppppppp.poolv1.near",
+            "long-validator-pool-name-ppppppppppppppppppppppppppp.poolv1.near",
         ),
         block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
         actions: [
@@ -109,14 +109,14 @@ def test_sign_stake_long_account_ids(firmware, backend, navigator: Navigator, te
         ],
     }
 
-    Signer and receiver are both longer than the 64-byte display capacity, so
-    each takes two review fields; the combined review still shows the stake
-    amount, the pool and the validator public key.
+    Signer and receiver are both 64 bytes, the longest a NEAR account ID can be;
+    the combined review still shows them in full, with the stake amount, the
+    pool and the validator public key.
     """
     client = Nearbackend(backend)
     chunks = [
         bytes.fromhex(
-            "80020057fa8000002c8000018d800000008000000080000001460000006c6f6e672d7374616b696e672d6163636f756e742d73737373737373737373737373737373737373737373737373737373737373737373737373737373737373732e6e65617200c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000510000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d70707070707070707070707070707070707070707070707070707070707070707070707070707070707070702e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72"
+            "80020057e38000002c8000018d800000008000000080000001400000006c6f6e672d7374616b696e672d6163636f756e742d7373737373737373737373737373737373737373737373737373737373737373737373737373737373737300c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000400000006c6f6e672d76616c696461746f722d706f6f6c2d6e616d652d707070707070707070707070707070707070707070707070707070707070707070707070707070ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72"
         ),
         AsyncAPDU(
             data=bytes.fromhex(
@@ -128,7 +128,7 @@ def test_sign_stake_long_account_ids(firmware, backend, navigator: Navigator, te
             expected_response=RAPDU(
                 SW_OK,
                 bytes.fromhex(
-                    "03e7521b44c4f162f9c90f4a63dc1bdbffe82b327d4984d16df75ed471d471a7dfd624233088ea97a8692f8c4b3415dd6d19fe50f6eb570b139c642c2d58520b"
+                    "26d692721921dcbfe71e9dde891ee328304549d86dfa9baca0362db7d0e1dccb842856ed49dd40ebaa14b5f2a2198b54e2a9ab2379e345712c102d7b5503cd07"
                 ),
             ),
         ),

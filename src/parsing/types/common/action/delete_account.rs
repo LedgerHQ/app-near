@@ -12,7 +12,8 @@ impl DeleteAccount {
         }
     }
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.beneficiary_id.deserialize_reader_in_place(reader)?;
+        self.beneficiary_id
+            .deserialize_reader_in_place_whole(reader)?;
 
         Ok(())
     }

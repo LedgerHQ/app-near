@@ -61,8 +61,19 @@ pub enum StakeArgs {
     Decoded(Option<near_token::NearToken>),
     /// Args are shown as signed, as a string.
     RawStr(FnCallCappedString),
-    /// Args are shown as signed, in hexadecimal (not valid UTF-8).
+    /// Args are shown as signed, in hexadecimal (not printable ASCII).
     RawHex(FnCallHexDisplay),
+}
+
+impl StakeArgs {
+    /// `true` when the args shown as signed do not fit the review in full.
+    pub fn truncated(&self) -> bool {
+        match self {
+            StakeArgs::Decoded(_) => false,
+            StakeArgs::RawStr(args_str) => args_str.truncated(),
+            StakeArgs::RawHex(args_bin) => args_bin.truncated(),
+        }
+    }
 }
 
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
@@ -90,9 +101,7 @@ pub fn ui_display_delete_account(
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
-    let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
-
-    delete_account::format(delete_account, &mut field_context, &mut writer);
+    delete_account::format(delete_account, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -175,9 +184,7 @@ pub fn ui_display_function_call_str(
         function_call_common::FieldsContext::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_str::FieldsContext =
-        function_call_str::FieldsContext::new();
-    function_call_str::format(args, &mut args_field_context, &mut writer);
+    function_call_str::format(args, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -192,9 +199,7 @@ pub fn ui_display_function_call_bin(
         function_call_common::FieldsContext::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_bin::FieldsContext =
-        function_call_bin::FieldsContext::new();
-    function_call_bin::format(args, &mut args_field_context, &mut writer);
+    function_call_bin::format(args, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -270,14 +275,15 @@ pub fn try_parse_amount_from_args(args: &mut FnCallCappedString) -> Option<near_
 }
 
 /// Decode the args of a staking FunctionCall strictly against the shape the
-/// method expects. Args that do not match exactly, are truncated or are not
-/// valid UTF-8 are kept to be displayed as signed.
+/// method expects. Args that do not match exactly or are truncated are kept to
+/// be displayed as signed: in hexadecimal when they are not printable ASCII, as
+/// the device draws every other byte as the same square glyph.
 pub fn decode_stake_args(
     method_name: &str,
     mut args: FnCallCappedString,
     utf8_valid: bool,
 ) -> StakeArgs {
-    if !utf8_valid {
+    if !utf8_valid || !args.is_printable_ascii() {
         let mut args_bin: FnCallHexDisplay = args.into();
         args_bin.reformat();
         return StakeArgs::RawHex(args_bin);
@@ -667,7 +673,7 @@ mod tests {
         args
     }
 
-    #[test]
+    #[test_case]
     fn parses_amount_with_json_spacing() {
         let args = r#"{"amount" : "1.25"}"#;
         let mut s = make_args(args);
@@ -680,7 +686,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_extra_fields() {
         let args = r#"{"account_id":"alice.near","amount":"1000000000000000000000000"}"#;
         let mut s = make_args(args);
@@ -688,7 +694,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_key_prefix_field() {
         let args = r#"{"total_amount":"999000000000000000000000000","amount":"5000000000000000000000000"}"#;
         let mut s = make_args(args);
@@ -696,7 +702,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_duplicate_amount() {
         let args = r#"{"amount":"1","amount":"2"}"#;
         let mut s = make_args(args);
@@ -704,7 +710,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_amount_with_trailing_data() {
         let args = r#"{"amount":"1"}{"beneficiary_id":"x"}"#;
         let mut s = make_args(args);
@@ -712,7 +718,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn decodes_empty_args_for_methods_without_amount() {
         for args in ["", "{}", " { } "] {
             assert!(matches!(
@@ -722,7 +728,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[test_case]
     fn keeps_raw_args_when_not_strictly_decoded() {
         assert!(matches!(
             decode_stake_args("unstake_all", make_args(r#"{"amount":"1"}"#), true),
@@ -738,7 +744,19 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_case]
+    fn keeps_non_printable_raw_args_in_hex() {
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{\"amount\":\"\u{e9}\"}"), true),
+            StakeArgs::RawHex(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args("{\n}"), true),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
     fn parses_decimal_with_24_fractional_digits() {
         let args = r#"{"amount":"1.000000000000000000000001"}"#;
         let mut s = make_args(args);
@@ -751,7 +769,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_case]
     fn rejects_decimal_with_more_than_24_fractional_digits() {
         let args = r#"{"amount":"1.0000000000000000000000001"}"#;
         let mut s = make_args(args);
@@ -759,7 +777,7 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn parses_zero_amount() {
         let args = r#"{"amount":"0"}"#;
         let mut s = make_args(args);
@@ -767,7 +785,7 @@ mod tests {
         assert_eq!(result, Some(near_token::NearToken::from_yoctonear(0)));
     }
 
-    #[test]
+    #[test_case]
     fn rejects_overflow_decimal_amount() {
         let args = r#"{"amount":"340282366920938463463374607431.768211456"}"#;
         let mut s = make_args(args);
@@ -775,11 +793,42 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
     fn rejects_trailing_dot_decimal_amount() {
         let args = r#"{"amount":"1."}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn stake_args_decoded_are_not_truncated() {
+        let args = make_args(r#"{"amount":"1"}"#);
+        assert!(!decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_string_over_display_limit_are_truncated() {
+        let bytes = [b'x'; 201];
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..], 201)
+            .is_ok());
+        assert!(decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_binary_at_and_over_display_limit() {
+        for (len, truncated) in [(100usize, false), (101, true)] {
+            let bytes = [0x80u8; 101];
+            let mut args = FnCallCappedString::new();
+            assert!(args
+                .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+                .is_err());
+            assert_eq!(
+                decode_stake_args("unstake", args, false).truncated(),
+                truncated
+            );
+        }
     }
 }

@@ -5,7 +5,7 @@ use ledger_device_sdk::ui::gadgets::Field;
 
 use crate::{
     app_ui::fields_writer::FieldsWriter, parsing, sign_ui::common::tx_public_key_context,
-    utils::types::elipsis_fields::ElipsisFields,
+    utils::types::review_field::ReviewField,
 };
 
 /// action type(1) + Public Key (1)
@@ -17,12 +17,12 @@ pub fn format<'b, 'a: 'b>(
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     field_context.format_public_key(&delete_key.public_key);
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Action type",
         value: "Delete Key",
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Public Key",
         value: field_context.as_str(),
     }));

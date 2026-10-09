@@ -5,7 +5,7 @@ use ledger_device_sdk::nbgl::Field;
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::ui::gadgets::Field;
 
-use crate::utils::types::elipsis_fields::ElipsisFields;
+use crate::utils::types::review_field::ReviewField;
 
 pub struct FieldsWriter<'a, const N: usize> {
     buffer: [Field<'a>; N],
@@ -32,31 +32,14 @@ impl<'a, const N: usize> FieldsWriter<'a, N> {
     /// Panics if self.buffer capacity was chosen too small.
     /// Choosing self.buffer capacity depends on static scenarios (max number of fields)
     /// can be calculated per scenario)
-    pub fn push_fields(&mut self, val: ElipsisFields<'a>) {
-        match val {
-            ElipsisFields::One(array) => {
-                for elem in array {
-                    if self.used == self.buffer.len() {
-                        #[cfg(feature = "speculos")]
-                        testing::debug_print("FieldsWriter.push_fields capacity overflow\n");
-                        panic!("FieldsWriter.push_fields capacity overflow");
-                    }
-                    self.buffer[self.used] = elem;
-                    self.used += 1;
-                }
-            }
-            ElipsisFields::Two(array) => {
-                for elem in array {
-                    if self.used == self.buffer.len() {
-                        #[cfg(feature = "speculos")]
-                        testing::debug_print("FieldsWriter.push_fields capacity overflow\n");
-                        panic!("FieldsWriter.push_fields capacity overflow");
-                    }
-                    self.buffer[self.used] = elem;
-                    self.used += 1;
-                }
-            }
+    pub fn push_field(&mut self, val: ReviewField<'a>) {
+        if self.used == self.buffer.len() {
+            #[cfg(feature = "speculos")]
+            testing::debug_print("FieldsWriter.push_field capacity overflow\n");
+            panic!("FieldsWriter.push_field capacity overflow");
         }
+        self.buffer[self.used] = val.into_field();
+        self.used += 1;
     }
 
     pub fn get_fields(&self) -> &[Field<'a>] {

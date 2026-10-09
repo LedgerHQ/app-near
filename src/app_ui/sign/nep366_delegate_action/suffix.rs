@@ -13,7 +13,7 @@ use crate::{
     app_ui::{aliases::U64Buffer, fields_writer::FieldsWriter},
     parsing,
     sign_ui::common::tx_public_key_context,
-    utils::types::elipsis_fields::ElipsisFields,
+    utils::types::review_field::ReviewField,
 };
 
 struct FieldsContext {
@@ -40,13 +40,13 @@ fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Nonce",
         // numtoa_buf has to be at least 20 bytes for u64 (8 bytes) : ok
         value: suffix.nonce.numtoa_str(10, &mut field_context.num_buf1),
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Max Block Height",
         value: suffix
             .max_block_height
@@ -57,7 +57,7 @@ fn format<'b, 'a: 'b>(
     field_context
         .pub_key_context
         .format_public_key(&suffix.public_key);
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Public Key",
         value: field_context.pub_key_context.as_str(),
     }));

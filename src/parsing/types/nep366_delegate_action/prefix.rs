@@ -19,8 +19,8 @@ impl Prefix {
         }
     }
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.sender_id.deserialize_reader_in_place(reader)?;
-        self.receiver_id.deserialize_reader_in_place(reader)?;
+        self.sender_id.deserialize_reader_in_place_whole(reader)?;
+        self.receiver_id.deserialize_reader_in_place_whole(reader)?;
 
         let number_of_actions: u32 = BorshDeserialize::deserialize_reader(reader)?;
         self.number_of_actions = number_of_actions;

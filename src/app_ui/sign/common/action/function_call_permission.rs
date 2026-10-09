@@ -1,8 +1,6 @@
 use crate::app_ui::aliases::U32Buffer;
 use crate::{
-    app_ui::fields_writer::FieldsWriter,
-    parsing,
-    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
+    app_ui::fields_writer::FieldsWriter, parsing, utils::types::review_field::ReviewField,
 };
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::Field;
@@ -14,8 +12,6 @@ use numtoa::NumToA;
 
 pub struct FieldsContext {
     pub num_buf: U32Buffer,
-    pub receiver_display_buf: EllipsisBuffer,
-    pub method_names_display_buf: EllipsisBuffer,
     pub allowance_buffer: TokenBuffer,
 }
 
@@ -23,8 +19,6 @@ impl FieldsContext {
     pub fn new() -> Self {
         Self {
             num_buf: U32Buffer::default(),
-            receiver_display_buf: EllipsisBuffer::default(),
-            method_names_display_buf: EllipsisBuffer::default(),
             allowance_buffer: TokenBuffer::new(),
         }
     }
@@ -32,9 +26,9 @@ impl FieldsContext {
 
 /// action type (1) + Public Key (1) + Access Key Nonce (1) +
 /// Access Permission (1) + FnCall Allowance (1)  +
-/// FnCall Receiver `ElipsisFields` (1-2) + Total FnCall Methods (1) +
-/// Method Names `ElipsisFields` (1-2)
-const MAX_FIELDS: usize = 10;
+/// FnCall Receiver (1) + Total FnCall Methods (1) +
+/// Method Names (1)
+const MAX_FIELDS: usize = 8;
 
 pub fn format<'b, 'a: 'b>(
     function_call_perm: &'a mut parsing::types::FunctionCallPermission,
@@ -48,29 +42,26 @@ pub fn format<'b, 'a: 'b>(
         }
         None => "Unlimited NEAR",
     };
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "FnCall Allowance",
         value: allowance,
     }));
 
-    let recevier_id = ElipsisFields::from_capped_string(
-        &mut function_call_perm.receiver_id,
-        "FnCall Receiver",
-        &mut field_context.receiver_display_buf,
-    );
+    let recevier_id =
+        ReviewField::from_capped_string(&mut function_call_perm.receiver_id, "FnCall Receiver");
 
-    writer.push_fields(recevier_id);
+    writer.push_field(recevier_id);
 
     // An empty list grants access to every method of the receiver.
     if function_call_perm.number_of_method_names == 0 {
-        writer.push_fields(ElipsisFields::one(Field {
+        writer.push_field(ReviewField::new(Field {
             name: "Method Names",
             value: "Any method",
         }));
         return;
     }
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Total FnCall Methods",
         value: function_call_perm
             .number_of_method_names
@@ -78,11 +69,8 @@ pub fn format<'b, 'a: 'b>(
             .numtoa_str(10, &mut field_context.num_buf),
     }));
 
-    let methods_names_fields = ElipsisFields::from_fmt_buffer(
-        &mut function_call_perm.method_names,
-        "Method Names",
-        &mut field_context.method_names_display_buf,
-    );
+    let methods_names_fields =
+        ReviewField::from_fmt_buffer(&mut function_call_perm.method_names, "Method Names");
 
-    writer.push_fields(methods_names_fields);
+    writer.push_field(methods_names_fields);
 }

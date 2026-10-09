@@ -18,6 +18,9 @@
 #![no_std]
 #![no_main]
 #![allow(clippy::new_without_default)]
+#![cfg_attr(test, feature(custom_test_frameworks))]
+#![cfg_attr(test, test_runner(crate::test_runner))]
+#![cfg_attr(test, reexport_test_harness_main = "test_main")]
 
 mod utils {
     pub mod crypto {
@@ -30,8 +33,8 @@ mod utils {
     pub mod types {
         pub mod base58_buf;
         pub mod capped_string;
-        pub mod elipsis_fields;
         pub mod hex_display;
+        pub mod review_field;
 
         pub mod strcat;
     }
@@ -128,7 +131,21 @@ use ledger_device_sdk::log;
 use ledger_device_sdk::testing;
 use parsing::SingleTxStream;
 
+#[cfg(not(test))]
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
+// A failing assertion must end the run with a non-zero exit code.
+#[cfg(test)]
+ledger_device_sdk::set_panic!(ledger_device_sdk::testing::test_panic);
+
+/// Runs the `#[test_case]` functions on Speculos (`cargo test --features speculos`).
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+    for test in tests {
+        test();
+    }
+    log::info!("{} unit tests passed\n", tests.len());
+    ledger_device_sdk::exit_app(0);
+}
 
 // CLA (APDU class byte) for all APDUs.
 const CLA: u8 = 0x80;
@@ -244,6 +261,9 @@ mod swap;
 
 #[no_mangle]
 extern "C" fn sample_main(arg0: u32) {
+    #[cfg(test)]
+    test_main();
+
     if arg0 != 0 {
         swap::swap_main(arg0);
     } else {
