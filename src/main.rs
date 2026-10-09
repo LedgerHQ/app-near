@@ -33,8 +33,8 @@ mod utils {
     pub mod types {
         pub mod base58_buf;
         pub mod capped_string;
-        pub mod elipsis_fields;
         pub mod hex_display;
+        pub mod review_field;
 
         pub mod strcat;
     }

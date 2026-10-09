@@ -1,4 +1,4 @@
-use crate::{parsing, utils::types::elipsis_fields::ElipsisFields};
+use crate::{parsing, utils::types::review_field::ReviewField};
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::Field;
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
@@ -13,12 +13,12 @@ pub fn format<'b>(
     deploy_contract: &'b parsing::types::DeployContract,
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Action type",
         value: "Deploy Contract",
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Contract SHA256",
         value: deploy_contract.code_sha256.as_str(),
     }));

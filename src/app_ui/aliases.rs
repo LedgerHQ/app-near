@@ -24,10 +24,9 @@ pub type U32Buffer = [u8; 10];
 /// in hexadecimal form, when `args` are considered just arbitrary bytes.
 /// `args` that do not fit are rejected before the review.
 ///
-/// Current parameter value is limited by `nanos` capabilities.
-/// The parameter value can be made larger with `#[cfg(target_os = "...")]`
-/// for other platforms
-/// see https://github.com/dj8yfo/app-near-rs/pull/45/files
+/// The value bounds what one review can show in full on every supported device;
+/// it is not a protocol limit. Raising it for a target (`#[cfg(target_os = "...")]`)
+/// requires the review of that target to still display the whole value.
 pub type FnCallHexDisplay = HexDisplay<200>;
 
 /// Type, which is used for displaying full `args` field of
@@ -35,10 +34,9 @@ pub type FnCallHexDisplay = HexDisplay<200>;
 /// as string, when `args` is considered to be a valid utf-8 string.
 /// `args` that do not fit are rejected before the review.
 ///
-/// Current parameter value is limited by `nanos` capabilities.
-/// The parameter value can be made larger with `#[cfg(target_os = "...")]`
-/// for other platforms
-/// see https://github.com/dj8yfo/app-near-rs/pull/45/files
+/// The value bounds what one review can show in full on every supported device;
+/// it is not a protocol limit. Raising it for a target (`#[cfg(target_os = "...")]`)
+/// requires the review of that target to still display the whole value.
 pub type FnCallCappedString = CappedString<200>;
 
 /// Type, which is used for displaying full `method_names` field of
@@ -46,10 +44,9 @@ pub type FnCallCappedString = CappedString<200>;
 ///
 /// A list that does not fit is rejected during parsing.
 ///
-/// Current parameter value is limited by `nanos` capabilities.
-/// The parameter value can be made larger with `#[cfg(target_os = "...")]`
-/// for other platforms
-/// see https://github.com/dj8yfo/app-near-rs/pull/45/files
+/// The value bounds what one review can show in full on every supported device;
+/// it is not a protocol limit. Raising it for a target (`#[cfg(target_os = "...")]`)
+/// requires the review of that target to still display the whole value.
 pub type MethodNamesBuffer = Buffer<210>;
 
 /// Type, which is used for displaying full `message` field of
@@ -57,8 +54,7 @@ pub type MethodNamesBuffer = Buffer<210>;
 ///
 /// A `message` that does not fit is rejected before the review.
 ///
-/// Current parameter value is limited by `nanos` capabilities.
-/// The parameter value can be made larger with `#[cfg(target_os = "...")]`
-/// for other platforms
-/// see https://github.com/dj8yfo/app-near-rs/pull/45/files
+/// The value bounds what one review can show in full on every supported device;
+/// it is not a protocol limit. Raising it for a target (`#[cfg(target_os = "...")]`)
+/// requires the review of that target to still display the whole value.
 pub type NEP413CappedString = CappedString<400>;

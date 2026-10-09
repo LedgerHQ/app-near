@@ -8,7 +8,6 @@ pub struct CappedString<const N: usize> {
     pub(in crate::utils::types) buffer: [u8; N],
     pub(in crate::utils::types) used: usize,
     pub(in crate::utils::types) truncated: bool,
-    pub(in crate::utils::types) leftover: usize,
 }
 
 impl<const N: usize> CappedString<N> {
@@ -16,7 +15,6 @@ impl<const N: usize> CappedString<N> {
         CappedString {
             buffer: [0u8; N],
             used: 0,
-            leftover: 0,
             truncated: false,
         }
     }
@@ -55,10 +53,6 @@ impl<const N: usize> CappedString<N> {
 
     pub fn truncated(&self) -> bool {
         self.truncated
-    }
-
-    pub fn leftover(&self) -> usize {
-        self.leftover
     }
 }
 
@@ -103,7 +97,6 @@ impl<const N: usize> CappedString<N> {
             reader.read_exact(&mut self.buffer)?;
 
             self.used = self.buffer.len();
-            self.leftover = leftover;
             let postpone_error = match core::str::from_utf8(&self.buffer) {
                 Ok(_result) => false,
                 Err(err) => {
@@ -194,6 +187,7 @@ mod tests {
         let mut s: CappedString<64> = CappedString::new();
         assert!(s.deserialize_reader_in_place(&mut reader).is_ok());
         assert!(s.truncated());
-        assert_eq!(s.leftover(), 1);
+        // the byte past the buffer is consumed, so it is still covered by the hash
+        assert!(reader.is_empty());
     }
 }

@@ -1,7 +1,7 @@
 use crate::app_ui::aliases::U64Buffer;
 use crate::{
     app_ui::fields_writer::FieldsWriter, parsing, sign_ui::common::tx_public_key_context,
-    utils::types::elipsis_fields::ElipsisFields,
+    utils::types::review_field::ReviewField,
 };
 
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
@@ -34,17 +34,17 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     field_context
         .pub_key_context
         .format_public_key(&add_key.public_key);
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Action type",
         value: "Add Key",
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Public Key",
         value: field_context.pub_key_context.as_str(),
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Access Key Nonce",
         value: add_key
             .access_key
@@ -53,7 +53,7 @@ pub fn format<'b, 'a: 'b, const N: usize>(
             .numtoa_str(10, &mut field_context.num_buf),
     }));
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Access Permission",
         value: permission_value,
     }));

@@ -1,7 +1,4 @@
-use crate::{
-    parsing,
-    utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer},
-};
+use crate::{parsing, utils::types::review_field::ReviewField};
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::Field;
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
@@ -13,7 +10,6 @@ use near_token::TokenBuffer;
 use crate::app_ui::fields_writer::FieldsWriter;
 
 pub struct FieldsContext {
-    pub method_name_display_buf: EllipsisBuffer,
     pub gas_buf: GasBuffer,
     pub deposit_buf: TokenBuffer,
 }
@@ -21,7 +17,6 @@ pub struct FieldsContext {
 impl FieldsContext {
     pub fn new() -> Self {
         Self {
-            method_name_display_buf: EllipsisBuffer::default(),
             gas_buf: GasBuffer::new(),
             deposit_buf: TokenBuffer::new(),
         }
@@ -32,23 +27,20 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, N>,
 ) {
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Action type",
         value: "Function Call",
     }));
 
-    let method_name = ElipsisFields::from_capped_string(
-        &mut func_call_common.method_name,
-        "Method Name",
-        &mut field_context.method_name_display_buf,
-    );
+    let method_name =
+        ReviewField::from_capped_string(&mut func_call_common.method_name, "Method Name");
 
-    writer.push_fields(method_name);
+    writer.push_field(method_name);
 
     func_call_common
         .gas
         .display_as_buffer(&mut field_context.gas_buf);
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Gas",
         value: field_context.gas_buf.as_str(),
     }));
@@ -56,7 +48,7 @@ pub fn format<'b, 'a: 'b, const N: usize>(
     func_call_common
         .deposit
         .display_as_buffer(&mut field_context.deposit_buf);
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Deposit",
         value: field_context.deposit_buf.as_str(),
     }));
