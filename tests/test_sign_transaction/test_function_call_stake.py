@@ -1060,8 +1060,8 @@ def test_sign_unstake_not_a_pool_receiver(firmware, backend, navigator: Navigato
     """
     FunctionCall unstake sent to an account that is not a staking pool.
 
-    The method name alone selects the staking review, so the review shows the
-    method name and the receiver as signed.
+    The method name alone does not select the staking review: the transaction prefix and
+    the generic FunctionCall review are shown, with the args as signed.
 
     Transaction {
         signer_id: AccountId(
@@ -1087,8 +1087,17 @@ def test_sign_unstake_not_a_pool_receiver(firmware, backend, navigator: Navigato
     """
     client = Nearbackend(backend)
     chunks = [
-        bytes.fromhex(
-            "80020057f68000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b6526"
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057f68000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00004000000064633765333465656365633330393661346136363165313039333238333466383031313439633439646261396239333332326636643964653138303437663963ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b6526"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
         ),
         AsyncAPDU(
             data=bytes.fromhex(
@@ -1103,7 +1112,7 @@ def test_sign_unstake_not_a_pool_receiver(firmware, backend, navigator: Navigato
             ),
         ),
     ]
-    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
 
 
 def test_sign_withdraw_extra_args_shown_raw(firmware, backend, navigator: Navigator, test_name):
@@ -1500,3 +1509,244 @@ def test_sign_unstake_non_printable_args_shown_raw(firmware, backend, navigator:
         ),
     ]
     generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_on_non_pool_receiver(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake with a single `amount` on a contract that is not a staking pool.
+
+    Any contract can expose an `unstake` method whose amount is not in NEAR, so the staking
+    review is not used: the transaction prefix and the generic FunctionCall review are shown,
+    with the args as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "xtoken.ref-finance.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"227000000000000000000"},
+                    gas: 50000000000000,
+                    deposit: 1,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057cc8000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001700000078746f6b656e2e7265662d66696e616e63652e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b65"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280573e220000007b22616d6f756e74223a22323237303030303030303030303030303030303030227d00203d88792d000001000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "becd41cd6012f3158f9f45ffd6d2209c3f228f255dfa715a95d0612f5e979841a040907894a9958ae1c65d8cc8de760b167bbbb2f58b3c865cfcc54b7b27670d"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_deposit_and_stake_on_non_pool_receiver(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall deposit_and_stake on a contract that is not a staking pool.
+
+    The staking review is not used: the transaction prefix and the generic FunctionCall
+    review are shown.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "staking.example.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: deposit_and_stake,
+                    args: {},
+                    gas: 125000000000000,
+                    deposit: 1000000000000000000000000,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057d38000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e0000140000007374616b696e672e6578616d706c652e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000002110000006465706f7369745f616e645f7374616b65"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280571e020000007b7d00d098d4af710000000000a1edccce1bc2d3000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "1eac6b7e29da362396d2e9fd61931fa518e3a0a93184205cec5226ba13540eb3c4c7ba94e60978a29a6ba70607797bcf886f5fba9341af4bfb0f9a1a148e4407"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_decimal_amount_shown_raw(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake on a staking pool whose amount is a decimal string.
+
+    The staking-pool contract takes `amount` only as an integer count of yoctoNEAR, so the
+    args are not decoded: the staking review shows the method name and the args as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "ledgerbyfigment.poolv1.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"1.5"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        bytes.fromhex(
+            "80020057d08000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001b0000006c656467657262796669676d656e742e706f6f6c76312e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b65"
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800280572c100000007b22616d6f756e74223a22312e35227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "33ef2aaac7588d832e5b10283f7cd5ab6db78a560e5de6f6e9ac2e7ccac894faf36ba889d29d91a5a9f2b6c801577fa8e62fc16e2e14e299c54833824227c907"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign_single_review(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_unstake_on_upgradable_pool_receiver(firmware, backend, navigator: Navigator, test_name):
+    """
+    FunctionCall unstake on a pool created by pool.near.
+
+    Those pools can upgrade their contract code, so the meaning of `amount` cannot be relied
+    on: the transaction prefix and the generic FunctionCall review are shown, with the args
+    as signed.
+
+    Transaction {
+        signer_id: AccountId(
+            "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f",
+        ),
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+        nonce: 103595482000005,
+        receiver_id: AccountId(
+            "svrn.pool.near",
+        ),
+        block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+        actions: [
+            FunctionCall(
+                FunctionCallAction {
+                    method_name: unstake,
+                    args: {"amount":"1157130000000000000000000"},
+                    gas: 125000000000000,
+                    deposit: 0,
+                },
+            ),
+        ],
+    }
+    """
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80020057c38000002c8000018d800000008000000080000001400000006334663539343165383165303731633266643164616532653731666433643835396434363234383433393164396139306266323139323131646362623332306600c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00000e0000007376726e2e706f6f6c2e6e656172ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a725831010000000207000000756e7374616b65"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Continue to actions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "8002805742260000007b22616d6f756e74223a2231313537313330303030303030303030303030303030303030227d00d098d4af71000000000000000000000000000000000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                # signature
+                bytes.fromhex(
+                    "01f5722f28b02185ec9f7fdfc4e39dff1ae8c05091c555e6e94c215fa7584fd795400557b6fe80b7f22ed9367cffc69fe5d2b6d870f2086016a26a6b5e04950e"
+                ),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)

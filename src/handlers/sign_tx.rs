@@ -59,7 +59,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     // prefix-first behavior so APDU timing for legacy tests stays unchanged.
     // `None` means this single action is not a staking flow; keep legacy behavior.
     let combined_flow = if number_of_actions == 1 {
-        detect_combined_stake_flow(&mut stream)?
+        detect_combined_stake_flow(&mut stream, tx_prefix.receiver_id.as_str())?
     } else {
         None
     };
@@ -119,8 +119,11 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     finalize_sign::end(stream, &path)
 }
 
+/// A staking method name selects the staking review only for a receiver that is a staking
+/// pool: any contract can expose those names, with arguments that mean something else.
 fn detect_combined_stake_flow(
     stream: &mut HashingStream<SingleTxStream<'_>>,
+    receiver_id: &str,
 ) -> Result<Option<CombinedStakeFlow>, AppSW> {
     let bytes = stream
         .reader
@@ -134,7 +137,7 @@ fn detect_combined_stake_flow(
     match tag {
         4 => Ok(Some(CombinedStakeFlow::NativeStake)),
         2 => {
-            if rest.len() < 4 {
+            if !sign_ui::action::is_staking_pool_account(receiver_id) || rest.len() < 4 {
                 return Ok(None);
             }
 

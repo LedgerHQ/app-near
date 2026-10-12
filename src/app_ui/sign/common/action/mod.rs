@@ -251,10 +251,26 @@ pub fn is_staking_method(method_name: &str) -> bool {
     )
 }
 
-/// Attempt to parse a yoctoNEAR amount from a JSON args string.
-/// Supports:
-/// - integer yocto strings: `{"amount":"1157130000000000000000000"}`
-/// - decimal NEAR strings: `{"amount":"0.180623655669747439464495"}`
+/// Accounts directly under `poolv1.near` run the staking-pool contract, whose code cannot
+/// change: NEAR lets only an account create its sub-accounts, `poolv1.near` deploys that
+/// contract into each pool it creates, and neither the factory nor its pools hold access
+/// keys or expose a method that deploys code.
+///
+/// Pools under `pool.near` are not included: their contract upgrades itself, at the pool
+/// owner's request, to any code the factory owner allows.
+const STAKING_POOL_FACTORY_SUFFIX: &str = ".poolv1.near";
+
+/// `true` for an account created by the `poolv1.near` staking-pool factory: a single label
+/// directly under [`STAKING_POOL_FACTORY_SUFFIX`].
+pub fn is_staking_pool_account(account_id: &str) -> bool {
+    account_id
+        .strip_suffix(STAKING_POOL_FACTORY_SUFFIX)
+        .is_some_and(|label| !label.is_empty() && !label.contains('.'))
+}
+
+/// Attempt to parse a yoctoNEAR amount from a JSON args string, in the only form the
+/// staking-pool contract accepts: an integer yoctoNEAR string,
+/// `{"amount":"1157130000000000000000000"}`.
 ///
 /// Returns `None` if the key is absent or unparsable, or if the args contain
 /// anything besides a single `amount` field.
@@ -265,11 +281,10 @@ pub fn try_parse_amount_from_args(args: &mut FnCallCappedString) -> Option<near_
     let s = args.as_str();
     let (data, _remainer) = serde_json_core::from_str::<StringArgs<'_>>(s).ok()?;
     log::debug!("amount str: {}", data.amount);
-    let yocto = data
-        .amount
-        .parse::<u128>()
-        .ok()
-        .or_else(|| parse_decimal_near_to_yocto(data.amount))?;
+    if !data.amount.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let yocto = data.amount.parse::<u128>().ok()?;
     log::debug!("amount yocto u128: {}", yocto);
     Some(near_token::NearToken::from_yoctonear(yocto))
 }
@@ -304,38 +319,6 @@ pub fn decode_stake_args(
 fn is_empty_args(args: &mut FnCallCappedString) -> bool {
     let s = args.as_str();
     s.trim().is_empty() || serde_json_core::from_str::<NoArgs>(s).is_ok()
-}
-
-fn parse_decimal_near_to_yocto(amount: &str) -> Option<u128> {
-    let dot_idx = amount.find('.')?;
-    if amount[dot_idx + 1..].contains('.') {
-        return None;
-    }
-
-    let whole = &amount[..dot_idx];
-    let frac = &amount[dot_idx + 1..];
-    // Reject trailing-dot forms like "1." to keep parsing strict and predictable.
-    if whole.is_empty() || frac.is_empty() {
-        return None;
-    }
-    if frac.len() > 24 {
-        return None;
-    }
-    if !whole.as_bytes().iter().all(u8::is_ascii_digit) {
-        return None;
-    }
-    if !frac.as_bytes().iter().all(u8::is_ascii_digit) {
-        return None;
-    }
-
-    let yocto_per_near = near_token::NearToken::from_near(1).as_yoctonear();
-    let whole_part = whole.parse::<u128>().ok()?.checked_mul(yocto_per_near)?;
-    let mut frac_buf = [b'0'; 24];
-    let frac_len = frac.len();
-    frac_buf[..frac_len].copy_from_slice(frac.as_bytes());
-    let frac_part = core::str::from_utf8(&frac_buf).ok()?.parse::<u128>().ok()?;
-
-    whole_part.checked_add(frac_part)
 }
 
 #[derive(Copy, Clone)]
@@ -675,7 +658,7 @@ mod tests {
 
     #[test_case]
     fn parses_amount_with_json_spacing() {
-        let args = r#"{"amount" : "1.25"}"#;
+        let args = r#"{"amount" : "1250000000000000000000000"}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(
@@ -684,6 +667,45 @@ mod tests {
                 1_250_000_000_000_000_000_000_000
             ))
         );
+    }
+
+    #[test_case]
+    fn rejects_amount_not_in_integer_yocto_form() {
+        for args in [
+            r#"{"amount":"1.25"}"#,
+            r#"{"amount":"+1"}"#,
+            r#"{"amount":""}"#,
+            r#"{"amount":"340282366920938463463374607431768211456"}"#,
+        ] {
+            let mut s = make_args(args);
+            assert_eq!(try_parse_amount_from_args(&mut s), None);
+        }
+    }
+
+    #[test_case]
+    fn accepts_accounts_directly_under_a_staking_pool_factory() {
+        for account in ["ledgerbyfigment.poolv1.near", "astro-stakers.poolv1.near"] {
+            assert!(is_staking_pool_account(account));
+        }
+    }
+
+    #[test_case]
+    fn rejects_accounts_not_created_by_a_staking_pool_factory() {
+        for account in [
+            "poolv1.near",
+            "pool.near",
+            ".poolv1.near",
+            "a.b.poolv1.near",
+            "xtoken.ref-finance.near",
+            "evilpoolv1.near",
+            "x.poolv1.near.evil.near",
+            "lst-pool.near",
+            "x.poolv1.testnet",
+            // created by pool.near, whose pools can upgrade their code
+            "svrn.pool.near",
+        ] {
+            assert!(!is_staking_pool_account(account));
+        }
     }
 
     #[test_case]
@@ -757,48 +779,11 @@ mod tests {
     }
 
     #[test_case]
-    fn parses_decimal_with_24_fractional_digits() {
-        let args = r#"{"amount":"1.000000000000000000000001"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(
-            result,
-            Some(near_token::NearToken::from_yoctonear(
-                1_000_000_000_000_000_000_000_001
-            ))
-        );
-    }
-
-    #[test_case]
-    fn rejects_decimal_with_more_than_24_fractional_digits() {
-        let args = r#"{"amount":"1.0000000000000000000000001"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, None);
-    }
-
-    #[test_case]
     fn parses_zero_amount() {
         let args = r#"{"amount":"0"}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(result, Some(near_token::NearToken::from_yoctonear(0)));
-    }
-
-    #[test_case]
-    fn rejects_overflow_decimal_amount() {
-        let args = r#"{"amount":"340282366920938463463374607431.768211456"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, None);
-    }
-
-    #[test_case]
-    fn rejects_trailing_dot_decimal_amount() {
-        let args = r#"{"amount":"1."}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, None);
     }
 
     #[test_case]
