@@ -8,6 +8,7 @@ use near_gas::GasBuffer;
 use near_token::TokenBuffer;
 
 use crate::app_ui::{aliases::CappedAccountId, fields_writer::FieldsWriter};
+use crate::sign_ui::blind_signing::{BlindSigned, SizeBuffer};
 
 use super::StakeArgs;
 
@@ -15,6 +16,7 @@ pub struct FieldsContext {
     pub amount_buffer: TokenBuffer,
     pub deposit_buffer: TokenBuffer,
     pub gas_buf: GasBuffer,
+    pub args_size_buf: SizeBuffer,
 }
 
 impl FieldsContext {
@@ -23,14 +25,16 @@ impl FieldsContext {
             amount_buffer: TokenBuffer::new(),
             deposit_buffer: TokenBuffer::new(),
             gas_buf: GasBuffer::new(),
+            args_size_buf: SizeBuffer::new(),
         }
     }
 }
 
 /// Signer account (1) + Method Name (1) + amount or "all" (1), or Args (1) when the
-/// args are shown as signed + Attached deposit (0-1) + Pool (1) + Gas (1).
-/// The worst case (nonzero deposit) uses all 6.
-pub const MAX_FIELDS: usize = 6;
+/// args are shown as signed + Args size (0-1, signed blind) + Attached deposit (0-1) +
+/// Pool (1) + Gas (1).
+/// The worst case (args signed blind, nonzero deposit) uses all 7.
+pub const MAX_FIELDS: usize = 7;
 
 /// Labels and amount display depend on the operation kind.
 #[derive(Copy, Clone)]
@@ -87,6 +91,7 @@ pub fn format<'b, 'a: 'b>(
     receiver_id: &'b mut CappedAccountId,
     method_name: &'b str,
     args: &'b mut StakeArgs,
+    blind: Option<&BlindSigned>,
     deposit: near_token::NearToken,
     show_deposit: bool,
     gas: near_gas::NearGas,
@@ -109,7 +114,9 @@ pub fn format<'b, 'a: 'b>(
                 None,
                 method_name,
                 args,
+                blind,
                 &mut field_context.amount_buffer,
+                &mut field_context.args_size_buf,
                 writer,
             );
 
@@ -132,7 +139,9 @@ pub fn format<'b, 'a: 'b>(
                 labels.all,
                 method_name,
                 args,
+                blind,
                 &mut field_context.amount_buffer,
+                &mut field_context.args_size_buf,
                 writer,
             );
 
@@ -163,7 +172,9 @@ fn push_method_and_amount<'b>(
     all_value: Option<&'static str>,
     method_name: &'b str,
     args: &'b mut StakeArgs,
+    blind: Option<&BlindSigned>,
     amount_buffer: &'b mut TokenBuffer,
+    args_size_buf: &'b mut SizeBuffer,
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
     writer.push_field(ReviewField::new(Field {
@@ -185,10 +196,42 @@ fn push_method_and_amount<'b>(
                 value: amount_buffer.as_str(),
             })
         }
-        StakeArgs::RawStr(args_str) => ReviewField::from_capped_string(args_str, "Args String"),
-        StakeArgs::RawHex(args_bin) => ReviewField::from_hex_display(args_bin, "Args Binary"),
+        StakeArgs::RawStr(args_str) => match blind {
+            None => ReviewField::from_capped_string(args_str, "Args String"),
+            Some(blind) => {
+                let shown_bytes = args_str.shown_bytes();
+                writer.push_field(ReviewField::from_capped_string_blind(
+                    args_str,
+                    "Args String",
+                    blind,
+                ));
+                args_size_field(blind, shown_bytes, args_size_buf)
+            }
+        },
+        StakeArgs::RawHex(args_bin) => match blind {
+            None => ReviewField::from_hex_display(args_bin, "Args Binary"),
+            Some(blind) => {
+                writer.push_field(ReviewField::from_hex_display_blind(
+                    args_bin,
+                    "Args Binary",
+                    blind,
+                ));
+                args_size_field(blind, args_bin.shown_bytes(), args_size_buf)
+            }
+        },
     };
     writer.push_field(fields);
+}
+
+fn args_size_field<'b>(
+    blind: &BlindSigned,
+    shown_bytes: usize,
+    args_size_buf: &'b mut SizeBuffer,
+) -> ReviewField<'b> {
+    ReviewField::new(Field {
+        name: "Args size",
+        value: blind.size_description(shown_bytes, args_size_buf),
+    })
 }
 
 /// Pushes the attached deposit as its own field when it is nonzero and not

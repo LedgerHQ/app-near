@@ -1,10 +1,14 @@
 from application_client.client import (
+    BLIND_SIGNING_AHEAD,
+    BLIND_SIGNING_DISABLED,
+    SW_BLIND_SIGNING_DISABLED,
     AsyncAPDU,
     SW_OK,
     SW_TX_PARSING_FAIL,
     NavigableConditions,
     Nearbackend,
     FINISH_STUB_APDU,
+    enable_blind_signing,
     generic_test_sign,
 )
 from ragger.backend import RaisePolicy
@@ -560,7 +564,7 @@ def test_reject_delegate_action_function_call_args_too_long(firmware, backend, n
     Delegate action with a FunctionCall subaction whose string args are 201 bytes, one over
     what the review can display ({"memo":"xxx...xxx"}).
 
-    It is rejected with a parsing error before the subaction review.
+    Blind signing is disabled by default, so it is rejected before the subaction review.
     """
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
@@ -582,11 +586,90 @@ def test_reject_delegate_action_function_call_args_too_long(firmware, backend, n
                 "80088057e7021500000073617475726174696e675f6164645f7369676e6564c90000007b226d656d6f223a2278787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
+            ),
+        ),
+    ]
+    generic_test_sign(client, chunks, navigator, test_name, firmware)
+
+
+def test_sign_delegate_action_function_call_args_too_long_blind_signing(
+    firmware, backend, navigator: Navigator, test_name
+):
+    """
+    Delegate action with a FunctionCall subaction whose string args are 201 bytes, one over
+    what the review can display ({"memo":"xxx...xxx"}).
+
+    With blind signing enabled, it is signed after the warning; the subaction review shows
+    the first 200 bytes of the args and their size.
+
+    DelegateAction {
+        sender_id: AccountId(
+            "bob.near",
+        ),
+        receiver_id: AccountId(
+            "alice.near",
+        ),
+        actions: [
+            NonDelegateAction(
+                FunctionCall(
+                    FunctionCallAction {
+                        method_name: saturating_add_signed,
+                        args: {"memo":"xxx...xxx"} (201 bytes),
+                        gas: 125000000000000,
+                        deposit: 0,
+                    },
+                ),
+            ),
+        ],
+        nonce: 127127122121,
+        max_block_height: 100500,
+        public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+    }
+    """
+    enable_blind_signing(navigator, firmware)
+    client = Nearbackend(backend)
+    chunks = [
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80080057328000002c8000018d80000000800000008000000108000000626f622e6e6561720a000000616c6963652e6e65617201000000"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["Proceed to subactions"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "80080057e7021500000073617475726174696e675f6164645f7369676e6564c90000007b226d656d6f223a2278787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=[BLIND_SIGNING_AHEAD],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes(),
+            ),
+        ),
+        AsyncAPDU(
+            data=bytes.fromhex(
+                "800880574900d098d4af71000000000000000000000000000000000000c9f05d991d000000948801000000000000c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
+            ),
+            navigable_conditions=NavigableConditions(
+                value=["To NEP366 suffix", "Sign"],
+            ),
+            expected_response=RAPDU(
+                SW_OK,
+                bytes.fromhex(
+                    "c99c41379e936b206f760ca58d10eb0ddb2c585ca5ce64ca6732392d246790c88ee780a58084bb8d65cc91ade0bb2d9d039c5d2cb14c75ef5f1292ee96a68c0e"
+                ),
             ),
         ),
     ]

@@ -15,3 +15,11 @@ pub const NEAR_LOGO: NbglGlyph =
 pub const NEAR_LOGO: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
 #[cfg(target_os = "nanox")]
 pub const NEAR_LOGO: Glyph = Glyph::from_include(include_gif!("icons/app_near_14px.gif"));
+
+/// The secure SDK's warning glyph (`lib_nbgl/glyphs`), shown on blind-signing screens.
+#[cfg(any(target_os = "stax", target_os = "flex"))]
+pub const WARNING_GLYPH: NbglGlyph =
+    NbglGlyph::from_include(include_gif!("icons/warning_64px.gif", NBGL));
+#[cfg(target_os = "apex_p")]
+pub const WARNING_GLYPH: NbglGlyph =
+    NbglGlyph::from_include(include_gif!("icons/warning_48px.gif", NBGL));

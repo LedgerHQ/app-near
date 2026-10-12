@@ -190,10 +190,12 @@ fn handle_fn_call_stake_with_prefix(
     );
 
     let args = sign_ui::action::decode_stake_args(method_name, args_str, args_valid);
-    // The args are never signed unless they can be displayed in full.
-    if args.truncated() {
-        return Err(AppSW::TxParsingFail);
-    }
+    // Args that cannot be displayed in full are signed only blind, with the user's approval.
+    let blind = if args.truncated() {
+        Some(sign_ui::blind_signing::approve(args_bytes_count)?)
+    } else {
+        None
+    };
 
     // Read gas and deposit.
     let gas: near_gas::NearGas =
@@ -201,7 +203,14 @@ fn handle_fn_call_stake_with_prefix(
     let deposit: near_token::NearToken =
         BorshDeserialize::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display_fn_call_stake(tx_prefix, method_name, args, gas, deposit) {
+    if !sign_ui::action::ui_display_fn_call_stake(
+        tx_prefix,
+        method_name,
+        args,
+        blind.as_ref(),
+        gas,
+        deposit,
+    ) {
         return Err(AppSW::Deny);
     }
     Ok(())

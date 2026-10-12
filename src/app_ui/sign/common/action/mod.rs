@@ -1,4 +1,5 @@
 use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
+use crate::sign_ui::blind_signing::{BlindSigned, SizeBuffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
@@ -177,14 +178,16 @@ pub fn ui_display_deploy_contract(
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    function_call_str::format(args, &mut writer);
+    function_call_str::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -192,14 +195,16 @@ pub fn ui_display_function_call_str(
 pub fn ui_display_function_call_bin(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &FnCallHexDisplay,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    function_call_bin::format(args, &mut writer);
+    function_call_bin::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -377,6 +382,7 @@ pub fn ui_display_fn_call_stake(
     prefix: &mut parsing::types::transaction::prefix::Prefix,
     method_name: &str,
     args: StakeArgs,
+    blind: Option<&BlindSigned>,
     gas: near_gas::NearGas,
     deposit: near_token::NearToken,
 ) -> bool {
@@ -438,6 +444,7 @@ pub fn ui_display_fn_call_stake(
         &mut prefix.receiver_id,
         method_name,
         &mut args,
+        blind,
         deposit,
         show_deposit,
         gas,

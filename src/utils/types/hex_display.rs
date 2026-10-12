@@ -36,6 +36,12 @@ impl<const N: usize> HexDisplay<N> {
         self.truncated
     }
 
+    /// Number of bytes displayed in hex: all of them unless [`Self::truncated`].
+    /// Meaningful once [`Self::reformat`] was called.
+    pub fn shown_bytes(&self) -> usize {
+        self.used
+    }
+
     /// this method must only be called once
     pub fn reformat(&mut self) {
         let prev_used = self.used;

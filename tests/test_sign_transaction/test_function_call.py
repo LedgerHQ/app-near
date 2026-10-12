@@ -1,4 +1,6 @@
 from application_client.client import (
+    BLIND_SIGNING_DISABLED,
+    SW_BLIND_SIGNING_DISABLED,
     AsyncAPDU,
     SW_OK,
     SW_TX_PARSING_FAIL,
@@ -83,7 +85,7 @@ def test_reject_function_call_string_args_too_long(firmware, backend, navigator:
     """
     FunctionCall whose 499-byte string args exceed what the review can display (200 bytes).
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
 
     Transaction {
         signer_id: AccountId(
@@ -140,10 +142,10 @@ MDAwMDAwMDAwMDAiLCJlbmRfdGltZXN0YW1wIjoiMTcwNDE1MDAwMDAwMDAwMDAwMCJ9LCJzYWx0Ijoi
                 "8002805724393461306633393761227d7dc9f05d991d0000000000c071f0d12b84c31f000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),
@@ -342,7 +344,7 @@ def test_reject_function_call_multibyte_utf8_args_too_long(firmware, backend, na
     """
     FunctionCall whose 420-byte multibyte UTF-8 string args exceed what the review can display (200 bytes).
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
 
     Transaction {
         signer_id: AccountId(
@@ -389,10 +391,10 @@ def test_reject_function_call_multibyte_utf8_args_too_long(firmware, backend, na
                 "80028057d5f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a933e0ac9434f09f9d9932c2a9227dc9f05d991d0000000000c071f0d12b84c31f000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),
@@ -470,7 +472,7 @@ def test_reject_function_call_binary_args_too_long(firmware, backend, navigator:
     FunctionCall whose 521-byte binary args exceed what the review can display (100 bytes, shown as
     200 hex characters).
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
 
     Transaction {
         signer_id: AccountId(
@@ -528,10 +530,10 @@ BvbiBvbGQgdGVsZXR5cGVzLgo=,
                 "800280573a6972696e672077617320666f756e64206f6e206f6c642074656c6574797065732e0ac9f05d991d0000000000c071f0d12b84c31f000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),
@@ -612,7 +614,7 @@ def test_reject_function_call_binary_args_after_utf8_error_too_long(
     FunctionCall whose 256-byte args start with '{' but are not valid UTF-8, and exceed what the
     review can display as binary (100 bytes).
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
 
     Transaction {
         signer_id: AccountId(
@@ -663,10 +665,10 @@ Dx8vP09fb3+Pn6+/z9/g==,
                 "800280572becedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfec9f05d991d0000000000c071f0d12b84c31f000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),
@@ -901,7 +903,7 @@ def test_reject_function_call_string_args_one_over_display_limit(firmware, backe
     FunctionCall whose string args are 201 bytes, one over what the review can display
     ({"memo":"xxx...xxx"}).
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
     """
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
@@ -923,10 +925,10 @@ def test_reject_function_call_string_args_one_over_display_limit(firmware, backe
                 "80028057e7021500000073617475726174696e675f6164645f7369676e6564c90000007b226d656d6f223a2278787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878227d"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),
@@ -982,7 +984,7 @@ def test_reject_function_call_binary_args_one_over_display_limit(firmware, backe
     FunctionCall whose binary args are 101 bytes (0x80..0xe4), one over what the review can
     display as hex.
 
-    The transaction is rejected with a parsing error before the action review.
+    Blind signing is disabled by default, so the transaction is rejected before the action review.
     """
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     client = Nearbackend(backend)
@@ -1004,10 +1006,10 @@ def test_reject_function_call_binary_args_one_over_display_limit(firmware, backe
                 "8002805783021500000073617475726174696e675f6164645f7369676e656465000000808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),

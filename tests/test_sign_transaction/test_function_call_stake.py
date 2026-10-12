@@ -1,4 +1,6 @@
 from application_client.client import (
+    BLIND_SIGNING_DISABLED,
+    SW_BLIND_SIGNING_DISABLED,
     AsyncAPDU,
     SW_DENY,
     SW_OK,
@@ -709,8 +711,8 @@ def test_reject_unstake_long_args(firmware, backend, navigator: Navigator, test_
     """
     FunctionCall unstake whose args exceed the 200-byte display capacity.
 
-    The args cannot be displayed in full, so the transaction is rejected with a
-    parsing error and no review is shown.
+    The args cannot be displayed in full and blind signing is disabled by default,
+    so the transaction is rejected and no review is shown.
 
     Transaction {
         signer_id: AccountId(
@@ -748,10 +750,10 @@ def test_reject_unstake_long_args(firmware, backend, navigator: Navigator, test_
                 "80028057197d00d098d4af71000000000000000000000000000000000000"
             ),
             navigable_conditions=NavigableConditions(
-                value=[],
+                value=[BLIND_SIGNING_DISABLED],
             ),
             expected_response=RAPDU(
-                SW_TX_PARSING_FAIL,
+                SW_BLIND_SIGNING_DISABLED,
                 bytes(),
             ),
         ),

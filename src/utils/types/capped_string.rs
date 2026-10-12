@@ -54,6 +54,11 @@ impl<const N: usize> CappedString<N> {
     pub fn truncated(&self) -> bool {
         self.truncated
     }
+
+    /// Number of bytes held for display: all of them unless [`Self::truncated`].
+    pub fn shown_bytes(&self) -> usize {
+        self.used
+    }
 }
 
 impl<const N: usize> CappedString<N> {

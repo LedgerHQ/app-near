@@ -1,6 +1,7 @@
 use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay};
 use crate::parsing::types::FunctionCallCommon;
 use crate::sign_ui;
+use crate::sign_ui::blind_signing::{self, BlindSigned};
 use crate::utils::types::capped_string::CappedString;
 use crate::{
     parsing::{HashingStream, SingleTxStream},
@@ -70,17 +71,20 @@ pub fn handle_from_method_name(
             return Err(AppSW::TxParsingFail);
         }
     };
-    // The args are never signed unless they can be displayed in full.
-    if representation.truncated() {
-        return Err(AppSW::TxParsingFail);
-    }
-    handle_common(stream, method_name, params, &mut representation)
+    // Args that cannot be displayed in full are signed only blind, with the user's approval.
+    let blind = if representation.truncated() {
+        Some(blind_signing::approve(args_bytes_count)?)
+    } else {
+        None
+    };
+    handle_common(stream, method_name, params, &mut representation, blind)
 }
 fn handle_common(
     stream: &mut HashingStream<SingleTxStream<'_>>,
     method_name: CappedString<50>,
     params: ActionParams,
     representation: &mut ArgsRepr,
+    blind: Option<BlindSigned>,
 ) -> Result<(), AppSW> {
     let mut func_call_common =
         FunctionCallCommon::deserialize_with_method_name(stream, method_name)
@@ -90,6 +94,7 @@ fn handle_common(
             if !sign_ui::action::ui_display_function_call_bin(
                 &mut func_call_common,
                 args_bin,
+                blind.as_ref(),
                 params,
             ) {
                 return Err(AppSW::Deny);
@@ -99,6 +104,7 @@ fn handle_common(
             if !sign_ui::action::ui_display_function_call_str(
                 &mut func_call_common,
                 args_str,
+                blind.as_ref(),
                 params,
             ) {
                 return Err(AppSW::Deny);

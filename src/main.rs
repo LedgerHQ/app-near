@@ -62,12 +62,15 @@ mod app_ui {
             pub mod prefix;
             pub mod suffix;
         }
+        pub mod blind_signing;
         pub mod widgets;
 
         pub use common::action;
     }
 }
 pub use app_ui::sign as sign_ui;
+
+mod settings;
 
 mod handlers {
     pub mod get_public_key;
@@ -181,6 +184,8 @@ pub enum AppSW {
     Bip32PathParsingFail = 0xB00B,
     TxHashFinalizeFail = 0xB00C,
     PublicKeyMismatch = 0xB00D,
+    /// A value cannot be displayed in full and blind signing is disabled in the settings.
+    BlindSigningDisabled = 0xB00E,
     WrongApduLength = StatusWords::BadLen as u16,
 }
 
@@ -273,6 +278,8 @@ extern "C" fn sample_main(arg0: u32) {
 
         #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
         init_comm(&mut comm);
+
+        settings::init();
 
         loop {
             // Wait for either a specific button push to exit the app

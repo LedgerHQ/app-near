@@ -7,16 +7,18 @@ use ledger_device_sdk::ui::gadgets::Field;
 use ledger_device_sdk::testing;
 
 use super::{capped_string::CappedString, hex_display::HexDisplay};
+use crate::sign_ui::blind_signing::BlindSigned;
 
 use fmt_buffer::Buffer;
 
 /// A field pushed to a review.
 ///
-/// A signed value is always displayed in full: a value that does not fit its buffer
-/// is rejected while parsing, before any review screen. The constructors below panic
-/// on a truncated source instead of showing part of it, so a display site that misses
-/// the parsing check exits the app rather than asking to sign a value the user
-/// could not see.
+/// A signed value is displayed in full: a value that does not fit its buffer is
+/// rejected while parsing, before any review screen, unless the user approved signing
+/// it blind. The constructors below panic on a truncated source instead of showing part
+/// of it, so a display site that misses the parsing check exits the app rather than
+/// asking to sign a value the user could not see. Only the `_blind` constructors show a
+/// truncated source, and they take the [`BlindSigned`] approval as proof.
 pub struct ReviewField<'a>(Field<'a>);
 
 /// # Panics
@@ -70,6 +72,32 @@ impl<'a> ReviewField<'a> {
         title: &'a str,
     ) -> Self {
         fail_if_truncated(source.truncated());
+        Self::new(Field {
+            name: title,
+            value: source.as_str(),
+        })
+    }
+
+    /// Shows the part of `source` that fits, which may be all of it, for a value the
+    /// user approved signing blind.
+    pub fn from_capped_string_blind<const N: usize>(
+        source: &'a mut CappedString<N>,
+        title: &'a str,
+        _approved: &BlindSigned,
+    ) -> Self {
+        Self::new(Field {
+            name: title,
+            value: source.as_str(),
+        })
+    }
+
+    /// Shows the part of `source` that fits, which may be all of it, for a value the
+    /// user approved signing blind.
+    pub fn from_hex_display_blind<const N: usize>(
+        source: &'a HexDisplay<N>,
+        title: &'a str,
+        _approved: &BlindSigned,
+    ) -> Self {
         Self::new(Field {
             name: title,
             value: source.as_str(),
