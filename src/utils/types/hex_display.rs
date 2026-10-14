@@ -11,7 +11,6 @@ impl<const N: usize> From<CappedString<N>> for HexDisplay<N> {
             buffer: value.buffer,
             used: value.used,
             truncated: value.truncated,
-            leftover: value.leftover,
         }
     }
 }
@@ -22,7 +21,6 @@ pub struct HexDisplay<const N: usize> {
     buffer: [u8; N],
     used: usize,
     truncated: bool,
-    leftover: usize,
 }
 
 impl<const N: usize> HexDisplay<N> {
@@ -30,7 +28,6 @@ impl<const N: usize> HexDisplay<N> {
         HexDisplay {
             buffer: [0u8; N],
             used: 0,
-            leftover: 0,
             truncated: false,
         }
     }
@@ -39,8 +36,10 @@ impl<const N: usize> HexDisplay<N> {
         self.truncated
     }
 
-    pub fn leftover(&self) -> usize {
-        self.leftover
+    /// Number of bytes displayed in hex: all of them unless [`Self::truncated`].
+    /// Meaningful once [`Self::reformat`] was called.
+    pub fn shown_bytes(&self) -> usize {
+        self.used
     }
 
     /// this method must only be called once
@@ -53,8 +52,7 @@ impl<const N: usize> HexDisplay<N> {
 
         self.used = new_used / 2;
 
-        self.leftover += prev_used - self.used;
-        if self.leftover > 0 {
+        if self.used < prev_used {
             self.truncated = true;
         }
         let mut tmp_buffer = [0u8; 1];
@@ -102,7 +100,6 @@ impl<const N: usize> HexDisplay<N> {
             reader.read_exact(&mut self.buffer)?;
 
             self.used = self.buffer.len();
-            self.leftover = leftover;
             if leftover > 0 {
                 read_leftover(leftover, reader)?;
             }

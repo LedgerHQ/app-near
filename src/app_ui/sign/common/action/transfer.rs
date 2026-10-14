@@ -1,6 +1,6 @@
 use crate::{
     parsing::{self},
-    utils::types::elipsis_fields::ElipsisFields,
+    utils::types::review_field::ReviewField,
 };
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::Field;
@@ -31,7 +31,7 @@ pub fn format<'b, 'a: 'b>(
     field_context: &'a mut FieldsContext,
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Action type",
         value: "Transfer",
     }));
@@ -40,7 +40,7 @@ pub fn format<'b, 'a: 'b>(
         .deposit
         .display_as_buffer(&mut field_context.amount_buffer);
 
-    writer.push_fields(ElipsisFields::one(Field {
+    writer.push_field(ReviewField::new(Field {
         name: "Amount",
         value: field_context.amount_buffer.as_str(),
     }));

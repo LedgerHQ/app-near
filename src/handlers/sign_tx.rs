@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *****************************************************************************/
+use crate::app_ui::aliases::CappedAccountId;
 use crate::parsing;
 use crate::parsing::{HashingStream, SingleTxStream};
 use crate::sign_ui;
@@ -58,7 +59,7 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     // prefix-first behavior so APDU timing for legacy tests stays unchanged.
     // `None` means this single action is not a staking flow; keep legacy behavior.
     let combined_flow = if number_of_actions == 1 {
-        detect_combined_stake_flow(&mut stream)?
+        detect_combined_stake_flow(&mut stream, tx_prefix.receiver_id.as_str())?
     } else {
         None
     };
@@ -118,8 +119,11 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
     finalize_sign::end(stream, &path)
 }
 
+/// A staking method name selects the staking review only for a receiver that is a staking
+/// pool: any contract can expose those names, with arguments that mean something else.
 fn detect_combined_stake_flow(
     stream: &mut HashingStream<SingleTxStream<'_>>,
+    receiver_id: &str,
 ) -> Result<Option<CombinedStakeFlow>, AppSW> {
     let bytes = stream
         .reader
@@ -133,16 +137,19 @@ fn detect_combined_stake_flow(
     match tag {
         4 => Ok(Some(CombinedStakeFlow::NativeStake)),
         2 => {
-            if rest.len() < 4 {
+            if !sign_ui::action::is_staking_pool_account(receiver_id) || rest.len() < 4 {
                 return Ok(None);
             }
 
             let method_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
-            if rest.len() < 4 + method_len {
+            let Some(method_end) = 4usize.checked_add(method_len) else {
+                return Err(AppSW::TxParsingFail);
+            };
+            let Some(method_bytes) = rest.get(4..method_end) else {
                 return Ok(None);
-            }
+            };
 
-            let method_name = core::str::from_utf8(&rest[4..4 + method_len]).ok();
+            let method_name = core::str::from_utf8(method_bytes).ok();
             if let Some(method_name) = method_name {
                 if sign_ui::action::is_staking_method(method_name) {
                     return Ok(Some(CombinedStakeFlow::StakingFunctionCall));
@@ -176,14 +183,16 @@ fn handle_fn_call_stake_with_prefix(
         Err(_) => return Err(AppSW::TxParsingFail),
     };
 
+    // `as_str` would rewrite the bytes that are not printable ASCII before they are classified.
     log::debug!(
-        "sign_tx.rs: handle_fn_call_stake_with_prefix - arg_str:{}\n",
-        args_str.as_str()
+        "sign_tx.rs: handle_fn_call_stake_with_prefix - args bytes: {}\n",
+        args_bytes_count
     );
 
-    // Try to extract the NEAR amount from the JSON args (only when valid UTF-8).
-    let amount_opt = if args_valid {
-        sign_ui::action::try_parse_amount_from_args(&mut args_str)
+    let args = sign_ui::action::decode_stake_args(method_name, args_str, args_valid);
+    // Args that cannot be displayed in full are signed only blind, with the user's approval.
+    let blind = if args.truncated() {
+        Some(sign_ui::blind_signing::approve(args_bytes_count)?)
     } else {
         None
     };
@@ -194,8 +203,14 @@ fn handle_fn_call_stake_with_prefix(
     let deposit: near_token::NearToken =
         BorshDeserialize::deserialize_reader(stream).map_err(|_err| AppSW::TxParsingFail)?;
 
-    if !sign_ui::action::ui_display_fn_call_stake(tx_prefix, method_name, amount_opt, gas, deposit)
-    {
+    if !sign_ui::action::ui_display_fn_call_stake(
+        tx_prefix,
+        method_name,
+        args,
+        blind.as_ref(),
+        gas,
+        deposit,
+    ) {
         return Err(AppSW::Deny);
     }
     Ok(())
@@ -239,6 +254,11 @@ pub fn swap_handler(
         return Err(AppSW::PublicKeyMismatch);
     }
 
+    if !is_implicit_account_of(&mut tx_prefix.signer_id, &dpath_public_key) {
+        log::debug!("sign_tx.rs: signer_id does not match the swap source account\n");
+        return Err(AppSW::TxSignFail);
+    }
+
     // Check nb of actions (shall be == 1 == Transfer in swap context)
     if tx_prefix.number_of_actions != 1 {
         return Err(AppSW::TxSignFail);
@@ -269,4 +289,91 @@ pub fn swap_handler(
     }
 
     finalize_sign::end(stream, &path)
+}
+
+/// The swap source checked by `swap::check_address` is the implicit account of the
+/// derived key: a swap transaction must be sent from that exact account, whose id is
+/// the 64 lowercase hex characters of the public key.
+fn is_implicit_account_of(signer_id: &mut CappedAccountId, public_key: &PublicKeyBe) -> bool {
+    let mut implicit_account = [0u8; 64];
+    let implicit_account = public_key.display_str_hex(&mut implicit_account);
+    !signer_id.truncated() && signer_id.as_str() == implicit_account
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_implicit_account_of;
+    use crate::app_ui::aliases::CappedAccountId;
+    use crate::utils::crypto::PublicKeyBe;
+
+    // the key of the implicit account the app-exchange swap fixtures sign from
+    const PUBLIC_KEY: [u8; 32] = [
+        0xc4, 0xf5, 0x94, 0x1e, 0x81, 0xe0, 0x71, 0xc2, 0xfd, 0x1d, 0xae, 0x2e, 0x71, 0xfd, 0x3d,
+        0x85, 0x9d, 0x46, 0x24, 0x84, 0x39, 0x1d, 0x9a, 0x90, 0xbf, 0x21, 0x92, 0x11, 0xdc, 0xbb,
+        0x32, 0x0f,
+    ];
+    const IMPLICIT_ACCOUNT: &str =
+        "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f";
+
+    fn account(id: &str) -> CappedAccountId {
+        let mut account = CappedAccountId::new();
+        assert!(account
+            .deserialize_with_bytes_count(&mut id.as_bytes(), id.len() as u32)
+            .is_ok());
+        account
+    }
+
+    #[test_case]
+    fn accepts_the_implicit_account_of_the_key() {
+        let key = PublicKeyBe(PUBLIC_KEY);
+        assert!(is_implicit_account_of(&mut account(IMPLICIT_ACCOUNT), &key));
+    }
+
+    #[test_case]
+    fn rejects_a_named_account() {
+        let key = PublicKeyBe(PUBLIC_KEY);
+        assert!(!is_implicit_account_of(
+            &mut account("blablatest.testnet"),
+            &key
+        ));
+    }
+
+    #[test_case]
+    fn rejects_the_implicit_account_of_another_key() {
+        let mut other_key = PUBLIC_KEY;
+        other_key[31] ^= 1;
+        let key = PublicKeyBe(other_key);
+        assert!(!is_implicit_account_of(
+            &mut account(IMPLICIT_ACCOUNT),
+            &key
+        ));
+    }
+
+    #[test_case]
+    fn rejects_the_implicit_account_in_uppercase() {
+        let key = PublicKeyBe(PUBLIC_KEY);
+        let mut upper = [0u8; 64];
+        upper.copy_from_slice(IMPLICIT_ACCOUNT.as_bytes());
+        upper.make_ascii_uppercase();
+        let upper = core::str::from_utf8(&upper).unwrap();
+        assert!(!is_implicit_account_of(&mut account(upper), &key));
+    }
+
+    #[test_case]
+    fn rejects_a_prefix_or_extension_of_the_implicit_account() {
+        let key = PublicKeyBe(PUBLIC_KEY);
+        assert!(!is_implicit_account_of(
+            &mut account(&IMPLICIT_ACCOUNT[..63]),
+            &key
+        ));
+
+        // 65 bytes do not fit the account id buffer: kept as a truncated 64-byte prefix
+        let mut longer = CappedAccountId::new();
+        let mut bytes = [b'0'; 65];
+        bytes[..64].copy_from_slice(IMPLICIT_ACCOUNT.as_bytes());
+        assert!(longer
+            .deserialize_with_bytes_count(&mut &bytes[..], 65)
+            .is_ok());
+        assert!(!is_implicit_account_of(&mut longer, &key));
+    }
 }

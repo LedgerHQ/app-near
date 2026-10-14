@@ -1,4 +1,5 @@
 use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
+use crate::sign_ui::blind_signing::{BlindSigned, SizeBuffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
@@ -46,8 +47,34 @@ pub mod stake_fn_call;
 mod transfer;
 
 #[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct StringArgs<'a> {
     amount: &'a str,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct NoArgs {}
+
+/// Args of a staking FunctionCall, as presented in the combined review.
+pub enum StakeArgs {
+    /// Args match the method's expected shape exactly; holds the amount they carry, if any.
+    Decoded(Option<near_token::NearToken>),
+    /// Args are shown as signed, as a string.
+    RawStr(FnCallCappedString),
+    /// Args are shown as signed, in hexadecimal (not printable ASCII).
+    RawHex(FnCallHexDisplay),
+}
+
+impl StakeArgs {
+    /// `true` when the args shown as signed do not fit the review in full.
+    pub fn truncated(&self) -> bool {
+        match self {
+            StakeArgs::Decoded(_) => false,
+            StakeArgs::RawStr(args_str) => args_str.truncated(),
+            StakeArgs::RawHex(args_bin) => args_bin.truncated(),
+        }
+    }
 }
 
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
@@ -75,9 +102,7 @@ pub fn ui_display_delete_account(
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
-    let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
-
-    delete_account::format(delete_account, &mut field_context, &mut writer);
+    delete_account::format(delete_account, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -153,16 +178,16 @@ pub fn ui_display_deploy_contract(
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_str::FieldsContext =
-        function_call_str::FieldsContext::new();
-    function_call_str::format(args, &mut args_field_context, &mut writer);
+    function_call_str::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -170,16 +195,16 @@ pub fn ui_display_function_call_str(
 pub fn ui_display_function_call_bin(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &FnCallHexDisplay,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_bin::FieldsContext =
-        function_call_bin::FieldsContext::new();
-    function_call_bin::format(args, &mut args_field_context, &mut writer);
+    function_call_bin::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -231,12 +256,29 @@ pub fn is_staking_method(method_name: &str) -> bool {
     )
 }
 
-/// Attempt to parse a yoctoNEAR amount from a JSON args string.
-/// Supports:
-/// - integer yocto strings: `{"amount":"1157130000000000000000000"}`
-/// - decimal NEAR strings: `{"amount":"0.180623655669747439464495"}`
+/// Accounts directly under `poolv1.near` run the staking-pool contract, whose code cannot
+/// change: NEAR lets only an account create its sub-accounts, `poolv1.near` deploys that
+/// contract into each pool it creates, and neither the factory nor its pools hold access
+/// keys or expose a method that deploys code.
 ///
-/// Returns `None` if the key is absent or unparsable.
+/// Pools under `pool.near` are not included: their contract upgrades itself, at the pool
+/// owner's request, to any code the factory owner allows.
+const STAKING_POOL_FACTORY_SUFFIX: &str = ".poolv1.near";
+
+/// `true` for an account created by the `poolv1.near` staking-pool factory: a single label
+/// directly under [`STAKING_POOL_FACTORY_SUFFIX`].
+pub fn is_staking_pool_account(account_id: &str) -> bool {
+    account_id
+        .strip_suffix(STAKING_POOL_FACTORY_SUFFIX)
+        .is_some_and(|label| !label.is_empty() && !label.contains('.'))
+}
+
+/// Attempt to parse a yoctoNEAR amount from a JSON args string, in the only form the
+/// staking-pool contract accepts: an integer yoctoNEAR string,
+/// `{"amount":"1157130000000000000000000"}`.
+///
+/// Returns `None` if the key is absent or unparsable, or if the args contain
+/// anything besides a single `amount` field.
 ///
 /// Only call this after a successful `deserialize_with_bytes_count` (i.e. when
 /// the args are known to be valid UTF-8).
@@ -244,45 +286,44 @@ pub fn try_parse_amount_from_args(args: &mut FnCallCappedString) -> Option<near_
     let s = args.as_str();
     let (data, _remainer) = serde_json_core::from_str::<StringArgs<'_>>(s).ok()?;
     log::debug!("amount str: {}", data.amount);
-    let yocto = data
-        .amount
-        .parse::<u128>()
-        .ok()
-        .or_else(|| parse_decimal_near_to_yocto(data.amount))?;
+    if !data.amount.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let yocto = data.amount.parse::<u128>().ok()?;
     log::debug!("amount yocto u128: {}", yocto);
     Some(near_token::NearToken::from_yoctonear(yocto))
 }
 
-fn parse_decimal_near_to_yocto(amount: &str) -> Option<u128> {
-    let dot_idx = amount.find('.')?;
-    if amount[dot_idx + 1..].contains('.') {
-        return None;
+/// Decode the args of a staking FunctionCall strictly against the shape the
+/// method expects. Args that do not match exactly or are truncated are kept to
+/// be displayed as signed: in hexadecimal when they are not printable ASCII, as
+/// the device draws every other byte as the same square glyph.
+pub fn decode_stake_args(
+    method_name: &str,
+    mut args: FnCallCappedString,
+    utf8_valid: bool,
+) -> StakeArgs {
+    if !utf8_valid || !args.is_printable_ascii() {
+        let mut args_bin: FnCallHexDisplay = args.into();
+        args_bin.reformat();
+        return StakeArgs::RawHex(args_bin);
     }
+    if !args.truncated() {
+        let decoded = match method_name {
+            "stake" | "unstake" | "withdraw" => try_parse_amount_from_args(&mut args).map(Some),
+            _ => is_empty_args(&mut args).then_some(None),
+        };
+        if let Some(amount) = decoded {
+            return StakeArgs::Decoded(amount);
+        }
+    }
+    StakeArgs::RawStr(args)
+}
 
-    let whole = &amount[..dot_idx];
-    let frac = &amount[dot_idx + 1..];
-    // Reject trailing-dot forms like "1." to keep parsing strict and predictable.
-    if whole.is_empty() || frac.is_empty() {
-        return None;
-    }
-    if frac.len() > 24 {
-        return None;
-    }
-    if !whole.as_bytes().iter().all(u8::is_ascii_digit) {
-        return None;
-    }
-    if !frac.as_bytes().iter().all(u8::is_ascii_digit) {
-        return None;
-    }
-
-    let yocto_per_near = near_token::NearToken::from_near(1).as_yoctonear();
-    let whole_part = whole.parse::<u128>().ok()?.checked_mul(yocto_per_near)?;
-    let mut frac_buf = [b'0'; 24];
-    let frac_len = frac.len();
-    frac_buf[..frac_len].copy_from_slice(frac.as_bytes());
-    let frac_part = core::str::from_utf8(&frac_buf).ok()?.parse::<u128>().ok()?;
-
-    whole_part.checked_add(frac_part)
+/// `true` for empty args or an empty JSON object.
+fn is_empty_args(args: &mut FnCallCappedString) -> bool {
+    let s = args.as_str();
+    s.trim().is_empty() || serde_json_core::from_str::<NoArgs>(s).is_ok()
 }
 
 #[derive(Copy, Clone)]
@@ -298,7 +339,9 @@ fn stake_method_routing(method_name: &str) -> (stake_fn_call::StakeOpKind, Stake
     match method_name {
         "deposit_and_stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Deposit),
         "stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Args),
-        "unstake" | "withdraw" => (StakeOpKind::Unstake, StakeAmountSource::Args),
+        "unstake" => (StakeOpKind::Unstake, StakeAmountSource::Args),
+        "withdraw" => (StakeOpKind::Withdraw, StakeAmountSource::Args),
+        "withdraw_all" => (StakeOpKind::WithdrawAll, StakeAmountSource::NotApplicable),
         _ => (StakeOpKind::UnstakeAll, StakeAmountSource::NotApplicable),
     }
 }
@@ -338,7 +381,8 @@ pub fn ui_display_stake_combined(
 pub fn ui_display_fn_call_stake(
     prefix: &mut parsing::types::transaction::prefix::Prefix,
     method_name: &str,
-    amount_opt: Option<near_token::NearToken>,
+    args: StakeArgs,
+    blind: Option<&BlindSigned>,
     gas: near_gas::NearGas,
     deposit: near_token::NearToken,
 ) -> bool {
@@ -348,9 +392,8 @@ pub fn ui_display_fn_call_stake(
     let review_title = match method_name {
         "deposit_and_stake" => "Review transaction to deposit and stake NEAR",
         "stake" => "Review transaction to stake NEAR",
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            "Review transaction to unstake NEAR"
-        }
+        "unstake" | "unstake_all" => "Review transaction to unstake NEAR",
+        "withdraw" | "withdraw_all" => "Review transaction to withdraw NEAR",
         _ => "Review transaction",
     };
 
@@ -358,9 +401,8 @@ pub fn ui_display_fn_call_stake(
     let review_title = match method_name {
         "deposit_and_stake" => ["Review transaction to", "deposit and stake NEAR", ""],
         "stake" => ["Review transaction to", "stake NEAR", ""],
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            ["Review transaction to", "unstake NEAR", ""]
-        }
+        "unstake" | "unstake_all" => ["Review transaction to", "unstake NEAR", ""],
+        "withdraw" | "withdraw_all" => ["Review transaction to", "withdraw NEAR", ""],
         _ => ["Review transaction", "", ""],
     };
 
@@ -368,9 +410,8 @@ pub fn ui_display_fn_call_stake(
     let sign_title = match method_name {
         "deposit_and_stake" => "Sign transaction to deposit and stake NEAR?",
         "stake" => "Sign transaction to stake NEAR?",
-        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => {
-            "Sign transaction to unstake NEAR?"
-        }
+        "unstake" | "unstake_all" => "Sign transaction to unstake NEAR?",
+        "withdraw" | "withdraw_all" => "Sign transaction to withdraw NEAR?",
         _ => "Sign transaction",
     };
 
@@ -381,11 +422,19 @@ pub fn ui_display_fn_call_stake(
         _ => "Sign transaction",
     };
 
+    // The deposit is shown on its own unless it is already the displayed amount.
+    let show_deposit = !matches!(
+        (&args, amount_source),
+        (StakeArgs::Decoded(_), StakeAmountSource::Deposit)
+    );
     // Determine the amount source by method semantics.
-    let display_amount = match amount_source {
-        StakeAmountSource::Deposit => Some(deposit),
-        StakeAmountSource::Args => amount_opt,
-        StakeAmountSource::NotApplicable => None,
+    let mut args = match args {
+        StakeArgs::Decoded(amount_opt) => StakeArgs::Decoded(match amount_source {
+            StakeAmountSource::Deposit => Some(deposit),
+            StakeAmountSource::Args => amount_opt,
+            StakeAmountSource::NotApplicable => None,
+        }),
+        raw => raw,
     };
     let mut field_context = stake_fn_call::FieldsContext::new();
     let mut writer: FieldsWriter<'_, { stake_fn_call::MAX_FIELDS }> = FieldsWriter::new();
@@ -393,7 +442,11 @@ pub fn ui_display_fn_call_stake(
     stake_fn_call::format(
         &mut prefix.signer_id,
         &mut prefix.receiver_id,
-        display_amount,
+        method_name,
+        &mut args,
+        blind,
+        deposit,
+        show_deposit,
         gas,
         kind,
         &mut field_context,
@@ -610,9 +663,9 @@ mod tests {
         args
     }
 
-    #[test]
+    #[test_case]
     fn parses_amount_with_json_spacing() {
-        let args = r#"{"amount" : "1.25"}"#;
+        let args = r#"{"amount" : "1250000000000000000000000"}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(
@@ -623,49 +676,116 @@ mod tests {
         );
     }
 
-    #[test]
-    fn parses_amount_with_extra_fields() {
+    #[test_case]
+    fn rejects_amount_not_in_integer_yocto_form() {
+        for args in [
+            r#"{"amount":"1.25"}"#,
+            r#"{"amount":"+1"}"#,
+            r#"{"amount":""}"#,
+            r#"{"amount":"340282366920938463463374607431768211456"}"#,
+        ] {
+            let mut s = make_args(args);
+            assert_eq!(try_parse_amount_from_args(&mut s), None);
+        }
+    }
+
+    #[test_case]
+    fn accepts_accounts_directly_under_a_staking_pool_factory() {
+        for account in ["ledgerbyfigment.poolv1.near", "astro-stakers.poolv1.near"] {
+            assert!(is_staking_pool_account(account));
+        }
+    }
+
+    #[test_case]
+    fn rejects_accounts_not_created_by_a_staking_pool_factory() {
+        for account in [
+            "poolv1.near",
+            "pool.near",
+            ".poolv1.near",
+            "a.b.poolv1.near",
+            "xtoken.ref-finance.near",
+            "evilpoolv1.near",
+            "x.poolv1.near.evil.near",
+            "lst-pool.near",
+            "x.poolv1.testnet",
+            // created by pool.near, whose pools can upgrade their code
+            "svrn.pool.near",
+        ] {
+            assert!(!is_staking_pool_account(account));
+        }
+    }
+
+    #[test_case]
+    fn rejects_amount_with_extra_fields() {
         let args = r#"{"account_id":"alice.near","amount":"1000000000000000000000000"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, Some(near_token::NearToken::from_near(1)));
-    }
-
-    #[test]
-    fn parses_amount_ignores_key_prefix_false_match() {
-        let args = r#"{"total_amount":"999000000000000000000000000","amount":"5000000000000000000000000"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(
-            result,
-            Some(near_token::NearToken::from_yoctonear(
-                5_000_000_000_000_000_000_000_000
-            ))
-        );
-    }
-
-    #[test]
-    fn parses_decimal_with_24_fractional_digits() {
-        let args = r#"{"amount":"1.000000000000000000000001"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(
-            result,
-            Some(near_token::NearToken::from_yoctonear(
-                1_000_000_000_000_000_000_000_001
-            ))
-        );
-    }
-
-    #[test]
-    fn rejects_decimal_with_more_than_24_fractional_digits() {
-        let args = r#"{"amount":"1.0000000000000000000000001"}"#;
         let mut s = make_args(args);
         let result = try_parse_amount_from_args(&mut s);
         assert_eq!(result, None);
     }
 
-    #[test]
+    #[test_case]
+    fn rejects_amount_with_key_prefix_field() {
+        let args = r#"{"total_amount":"999000000000000000000000000","amount":"5000000000000000000000000"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn rejects_duplicate_amount() {
+        let args = r#"{"amount":"1","amount":"2"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn rejects_amount_with_trailing_data() {
+        let args = r#"{"amount":"1"}{"beneficiary_id":"x"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn decodes_empty_args_for_methods_without_amount() {
+        for args in ["", "{}", " { } "] {
+            assert!(matches!(
+                decode_stake_args("unstake_all", make_args(args), true),
+                StakeArgs::Decoded(None)
+            ));
+        }
+    }
+
+    #[test_case]
+    fn keeps_raw_args_when_not_strictly_decoded() {
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args(r#"{"amount":"1"}"#), true),
+            StakeArgs::RawStr(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{}"), true),
+            StakeArgs::RawStr(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake", make_args(r#"{"amount":"1"}"#), false),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
+    fn keeps_non_printable_raw_args_in_hex() {
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{\"amount\":\"\u{e9}\"}"), true),
+            StakeArgs::RawHex(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args("{\n}"), true),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
     fn parses_zero_amount() {
         let args = r#"{"amount":"0"}"#;
         let mut s = make_args(args);
@@ -673,19 +793,34 @@ mod tests {
         assert_eq!(result, Some(near_token::NearToken::from_yoctonear(0)));
     }
 
-    #[test]
-    fn rejects_overflow_decimal_amount() {
-        let args = r#"{"amount":"340282366920938463463374607431.768211456"}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, None);
+    #[test_case]
+    fn stake_args_decoded_are_not_truncated() {
+        let args = make_args(r#"{"amount":"1"}"#);
+        assert!(!decode_stake_args("unstake", args, true).truncated());
     }
 
-    #[test]
-    fn rejects_trailing_dot_decimal_amount() {
-        let args = r#"{"amount":"1."}"#;
-        let mut s = make_args(args);
-        let result = try_parse_amount_from_args(&mut s);
-        assert_eq!(result, None);
+    #[test_case]
+    fn stake_args_raw_string_over_display_limit_are_truncated() {
+        let bytes = [b'x'; 201];
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..], 201)
+            .is_ok());
+        assert!(decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_binary_at_and_over_display_limit() {
+        for (len, truncated) in [(100usize, false), (101, true)] {
+            let bytes = [0x80u8; 101];
+            let mut args = FnCallCappedString::new();
+            assert!(args
+                .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+                .is_err());
+            assert_eq!(
+                decode_stake_args("unstake", args, false).truncated(),
+                truncated
+            );
+        }
     }
 }
