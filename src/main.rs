@@ -18,6 +18,9 @@
 #![no_std]
 #![no_main]
 #![allow(clippy::new_without_default)]
+#![cfg_attr(test, feature(custom_test_frameworks))]
+#![cfg_attr(test, test_runner(crate::test_runner))]
+#![cfg_attr(test, reexport_test_harness_main = "test_main")]
 
 mod utils {
     pub mod crypto {
@@ -30,8 +33,8 @@ mod utils {
     pub mod types {
         pub mod base58_buf;
         pub mod capped_string;
-        pub mod elipsis_fields;
         pub mod hex_display;
+        pub mod review_field;
 
         pub mod strcat;
     }
@@ -59,12 +62,15 @@ mod app_ui {
             pub mod prefix;
             pub mod suffix;
         }
+        pub mod blind_signing;
         pub mod widgets;
 
         pub use common::action;
     }
 }
 pub use app_ui::sign as sign_ui;
+
+mod settings;
 
 mod handlers {
     pub mod get_public_key;
@@ -123,11 +129,26 @@ use handlers::{
     get_public_key, get_version, get_wallet_id, sign_nep366_delegate, sign_nep413_msg, sign_tx,
 };
 use ledger_device_sdk::io::{ApduHeader, Comm, Event, Reply, StatusWords};
+use ledger_device_sdk::log;
 #[cfg(feature = "speculos")]
 use ledger_device_sdk::testing;
 use parsing::SingleTxStream;
 
+#[cfg(not(test))]
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
+// A failing assertion must end the run with a non-zero exit code.
+#[cfg(test)]
+ledger_device_sdk::set_panic!(ledger_device_sdk::testing::test_panic);
+
+/// Runs the `#[test_case]` functions on Speculos (`cargo test --features speculos`).
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+    for test in tests {
+        test();
+    }
+    log::info!("{} unit tests passed\n", tests.len());
+    ledger_device_sdk::exit_app(0);
+}
 
 // CLA (APDU class byte) for all APDUs.
 const CLA: u8 = 0x80;
@@ -163,6 +184,8 @@ pub enum AppSW {
     Bip32PathParsingFail = 0xB00B,
     TxHashFinalizeFail = 0xB00C,
     PublicKeyMismatch = 0xB00D,
+    /// A value cannot be displayed in full and blind signing is disabled in the settings.
+    BlindSigningDisabled = 0xB00E,
     WrongApduLength = StatusWords::BadLen as u16,
 }
 
@@ -243,15 +266,20 @@ mod swap;
 
 #[no_mangle]
 extern "C" fn sample_main(arg0: u32) {
+    #[cfg(test)]
+    test_main();
+
     if arg0 != 0 {
         swap::swap_main(arg0);
     } else {
-        ledger_device_sdk::testing::debug_print("call app-near as a standalone\n");
+        log::debug!("call app-near as a standalone\n");
 
         let mut comm = Comm::new();
 
         #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
         init_comm(&mut comm);
+
+        settings::init();
 
         loop {
             // Wait for either a specific button push to exit the app

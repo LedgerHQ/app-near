@@ -35,7 +35,7 @@ impl Payload {
         let nonce: NonceBuffer = BorshDeserialize::deserialize_reader(reader)?;
         self.nonce = nonce;
 
-        self.recipient.deserialize_reader_in_place(reader)?;
+        self.recipient.deserialize_reader_in_place_whole(reader)?;
 
         let option_flag: u8 = BorshDeserialize::deserialize_reader(reader)?;
 

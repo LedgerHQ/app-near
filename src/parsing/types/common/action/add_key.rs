@@ -85,8 +85,7 @@ impl BorshDeserialize for AddKey {
 
 /// buffer to store each individual `method_name` in `method_names` of
 /// https://docs.rs/near-primitives/0.21.2/near_primitives/account/struct.FunctionCallPermission.html .
-/// If a `method_name` is longer than this buffer during parsing, it's
-/// truncated and will be displayed with ellipsis `is_too_long_method_name_suffix_truncated...`
+/// A `method_name` longer than this buffer is rejected during parsing.
 type PerMethodBuffer = CappedString<40>;
 
 impl FunctionCallPermission {
@@ -103,19 +102,34 @@ impl FunctionCallPermission {
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         let allowance: Option<u128> = BorshDeserialize::deserialize_reader(reader)?;
         self.allowance = allowance.map(NearToken::from_yoctonear);
-        self.receiver_id.deserialize_reader_in_place(reader)?;
+        self.receiver_id.deserialize_reader_in_place_whole(reader)?;
 
         self.number_of_method_names = BorshDeserialize::deserialize_reader(reader)?;
 
+        // The permission is never signed unless every method name is displayed in full
+        // and the list reads unambiguously.
         let mut per_method_buffer: PerMethodBuffer = PerMethodBuffer::new();
         for _i in 0..(self.number_of_method_names as usize) {
             per_method_buffer.deserialize_reader_in_place(reader)?;
-
-            self.method_names.write_str(per_method_buffer.as_str());
             if per_method_buffer.truncated() {
-                self.method_names.write_str("...");
+                return Err(Error::from(ErrorKind::InvalidData));
             }
+
+            // `as_str` shows every byte outside printable ASCII as the same square
+            // glyph, and `;` separates the names in the review.
+            if !per_method_buffer.is_printable_ascii() {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            let method_name = per_method_buffer.as_str();
+            if method_name.contains(';') {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+
+            self.method_names.write_str(method_name);
             self.method_names.write_str(";");
+            if self.method_names.truncated() {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
         }
         Ok(())
     }

@@ -1,4 +1,5 @@
 use crate::app_ui::aliases::{FnCallCappedString, FnCallHexDisplay, U32Buffer};
+use crate::sign_ui::blind_signing::{BlindSigned, SizeBuffer};
 use crate::{app_ui::fields_writer::FieldsWriter, handlers::common::action::ActionParams, parsing};
 use fmt_buffer::Buffer;
 
@@ -7,8 +8,8 @@ use crate::Instruction;
 use ledger_device_sdk::io::Comm;
 #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use ledger_device_sdk::nbgl::{
-    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglGenericReview, NbglPageContent,
-    NbglStatus, TagValueList, TuneIndex,
+    CenteredInfo, CenteredInfoStyle, InfoButton, InfoLongPress, NbglChoice, NbglGenericReview,
+    NbglPageContent, NbglStatus, TagValueList, TuneIndex,
 };
 #[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
 use ledger_device_sdk::{
@@ -22,11 +23,15 @@ use ledger_device_sdk::{
     },
 };
 
-#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
 use crate::app_ui::logo::NEAR_LOGO;
 use numtoa::NumToA;
 
 use super::tx_public_key_context;
+
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use core::ops::Not;
+
+use ledger_device_sdk::log;
 
 mod add_key_common;
 mod create_account;
@@ -38,7 +43,39 @@ mod function_call_common;
 mod function_call_permission;
 mod function_call_str;
 mod stake;
+pub mod stake_fn_call;
 mod transfer;
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StringArgs<'a> {
+    amount: &'a str,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct NoArgs {}
+
+/// Args of a staking FunctionCall, as presented in the combined review.
+pub enum StakeArgs {
+    /// Args match the method's expected shape exactly; holds the amount they carry, if any.
+    Decoded(Option<near_token::NearToken>),
+    /// Args are shown as signed, as a string.
+    RawStr(FnCallCappedString),
+    /// Args are shown as signed, in hexadecimal (not printable ASCII).
+    RawHex(FnCallHexDisplay),
+}
+
+impl StakeArgs {
+    /// `true` when the args shown as signed do not fit the review in full.
+    pub fn truncated(&self) -> bool {
+        match self {
+            StakeArgs::Decoded(_) => false,
+            StakeArgs::RawStr(args_str) => args_str.truncated(),
+            StakeArgs::RawHex(args_bin) => args_bin.truncated(),
+        }
+    }
+}
 
 pub fn ui_display_transfer(transfer: &parsing::types::Transfer, params: ActionParams) -> bool {
     let mut field_context: transfer::FieldsContext = transfer::FieldsContext::new();
@@ -65,9 +102,7 @@ pub fn ui_display_delete_account(
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
-    let mut field_context: delete_account::FieldsContext = delete_account::FieldsContext::new();
-
-    delete_account::format(delete_account, &mut field_context, &mut writer);
+    delete_account::format(delete_account, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -143,16 +178,16 @@ pub fn ui_display_deploy_contract(
 pub fn ui_display_function_call_str(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &mut FnCallCappedString,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_str::FieldsContext =
-        function_call_str::FieldsContext::new();
-    function_call_str::format(args, &mut args_field_context, &mut writer);
+    function_call_str::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -160,16 +195,16 @@ pub fn ui_display_function_call_str(
 pub fn ui_display_function_call_bin(
     func_call_common: &mut parsing::types::FunctionCallCommon,
     args: &FnCallHexDisplay,
+    blind: Option<&BlindSigned>,
     params: ActionParams,
 ) -> bool {
     let mut writer = FieldsWriter::new();
     let mut common_field_context: function_call_common::FieldsContext =
         function_call_common::FieldsContext::new();
+    let mut size_buf = SizeBuffer::new();
 
     function_call_common::format(func_call_common, &mut common_field_context, &mut writer);
-    let mut args_field_context: function_call_bin::FieldsContext =
-        function_call_bin::FieldsContext::new();
-    function_call_bin::format(args, &mut args_field_context, &mut writer);
+    function_call_bin::format(args, blind, &mut size_buf, &mut writer);
 
     ui_display_common(&mut writer, params)
 }
@@ -210,6 +245,292 @@ pub fn ui_display_delegate_error(#[allow(unused)] comm: &mut Comm) {
         let res = review.show("Reject");
 
         NbglStatus::new().text("Transaction rejected").show(res);
+    }
+}
+
+/// Returns `true` if `method_name` is a known staking pool method.
+pub fn is_staking_method(method_name: &str) -> bool {
+    matches!(
+        method_name,
+        "deposit_and_stake" | "stake" | "unstake" | "unstake_all" | "withdraw" | "withdraw_all"
+    )
+}
+
+/// Accounts directly under `poolv1.near` run the staking-pool contract, whose code cannot
+/// change: NEAR lets only an account create its sub-accounts, `poolv1.near` deploys that
+/// contract into each pool it creates, and neither the factory nor its pools hold access
+/// keys or expose a method that deploys code.
+///
+/// Pools under `pool.near` are not included: their contract upgrades itself, at the pool
+/// owner's request, to any code the factory owner allows.
+const STAKING_POOL_FACTORY_SUFFIX: &str = ".poolv1.near";
+
+/// `true` for an account created by the `poolv1.near` staking-pool factory: a single label
+/// directly under [`STAKING_POOL_FACTORY_SUFFIX`].
+pub fn is_staking_pool_account(account_id: &str) -> bool {
+    account_id
+        .strip_suffix(STAKING_POOL_FACTORY_SUFFIX)
+        .is_some_and(|label| !label.is_empty() && !label.contains('.'))
+}
+
+/// Attempt to parse a yoctoNEAR amount from a JSON args string, in the only form the
+/// staking-pool contract accepts: an integer yoctoNEAR string,
+/// `{"amount":"1157130000000000000000000"}`.
+///
+/// Returns `None` if the key is absent or unparsable, or if the args contain
+/// anything besides a single `amount` field.
+///
+/// Only call this after a successful `deserialize_with_bytes_count` (i.e. when
+/// the args are known to be valid UTF-8).
+pub fn try_parse_amount_from_args(args: &mut FnCallCappedString) -> Option<near_token::NearToken> {
+    let s = args.as_str();
+    let (data, _remainer) = serde_json_core::from_str::<StringArgs<'_>>(s).ok()?;
+    log::debug!("amount str: {}", data.amount);
+    if !data.amount.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let yocto = data.amount.parse::<u128>().ok()?;
+    log::debug!("amount yocto u128: {}", yocto);
+    Some(near_token::NearToken::from_yoctonear(yocto))
+}
+
+/// Decode the args of a staking FunctionCall strictly against the shape the
+/// method expects. Args that do not match exactly or are truncated are kept to
+/// be displayed as signed: in hexadecimal when they are not printable ASCII, as
+/// the device draws every other byte as the same square glyph.
+pub fn decode_stake_args(
+    method_name: &str,
+    mut args: FnCallCappedString,
+    utf8_valid: bool,
+) -> StakeArgs {
+    if !utf8_valid || !args.is_printable_ascii() {
+        let mut args_bin: FnCallHexDisplay = args.into();
+        args_bin.reformat();
+        return StakeArgs::RawHex(args_bin);
+    }
+    if !args.truncated() {
+        let decoded = match method_name {
+            "stake" | "unstake" | "withdraw" => try_parse_amount_from_args(&mut args).map(Some),
+            _ => is_empty_args(&mut args).then_some(None),
+        };
+        if let Some(amount) = decoded {
+            return StakeArgs::Decoded(amount);
+        }
+    }
+    StakeArgs::RawStr(args)
+}
+
+/// `true` for empty args or an empty JSON object.
+fn is_empty_args(args: &mut FnCallCappedString) -> bool {
+    let s = args.as_str();
+    s.trim().is_empty() || serde_json_core::from_str::<NoArgs>(s).is_ok()
+}
+
+#[derive(Copy, Clone)]
+enum StakeAmountSource {
+    Deposit,
+    Args,
+    NotApplicable,
+}
+
+fn stake_method_routing(method_name: &str) -> (stake_fn_call::StakeOpKind, StakeAmountSource) {
+    use stake_fn_call::StakeOpKind;
+
+    match method_name {
+        "deposit_and_stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Deposit),
+        "stake" => (StakeOpKind::DepositAndStake, StakeAmountSource::Args),
+        "unstake" => (StakeOpKind::Unstake, StakeAmountSource::Args),
+        "withdraw" => (StakeOpKind::Withdraw, StakeAmountSource::Args),
+        "withdraw_all" => (StakeOpKind::WithdrawAll, StakeAmountSource::NotApplicable),
+        _ => (StakeOpKind::UnstakeAll, StakeAmountSource::NotApplicable),
+    }
+}
+
+/// Merged prefix + native Stake action review (single combined screen).
+pub fn ui_display_stake_combined(
+    prefix: &mut parsing::types::transaction::prefix::Prefix,
+    stake: &parsing::types::Stake,
+) -> bool {
+    let mut field_context = stake::CombinedFieldsContext::new();
+    let mut writer: FieldsWriter<'_, { stake::COMBINED_MAX_FIELDS }> = FieldsWriter::new();
+
+    stake::format_combined(
+        &mut prefix.signer_id,
+        &mut prefix.receiver_id,
+        stake,
+        &mut field_context,
+        &mut writer,
+    );
+
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+    let review_title = "Review transaction to deposit and stake NEAR";
+
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+    let sign_title = "Sign transaction to deposit and stake NEAR?";
+
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    let review_title = ["Review transaction to", "deposit and stake NEAR", ""];
+
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    let sign_title = "Sign transaction?";
+
+    ui_display_last_action(review_title, sign_title, &mut writer)
+}
+
+/// Merged prefix + staking FunctionCall review (single combined screen).
+pub fn ui_display_fn_call_stake(
+    prefix: &mut parsing::types::transaction::prefix::Prefix,
+    method_name: &str,
+    args: StakeArgs,
+    blind: Option<&BlindSigned>,
+    gas: near_gas::NearGas,
+    deposit: near_token::NearToken,
+) -> bool {
+    let (kind, amount_source) = stake_method_routing(method_name);
+
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+    let review_title = match method_name {
+        "deposit_and_stake" => "Review transaction to deposit and stake NEAR",
+        "stake" => "Review transaction to stake NEAR",
+        "unstake" | "unstake_all" => "Review transaction to unstake NEAR",
+        "withdraw" | "withdraw_all" => "Review transaction to withdraw NEAR",
+        _ => "Review transaction",
+    };
+
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    let review_title = match method_name {
+        "deposit_and_stake" => ["Review transaction to", "deposit and stake NEAR", ""],
+        "stake" => ["Review transaction to", "stake NEAR", ""],
+        "unstake" | "unstake_all" => ["Review transaction to", "unstake NEAR", ""],
+        "withdraw" | "withdraw_all" => ["Review transaction to", "withdraw NEAR", ""],
+        _ => ["Review transaction", "", ""],
+    };
+
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+    let sign_title = match method_name {
+        "deposit_and_stake" => "Sign transaction to deposit and stake NEAR?",
+        "stake" => "Sign transaction to stake NEAR?",
+        "unstake" | "unstake_all" => "Sign transaction to unstake NEAR?",
+        "withdraw" | "withdraw_all" => "Sign transaction to withdraw NEAR?",
+        _ => "Sign transaction",
+    };
+
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    let sign_title = match method_name {
+        "deposit_and_stake" | "stake" => "Sign transaction?",
+        "unstake" | "withdraw" | "unstake_all" | "withdraw_all" => "Sign transaction?",
+        _ => "Sign transaction",
+    };
+
+    // The deposit is shown on its own unless it is already the displayed amount.
+    let show_deposit = !matches!(
+        (&args, amount_source),
+        (StakeArgs::Decoded(_), StakeAmountSource::Deposit)
+    );
+    // Determine the amount source by method semantics.
+    let mut args = match args {
+        StakeArgs::Decoded(amount_opt) => StakeArgs::Decoded(match amount_source {
+            StakeAmountSource::Deposit => Some(deposit),
+            StakeAmountSource::Args => amount_opt,
+            StakeAmountSource::NotApplicable => None,
+        }),
+        raw => raw,
+    };
+    let mut field_context = stake_fn_call::FieldsContext::new();
+    let mut writer: FieldsWriter<'_, { stake_fn_call::MAX_FIELDS }> = FieldsWriter::new();
+
+    stake_fn_call::format(
+        &mut prefix.signer_id,
+        &mut prefix.receiver_id,
+        method_name,
+        &mut args,
+        blind,
+        deposit,
+        show_deposit,
+        gas,
+        kind,
+        &mut field_context,
+        &mut writer,
+    );
+
+    ui_display_last_action(review_title, sign_title, &mut writer)
+}
+
+/// Render a "last action" review (always uses Sign/Hold-to-sign, never "Next Action").
+/// `review_title` is the header shown before the fields; `sign_title` is the confirm label.
+fn ui_display_last_action<
+    const N: usize,
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))] const L: usize,
+>(
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))] review_title: &str,
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    review_title: [&str; L],
+    sign_title: &str,
+    writer: &mut FieldsWriter<'_, N>,
+) -> bool {
+    #[cfg(not(any(target_os = "stax", target_os = "flex", target_os = "apex_p")))]
+    {
+        let my_review = MultiFieldReview::new(
+            writer.get_fields(),
+            &review_title,
+            Some(&NEAR_LOGO),
+            sign_title,
+            Some(&VALIDATE_14),
+            "Reject",
+            Some(&CROSSMARK),
+        );
+        my_review.show()
+    }
+
+    #[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+    {
+        let centered_info = CenteredInfo::new(
+            review_title,
+            "",
+            "",
+            Some(&NEAR_LOGO),
+            false,
+            CenteredInfoStyle::LargeCaseBoldInfo,
+            0,
+        );
+        let tag_values_list = TagValueList::new(writer.get_fields(), 2, false, false);
+        let info_longpress = InfoLongPress::new(
+            sign_title,
+            Some(&NEAR_LOGO),
+            "Hold to sign",
+            TuneIndex::Error,
+        );
+
+        let review: NbglGenericReview = NbglGenericReview::new()
+            .add_content(NbglPageContent::CenteredInfo(centered_info))
+            .add_content(NbglPageContent::TagValueList(tag_values_list))
+            .add_content(NbglPageContent::InfoLongPress(info_longpress));
+
+        let mut show_tx = true;
+        let mut status_text = "Transaction rejected";
+        let mut confirm = false;
+        while show_tx {
+            confirm = review.show("Reject");
+            show_tx = if confirm {
+                status_text = "Transaction signed";
+                false
+            } else {
+                NbglChoice::new()
+                    .show(
+                        "Reject transaction?",
+                        "",
+                        "Yes, reject",
+                        "Go back to transaction",
+                    )
+                    .not()
+            };
+        }
+
+        NbglStatus::new()
+            .text(status_text)
+            .show(status_text == "Transaction signed");
+
+        confirm
     }
 }
 
@@ -327,4 +648,179 @@ fn ordinal_string(fmt_buf: &mut OrdinalStringBuffer, params: ActionParams) -> bo
     fmt_buf.write_str(params.total_actions.numtoa_str(10, &mut num_out));
 
     params.ordinal_action == params.total_actions
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app_ui::aliases::FnCallCappedString;
+
+    fn make_args(s: &str) -> FnCallCappedString {
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut s.as_bytes(), s.len() as u32)
+            .is_ok());
+        args
+    }
+
+    #[test_case]
+    fn parses_amount_with_json_spacing() {
+        let args = r#"{"amount" : "1250000000000000000000000"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(
+            result,
+            Some(near_token::NearToken::from_yoctonear(
+                1_250_000_000_000_000_000_000_000
+            ))
+        );
+    }
+
+    #[test_case]
+    fn rejects_amount_not_in_integer_yocto_form() {
+        for args in [
+            r#"{"amount":"1.25"}"#,
+            r#"{"amount":"+1"}"#,
+            r#"{"amount":""}"#,
+            r#"{"amount":"340282366920938463463374607431768211456"}"#,
+        ] {
+            let mut s = make_args(args);
+            assert_eq!(try_parse_amount_from_args(&mut s), None);
+        }
+    }
+
+    #[test_case]
+    fn accepts_accounts_directly_under_a_staking_pool_factory() {
+        for account in ["ledgerbyfigment.poolv1.near", "astro-stakers.poolv1.near"] {
+            assert!(is_staking_pool_account(account));
+        }
+    }
+
+    #[test_case]
+    fn rejects_accounts_not_created_by_a_staking_pool_factory() {
+        for account in [
+            "poolv1.near",
+            "pool.near",
+            ".poolv1.near",
+            "a.b.poolv1.near",
+            "xtoken.ref-finance.near",
+            "evilpoolv1.near",
+            "x.poolv1.near.evil.near",
+            "lst-pool.near",
+            "x.poolv1.testnet",
+            // created by pool.near, whose pools can upgrade their code
+            "svrn.pool.near",
+        ] {
+            assert!(!is_staking_pool_account(account));
+        }
+    }
+
+    #[test_case]
+    fn rejects_amount_with_extra_fields() {
+        let args = r#"{"account_id":"alice.near","amount":"1000000000000000000000000"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn rejects_amount_with_key_prefix_field() {
+        let args = r#"{"total_amount":"999000000000000000000000000","amount":"5000000000000000000000000"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn rejects_duplicate_amount() {
+        let args = r#"{"amount":"1","amount":"2"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn rejects_amount_with_trailing_data() {
+        let args = r#"{"amount":"1"}{"beneficiary_id":"x"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, None);
+    }
+
+    #[test_case]
+    fn decodes_empty_args_for_methods_without_amount() {
+        for args in ["", "{}", " { } "] {
+            assert!(matches!(
+                decode_stake_args("unstake_all", make_args(args), true),
+                StakeArgs::Decoded(None)
+            ));
+        }
+    }
+
+    #[test_case]
+    fn keeps_raw_args_when_not_strictly_decoded() {
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args(r#"{"amount":"1"}"#), true),
+            StakeArgs::RawStr(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{}"), true),
+            StakeArgs::RawStr(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake", make_args(r#"{"amount":"1"}"#), false),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
+    fn keeps_non_printable_raw_args_in_hex() {
+        assert!(matches!(
+            decode_stake_args("unstake", make_args("{\"amount\":\"\u{e9}\"}"), true),
+            StakeArgs::RawHex(_)
+        ));
+        assert!(matches!(
+            decode_stake_args("unstake_all", make_args("{\n}"), true),
+            StakeArgs::RawHex(_)
+        ));
+    }
+
+    #[test_case]
+    fn parses_zero_amount() {
+        let args = r#"{"amount":"0"}"#;
+        let mut s = make_args(args);
+        let result = try_parse_amount_from_args(&mut s);
+        assert_eq!(result, Some(near_token::NearToken::from_yoctonear(0)));
+    }
+
+    #[test_case]
+    fn stake_args_decoded_are_not_truncated() {
+        let args = make_args(r#"{"amount":"1"}"#);
+        assert!(!decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_string_over_display_limit_are_truncated() {
+        let bytes = [b'x'; 201];
+        let mut args = FnCallCappedString::new();
+        assert!(args
+            .deserialize_with_bytes_count(&mut &bytes[..], 201)
+            .is_ok());
+        assert!(decode_stake_args("unstake", args, true).truncated());
+    }
+
+    #[test_case]
+    fn stake_args_raw_binary_at_and_over_display_limit() {
+        for (len, truncated) in [(100usize, false), (101, true)] {
+            let bytes = [0x80u8; 101];
+            let mut args = FnCallCappedString::new();
+            assert!(args
+                .deserialize_with_bytes_count(&mut &bytes[..len], len as u32)
+                .is_err());
+            assert_eq!(
+                decode_stake_args("unstake", args, false).truncated(),
+                truncated
+            );
+        }
+    }
 }

@@ -1,30 +1,34 @@
 use crate::app_ui::aliases::FnCallHexDisplay;
 use crate::app_ui::fields_writer::FieldsWriter;
-use crate::utils::types::elipsis_fields::{ElipsisFields, EllipsisBuffer};
+use crate::sign_ui::blind_signing::{BlindSigned, SizeBuffer};
+use crate::utils::types::review_field::ReviewField;
+#[cfg(any(target_os = "stax", target_os = "flex", target_os = "apex_p"))]
+use ledger_device_sdk::nbgl::Field;
+#[cfg(any(target_os = "nanox", target_os = "nanosplus"))]
+use ledger_device_sdk::ui::gadgets::Field;
 
-pub struct FieldsContext {
-    pub args_display_buf: EllipsisBuffer,
-}
+/// action type (1) + Method Name (1) +
+/// Gas (1) + Deposit (1) + Args Binary (1) + Args size (0-1, signed blind)
+const MAX_FIELDS: usize = 6;
 
-impl FieldsContext {
-    pub fn new() -> Self {
-        Self {
-            args_display_buf: EllipsisBuffer::default(),
-        }
-    }
-}
-
-/// action type (1) + Method Name `ElipsisFields` (1-2) +
-/// Gas (1) + Deposit (1) + Args Binary `ElipsisFields` (1-2)
-const MAX_FIELDS: usize = 7;
-
-pub fn format<'b, 'a: 'b>(
+pub fn format<'b>(
     args: &'b FnCallHexDisplay,
-    field_context: &'a mut FieldsContext,
+    blind: Option<&BlindSigned>,
+    size_buf: &'b mut SizeBuffer,
     writer: &'_ mut FieldsWriter<'b, MAX_FIELDS>,
 ) {
-    let args_fields =
-        ElipsisFields::from_hex_display(args, "Args Binary", &mut field_context.args_display_buf);
-
-    writer.push_fields(args_fields);
+    match blind {
+        None => writer.push_field(ReviewField::from_hex_display(args, "Args Binary")),
+        Some(blind) => {
+            writer.push_field(ReviewField::from_hex_display_blind(
+                args,
+                "Args Binary",
+                blind,
+            ));
+            writer.push_field(ReviewField::new(Field {
+                name: "Args size",
+                value: blind.size_description(args.shown_bytes(), size_buf),
+            }));
+        }
+    }
 }
