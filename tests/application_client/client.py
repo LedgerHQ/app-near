@@ -121,8 +121,11 @@ def navigate_blind_signing(
     """Answers the screens shown before a value that cannot be displayed in full."""
     if firmware.device.startswith("nano"):
         # The "disabled" page is a single page, which any button dismisses.
+        # The texts are regex patterns anchored at the start of each screen event. When the
+        # page is drawn right after "Receiving transaction" (single-chunk NEP-413 message),
+        # speculos reports both pages' texts in one event, so this one must match anywhere.
         text = {
-            BLIND_SIGNING_DISABLED: "Blind signing must",
+            BLIND_SIGNING_DISABLED: ".*Blind signing must",
             BLIND_SIGNING_AHEAD: "Continue",
             BLIND_SIGNING_BACK_TO_SAFETY: "Reject",
         }[condition]
