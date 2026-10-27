@@ -33,14 +33,20 @@ pub type SizeBuffer = Buffer<40>;
 impl BlindSigned {
     /// Describes how much of the value the review shows, for a field next to it.
     pub fn size_description<'a>(&self, shown_bytes: usize, buf: &'a mut SizeBuffer) -> &'a str {
-        let mut num_out = U32Buffer::default();
-        // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
-        buf.write_str(self.total_bytes.numtoa_str(10, &mut num_out));
-        buf.write_str(" bytes, first ");
-        buf.write_str((shown_bytes as u32).numtoa_str(10, &mut num_out));
-        buf.write_str(" shown");
-        buf.as_str()
+        describe_size(self.total_bytes, shown_bytes, buf)
     }
+}
+
+/// `"<total_bytes> bytes, first <shown_bytes> shown"`, for a review that shows several
+/// truncated values against one approval.
+pub fn describe_size(total_bytes: u32, shown_bytes: usize, buf: &mut SizeBuffer) -> &str {
+    let mut num_out = U32Buffer::default();
+    // numtoa_buf has to be at least 10 bytes for u32 (4 bytes) : ok
+    buf.write_str(total_bytes.numtoa_str(10, &mut num_out));
+    buf.write_str(" bytes, first ");
+    buf.write_str((shown_bytes as u32).numtoa_str(10, &mut num_out));
+    buf.write_str(" shown");
+    buf.as_str()
 }
 
 /// Asks to sign a value of `total_bytes` that the review cannot display in full.
