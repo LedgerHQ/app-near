@@ -37,7 +37,8 @@ impl Payload {
     /// must be only called once after `Self::new` to avoid unexpected panics
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
         self.message_len = u32::deserialize_reader(reader)?;
-        self.message.deserialize_with_bytes_count(reader, self.message_len)?;
+        self.message
+            .deserialize_with_bytes_count(reader, self.message_len)?;
 
         let nonce: NonceBuffer = BorshDeserialize::deserialize_reader(reader)?;
         self.nonce = nonce;
