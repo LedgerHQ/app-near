@@ -47,4 +47,4 @@ jobs:
         pip install --extra-index-url https://test.pypi.org/simple/ -r tests/requirements.txt
     - name: Mypy type checking
       run: |
-        mypy tests/application_client/
+        mypy --config-file tests/setup.cfg tests/application_client/
