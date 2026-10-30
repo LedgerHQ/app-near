@@ -32,18 +32,22 @@ pub fn handler(mut stream: SingleTxStream<'_>) -> Result<Signature, AppSW> {
         .deserialize_reader_in_place(&mut stream)
         .map_err(|_err| AppSW::TxParsingFail)?;
 
-    // The message is never signed unless every field can be displayed in full,
-    // with each byte shown as its own glyph. None of these fields is validated
-    // on chain, the recipient included.
+    // A message is clear-signed only when every field is displayed in full, with
+    // each byte shown as its own glyph. Otherwise it is signed blind, like
+    // function-call arguments: the user must have enabled blind signing in the
+    // settings and accept the warning, and the review shows what fits. None of
+    // these fields is validated on chain, the recipient included.
     let callback_url_displayable = payload.callback_url.as_ref().is_none_or(displayable);
-    if !displayable(&payload.message)
+    let blind = if !displayable(&payload.message)
         || !displayable(&payload.recipient)
         || !callback_url_displayable
     {
-        return Err(AppSW::TxParsingFail);
-    }
+        Some(sign_ui::blind_signing::approve(payload.message_len)?)
+    } else {
+        None
+    };
 
-    if !sign_ui::nep413::payload::ui_display(&mut payload) {
+    if !sign_ui::nep413::payload::ui_display(&mut payload, blind.as_ref()) {
         return Err(AppSW::Deny);
     }
 

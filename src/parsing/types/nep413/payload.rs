@@ -14,23 +14,31 @@ pub type CappedCallbackUrl = CappedString<100>;
 
 pub struct Payload {
     pub message: NEP413CappedString,
+    /// Declared length of `message`, which may exceed what the buffer holds.
+    pub message_len: u32,
     pub nonce: NonceBuffer,
     pub recipient: CappedAccountId,
     pub callback_url: Option<CappedCallbackUrl>,
+    /// Declared length of `callback_url`, which may exceed what the buffer holds.
+    pub callback_url_len: u32,
 }
 
 impl Payload {
     pub fn new() -> Self {
         Self {
             message: NEP413CappedString::new(),
+            message_len: 0,
             nonce: NonceBuffer::default(),
             recipient: CappedAccountId::new(),
             callback_url: Some(CappedCallbackUrl::new()),
+            callback_url_len: 0,
         }
     }
     /// must be only called once after `Self::new` to avoid unexpected panics
     pub fn deserialize_reader_in_place<R: Read>(&mut self, reader: &mut R) -> Result<()> {
-        self.message.deserialize_reader_in_place(reader)?;
+        self.message_len = u32::deserialize_reader(reader)?;
+        self.message
+            .deserialize_with_bytes_count(reader, self.message_len)?;
 
         let nonce: NonceBuffer = BorshDeserialize::deserialize_reader(reader)?;
         self.nonce = nonce;
@@ -44,10 +52,11 @@ impl Payload {
         } else if option_flag == 1 {
             // .unwrap() is ok if `self.callback_url` is Some, which holds true
             // for calling `self.deserialize_reader_in_place` once after `Self::new`
+            self.callback_url_len = u32::deserialize_reader(reader)?;
             self.callback_url
                 .as_mut()
                 .unwrap()
-                .deserialize_reader_in_place(reader)?;
+                .deserialize_with_bytes_count(reader, self.callback_url_len)?;
         } else {
             return Err(Error::from(ErrorKind::InvalidData));
         }
