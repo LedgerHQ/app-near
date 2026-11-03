@@ -54,7 +54,8 @@ pub fn ui_display_pk_base58(public_key: &crypto::PublicKeyBe) -> Result<bool, Ap
     {
         let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
-            .review_title("Confirm Public Key");
+            .review_title("Confirm Public Key")
+            .set_tag_value_list(&[]);
 
         let res = review.show(out_buf.as_str());
 
@@ -92,7 +93,8 @@ pub fn ui_display_hex(public_key: &crypto::PublicKeyBe) -> Result<bool, AppSW> {
     {
         let review: NbglAddressReview = NbglAddressReview::new()
             .glyph(&NEAR_LOGO)
-            .review_title("Confirm Wallet ID");
+            .review_title("Confirm Wallet ID")
+            .set_tag_value_list(&[]);
 
         let res = review.show(pbkey_str);
         let status = NbglReviewStatus::new();
